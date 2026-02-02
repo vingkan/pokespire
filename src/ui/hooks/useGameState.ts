@@ -145,13 +145,14 @@ export function useGameState() {
         return prev;
       }
 
-      let newBattleState = processTurn(prev.battle, action);
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useGameState.ts:88',message:'handleBattleAction - after processTurn',data:{newResult:newBattleState.result,hasPlayerParty:newBattleState.playerParty.length>0,hasEnemies:newBattleState.enemies.length>0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
+      try {
+        let newBattleState = processTurn(prev.battle, action);
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useGameState.ts:88',message:'handleBattleAction - after processTurn',data:{newResult:newBattleState.result,hasPlayerParty:newBattleState.playerParty.length>0,hasEnemies:newBattleState.enemies.length>0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
 
-      // If battle ended, handle it
-      if (newBattleState.result === 'victory' || newBattleState.result === 'defeat') {
+        // If battle ended, handle it
+        if (newBattleState.result === 'victory' || newBattleState.result === 'defeat') {
         // #region agent log
         fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useGameState.ts:93',message:'Battle ended',data:{result:newBattleState.result,hasCampaign:!!prev.campaign},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
         // #endregion
@@ -190,14 +191,26 @@ export function useGameState() {
         }
       }
 
-      const newState = {
-        ...prev,
-        battle: newBattleState,
-      };
-      // #region agent log
-      fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useGameState.ts:125',message:'handleBattleAction - returning ongoing state',data:{screen:newState.screen,hasBattle:!!newState.battle,battleResult:newState.battle?.result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
-      return newState;
+        const newState = {
+          ...prev,
+          battle: newBattleState,
+        };
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useGameState.ts:125',message:'handleBattleAction - returning ongoing state',data:{screen:newState.screen,hasBattle:!!newState.battle,battleResult:newState.battle?.result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+        return newState;
+      } catch (error) {
+        // Log error and return state with error flag
+        console.error('Error processing battle action:', error);
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useGameState.ts:202',message:'ERROR in handleBattleAction',data:{error:error instanceof Error ? error.message : String(error),actionType:action.type},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+        // #endregion
+        // Return previous state unchanged, but with error flag
+        return {
+          ...prev,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
     });
   }, []);
 
@@ -277,8 +290,16 @@ export function useGameState() {
     });
   }, []);
 
+  const handleClearError = useCallback(() => {
+    setGameState(prev => {
+      const { error, ...rest } = prev;
+      return rest;
+    });
+  }, []);
+
   return {
     gameState,
+    handleClearError,
     handleStartCampaign,
     handleNodeClick,
     handleBattleAction,

@@ -100,4 +100,5 @@ export interface GameState {
     name: string;
     pokemonId?: PokemonId;
   }>;
+  error?: string; // Error message if an error occurred
 }

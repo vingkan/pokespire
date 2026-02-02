@@ -12,9 +12,10 @@ interface CombatScreenProps {
   battleState: BattleState;
   onAction: (action: Action) => void;
   onBattleEnd: (result: 'victory' | 'defeat') => void;
+  onResetGame?: () => void;
 }
 
-export function CombatScreen({ battleState, onAction, onBattleEnd }: CombatScreenProps) {
+export function CombatScreen({ battleState, onAction, onBattleEnd, onResetGame }: CombatScreenProps) {
   // #region agent log
   fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CombatScreen.tsx:16',message:'CombatScreen render',data:{result:battleState.result,turnIndex:battleState.currentTurnIndex,turnOrderLength:battleState.turnOrder.length,playerPartyLength:battleState.playerParty.length,enemiesLength:battleState.enemies.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
   // #endregion
@@ -229,126 +230,212 @@ export function CombatScreen({ battleState, onAction, onBattleEnd }: CombatScree
   const selectedCard = selectedCardId ? getCardDefinition(selectedCardId) : undefined;
   const canPlaySelectedCard = selectedCard && currentCombatant.currentMana >= selectedCard.cost;
 
+  const handleResetClick = () => {
+    if (onResetGame && window.confirm('Are you sure you want to reset the game? This will clear all progress.')) {
+      onResetGame();
+    }
+  };
+
   return (
     <div
       style={{
-        minHeight: '100vh',
-        padding: '20px',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: 0,
         backgroundColor: '#0f172a',
         color: 'white',
+        overflow: 'hidden',
+        position: 'relative',
       }}
     >
-      <TurnOrderBar turnOrder={battleState.turnOrder} currentTurnIndex={battleState.currentTurnIndex} />
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '24px' }}>
-        {/* Player Party */}
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: '20px', marginBottom: '16px' }}>Your Party</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {battleState.playerParty.map((pokemon, index) => {
-              const needsTarget = selectedCardIndex !== undefined && currentCombatant && (() => {
-                const cardId = currentCombatant.hand[selectedCardIndex];
-                const card = cardId ? getCardDefinition(cardId) : null;
-                return card && (card.effect.type === 'damage' || card.effect.type === 'status' || card.effect.type === 'heal') 
-                  && card.effect.target === 'single' && ((card.effect.side === 'ally' && card.effect.type !== 'heal') || card.effect.type === 'heal');
-              })();
-              // Use unique identifier: pokemonId + index to handle duplicates
-              const uniqueId = `${pokemon.pokemonId}-${index}`;
-              const isSelected = needsTarget && selectedTargetIds.includes(uniqueId);
-              return (
-                <PokemonDisplay
-                  key={uniqueId}
-                  pokemon={pokemon}
-                  isEnemy={false}
-                  isCurrentTurn={pokemon.pokemonId === currentCombatant.pokemonId}
-                  isSelected={isSelected}
-                  onClick={needsTarget ? () => handleTargetClick(uniqueId) : undefined}
-                />
-              );
-            })}
-          </div>
-        </div>
+      {/* Reset Button - Top Right Corner */}
+      {onResetGame && (
+        <button
+          onClick={handleResetClick}
+          style={{
+            position: 'fixed',
+            top: '8px',
+            right: '8px',
+            zIndex: 1000,
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            backgroundColor: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#ef4444')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#6b7280')}
+        >
+          Reset
+        </button>
+      )}
 
-        {/* Enemies */}
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: '20px', marginBottom: '16px' }}>Enemies</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {battleState.enemies.map((pokemon, index) => {
-              const needsTarget = selectedCardIndex !== undefined && currentCombatant && (() => {
-                const cardId = currentCombatant.hand[selectedCardIndex];
-                const card = cardId ? getCardDefinition(cardId) : null;
-                return card && (card.effect.type === 'damage' || card.effect.type === 'status' || card.effect.type === 'heal') 
-                  && card.effect.target === 'single' && card.effect.side === 'enemy';
-              })();
-              // Use unique identifier: pokemonId + index to handle duplicates
-              const uniqueId = `${pokemon.pokemonId}-${index}`;
-              const isSelected = needsTarget && selectedTargetIds.includes(uniqueId);
-              return (
-                <PokemonDisplay
-                  key={uniqueId}
-                  pokemon={pokemon}
-                  isEnemy={true}
-                  isCurrentTurn={pokemon.pokemonId === currentCombatant.pokemonId}
-                  isSelected={isSelected}
-                  onClick={needsTarget ? () => handleTargetClick(uniqueId) : undefined}
-                />
-              );
-            })}
-          </div>
+      {/* Turn Order Bar - Fixed Height */}
+      <div style={{ flex: '0 0 auto', padding: '8px 16px', backgroundColor: '#0f172a' }}>
+        <TurnOrderBar turnOrder={battleState.turnOrder} currentTurnIndex={battleState.currentTurnIndex} />
+      </div>
+
+      {/* Battlefield Section - Horizontal Row */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '16px',
+          overflow: 'hidden',
+          minHeight: 0,
+        }}
+      >
+        {/* Section Labels */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', padding: '0 8px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#60a5fa' }}>Your Party</div>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ef4444' }}>Enemies</div>
+        </div>
+        
+        {/* Horizontal Pokemon Row */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '12px',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            padding: '8px',
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* Player Party */}
+          {battleState.playerParty.map((pokemon, index) => {
+            const needsTarget = selectedCardIndex !== undefined && currentCombatant && (() => {
+              const cardId = currentCombatant.hand[selectedCardIndex];
+              const card = cardId ? getCardDefinition(cardId) : null;
+              return card && (card.effect.type === 'damage' || card.effect.type === 'status' || card.effect.type === 'heal') 
+                && card.effect.target === 'single' && ((card.effect.side === 'ally' && card.effect.type !== 'heal') || card.effect.type === 'heal');
+            })();
+            // Use unique identifier: pokemonId + index to handle duplicates
+            const uniqueId = `${pokemon.pokemonId}-${index}`;
+            const isSelected = needsTarget && selectedTargetIds.includes(uniqueId);
+            return (
+              <PokemonDisplay
+                key={uniqueId}
+                pokemon={pokemon}
+                isEnemy={false}
+                isCurrentTurn={pokemon.pokemonId === currentCombatant.pokemonId}
+                isSelected={isSelected}
+                onClick={needsTarget ? () => handleTargetClick(uniqueId) : undefined}
+              />
+            );
+          })}
+          
+          {/* Visual Separator */}
+          {battleState.playerParty.length > 0 && battleState.enemies.length > 0 && (
+            <div
+              style={{
+                width: '2px',
+                backgroundColor: '#374151',
+                margin: '0 8px',
+                alignSelf: 'stretch',
+              }}
+            />
+          )}
+          
+          {/* Enemies */}
+          {battleState.enemies.map((pokemon, index) => {
+            const needsTarget = selectedCardIndex !== undefined && currentCombatant && (() => {
+              const cardId = currentCombatant.hand[selectedCardIndex];
+              const card = cardId ? getCardDefinition(cardId) : null;
+              return card && (card.effect.type === 'damage' || card.effect.type === 'status' || card.effect.type === 'heal') 
+                && card.effect.target === 'single' && card.effect.side === 'enemy';
+            })();
+            // Use unique identifier: pokemonId + index to handle duplicates
+            const uniqueId = `${pokemon.pokemonId}-${index}`;
+            const isSelected = needsTarget && selectedTargetIds.includes(uniqueId);
+            return (
+              <PokemonDisplay
+                key={uniqueId}
+                pokemon={pokemon}
+                isEnemy={true}
+                isCurrentTurn={pokemon.pokemonId === currentCombatant.pokemonId}
+                isSelected={isSelected}
+                onClick={needsTarget ? () => handleTargetClick(uniqueId) : undefined}
+              />
+            );
+          })}
         </div>
       </div>
 
-      {/* Hand and Controls */}
+      {/* Hand and Controls - Fixed Height */}
       {isPlayerTurn && currentCombatant && (
-        <div style={{ marginTop: '32px', padding: '20px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>
-              {currentCombatant.playerId}'s Turn - {getPokemonStats(currentCombatant.pokemonId).name}
-            </h3>
-            <div style={{ fontSize: '14px', color: '#9ca3af' }}>
-              Deck: {currentCombatant.deck.length} | Discard: {currentCombatant.discard.length}
+        <div
+          style={{
+            flex: '0 0 auto',
+            height: '250px',
+            padding: '16px',
+            backgroundColor: '#1e293b',
+            borderTop: '2px solid #374151',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+          }}
+        >
+          <div style={{ marginBottom: '12px', flex: '0 0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', marginBottom: '4px', fontWeight: 'bold' }}>
+                {currentCombatant.playerId}'s Turn - {getPokemonStats(currentCombatant.pokemonId).name}
+              </h3>
+              <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                Deck: {currentCombatant.deck.length} | Discard: {currentCombatant.discard.length}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              {selectedCardId && canPlaySelectedCard && (
+                <button
+                  onClick={handlePlayCard}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    backgroundColor: '#22c55e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  Play Card
+                </button>
+              )}
+              <button
+                onClick={handleEndTurn}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                End Turn
+              </button>
             </div>
           </div>
           
-          <HandDisplay
-            pokemon={currentCombatant}
-            selectedCardIndex={selectedCardIndex}
-            onCardClick={handleCardClick}
-          />
-
-          <div style={{ marginTop: '16px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            {selectedCardId && canPlaySelectedCard && (
-              <button
-                onClick={handlePlayCard}
-                style={{
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  backgroundColor: '#22c55e',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                }}
-              >
-                Play Card
-              </button>
-            )}
-            <button
-              onClick={handleEndTurn}
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
-            >
-              End Turn
-            </button>
+          <div style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden' }}>
+            <HandDisplay
+              pokemon={currentCombatant}
+              selectedCardIndex={selectedCardIndex}
+              onCardClick={handleCardClick}
+            />
           </div>
         </div>
       )}

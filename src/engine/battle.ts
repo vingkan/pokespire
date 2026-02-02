@@ -103,15 +103,41 @@ function startNewRound(battleState: BattleState): BattleState {
   // Reset round tracking
   const newRoundActed = new Set<string>();
   
-  // Mark all as not acted
-  const updatedPlayerParty = newPlayerParty.map(p => ({ ...p, hasActedThisRound: false }));
-  const updatedEnemies = newEnemies.map(e => ({ ...e, hasActedThisRound: false }));
+  // Draw cards for all living Pokemon at end of round (up to 5 cards each)
+  const updatedPlayerParty = newPlayerParty.map(p => {
+    if (p.currentHp <= 0) {
+      // Dead Pokemon don't draw cards, but still mark as not acted
+      return { ...p, hasActedThisRound: false };
+    }
+    const { hand, deck, discard } = drawCards(p.deck, p.hand, p.discard, 5);
+    return { ...p, hand, deck, discard, hasActedThisRound: false };
+  });
+  
+  const updatedEnemies = newEnemies.map(e => {
+    if (e.currentHp <= 0) {
+      // Dead Pokemon don't draw cards, but still mark as not acted
+      return { ...e, hasActedThisRound: false };
+    }
+    const { hand, deck, discard } = drawCards(e.deck, e.hand, e.discard, 5);
+    return { ...e, hand, deck, discard, hasActedThisRound: false };
+  });
+
+  // Update turn order with the new hand states
+  const updatedTurnOrder = turnOrder.map(pokemon => {
+    if (pokemon.playerId) {
+      const updated = updatedPlayerParty.find(p => p.pokemonId === pokemon.pokemonId);
+      return updated || pokemon;
+    } else {
+      const updated = updatedEnemies.find(e => e.pokemonId === pokemon.pokemonId);
+      return updated || pokemon;
+    }
+  });
 
   return {
     ...battleState,
     playerParty: updatedPlayerParty,
     enemies: updatedEnemies,
-    turnOrder,
+    turnOrder: updatedTurnOrder,
     currentTurnIndex: 0,
     currentRound: battleState.currentRound + 1,
     roundActed: newRoundActed,
@@ -119,21 +145,15 @@ function startNewRound(battleState: BattleState): BattleState {
 }
 
 function startPokemonTurn(pokemon: PokemonCombatState): PokemonCombatState {
-  // Regenerate mana
+  // Regenerate mana only - cards are drawn at end of round, not start of turn
   const newMana = Math.min(
     pokemon.maxMana,
     pokemon.currentMana + pokemon.manaRegen
   );
 
-  // Draw 5 cards at start of turn
-  const { hand, deck, discard } = drawCards(pokemon.deck, pokemon.hand, pokemon.discard, 5);
-
   return {
     ...pokemon,
     currentMana: newMana,
-    hand,
-    deck,
-    discard,
   };
 }
 
@@ -146,7 +166,7 @@ export function processTurn(
   }
 
   let newBattleState = { ...battleState };
-  const currentCombatant = newBattleState.turnOrder[newBattleState.currentTurnIndex];
+  let currentCombatant = newBattleState.turnOrder[newBattleState.currentTurnIndex];
   
   if (!currentCombatant || currentCombatant.currentHp <= 0) {
     // Skip dead combatants
@@ -189,11 +209,14 @@ export function processTurn(
     if (turnOrderIndex >= 0) {
       newBattleState.turnOrder[turnOrderIndex] = updatedCombatant;
     }
+    
+    // Update currentCombatant reference to use the updated one
+    currentCombatant = updatedCombatant;
   }
 
-  // Process action
+  // Process action - use the most up-to-date combatant state
   if (action.type === 'playCard') {
-    newBattleState = processPlayCard(newBattleState, action);
+    newBattleState = processPlayCard(newBattleState, action, currentCombatant);
   } else if (action.type === 'endTurn') {
     newBattleState = processEndTurn(newBattleState);
   }
@@ -206,9 +229,14 @@ export function processTurn(
 
 function processPlayCard(
   battleState: BattleState,
-  action: Action & { type: 'playCard' }
+  action: Action & { type: 'playCard' },
+  currentCombatantOverride?: PokemonCombatState
 ): BattleState {
-  const currentCombatant = battleState.turnOrder[battleState.currentTurnIndex];
+  // Use override if provided (most up-to-date state), otherwise get from turn order
+  const currentCombatant = currentCombatantOverride || battleState.turnOrder[battleState.currentTurnIndex];
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:227',message:'processPlayCard entry',data:{casterId:action.casterId,cardId:action.cardId,currentCombatantMana:currentCombatant?.currentMana,currentCombatantHand:currentCombatant?.hand,currentCombatantHandLength:currentCombatant?.hand.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   if (!currentCombatant || currentCombatant.pokemonId !== action.casterId) {
     return battleState; // Invalid action
   }
@@ -222,6 +250,9 @@ function processPlayCard(
   if (currentCombatant.currentMana < card.cost) {
     return battleState; // Can't afford
   }
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:241',message:'Card affordability check',data:{cardName:card.name,cardCost:card.cost,currentMana:currentCombatant.currentMana,canAfford:currentCombatant.currentMana >= card.cost},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
 
   // Get targets
   const targets = getCardTargets(card, currentCombatant, battleState, action.targetIds);
@@ -232,25 +263,51 @@ function processPlayCard(
   // Resolve card effect
   let newBattleState = resolveCardEffect(card, currentCombatant, targets, battleState);
 
-  // Update caster's mana and hand (use updated state from card effect resolution)
+  // Update caster's mana and hand (use currentCombatant's hand/mana, not updatedCaster's)
   const casterParty = currentCombatant.playerId ? newBattleState.playerParty : newBattleState.enemies;
   const casterIndex = casterParty.findIndex(p => p.pokemonId === action.casterId);
   if (casterIndex >= 0) {
     // Get the updated caster (block may have been updated by card effect)
     const updatedCaster = casterParty[casterIndex];
-    const { hand, discard } = moveCardToDiscard(
-      updatedCaster.hand,
-      action.cardId,
-      updatedCaster.discard
-    );
     
-    // Update only mana, hand, and discard - preserve block and other stats from card effect
+    // Get the most up-to-date combatant from battleState (hand may have changed from previous actions)
+  const latestCombatant = casterParty[casterIndex];
+  
+  // Check if card is still in hand (it might have been played already in a previous action)
+  if (!latestCombatant.hand.includes(action.cardId)) {
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:264',message:'Card not in hand - skipping',data:{cardId:action.cardId,hand:latestCombatant.hand,handLength:latestCombatant.hand.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'I'})}).catch(()=>{});
+    // #endregion
+    return battleState; // Card already played or not in hand, skip this action
+  }
+  
+  // Use latestCombatant's hand (most up-to-date state) to find the card
+  // Use currentCombatant's mana (source of truth after regeneration) to calculate new mana
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:264',message:'Before moveCardToDiscard',data:{cardId:action.cardId,handBefore:latestCombatant.hand,handLength:latestCombatant.hand.length,cardInHand:latestCombatant.hand.includes(action.cardId),currentCombatantMana:currentCombatant.currentMana,latestCombatantMana:latestCombatant.currentMana,cardCost:card.cost},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+  // #endregion
+  const { hand, discard } = moveCardToDiscard(
+    latestCombatant.hand,  // Use latest to check if card exists
+    action.cardId,
+    currentCombatant.discard  // Use currentCombatant's discard
+  );
+    
+    // Calculate new mana from currentCombatant's mana (source of truth after regeneration)
+    const newMana = currentCombatant.currentMana - card.cost;
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:271',message:'Mana calculation',data:{currentCombatantMana:currentCombatant.currentMana,latestCombatantMana:latestCombatant.currentMana,cardCost:card.cost,calculatedNewMana:newMana,updatedCasterMana:updatedCaster.currentMana},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    
+    // Update mana, hand, and discard - preserve block and other stats from card effect
     casterParty[casterIndex] = {
       ...updatedCaster,
-      currentMana: updatedCaster.currentMana - card.cost,
+      currentMana: newMana,
       hand,
       discard,
     };
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:279',message:'After updating caster',data:{finalMana:casterParty[casterIndex].currentMana,handLength:casterParty[casterIndex].hand.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     
     // #region agent log
     fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'battle.ts:250',message:'Updated caster after card play',data:{casterId:action.casterId,block:casterParty[casterIndex].block,mana:casterParty[casterIndex].currentMana},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});

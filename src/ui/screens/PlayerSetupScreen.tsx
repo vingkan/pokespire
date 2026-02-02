@@ -38,19 +38,20 @@ export function PlayerSetupScreen({ onContinue, onBack }: PlayerSetupScreenProps
   return (
     <div
       style={{
+        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '20px',
+        justifyContent: 'flex-start',
+        padding: '40px',
         backgroundColor: '#0f172a',
         color: 'white',
+        overflow: 'auto',
       }}
     >
-      <h1 style={{ fontSize: '36px', marginBottom: '32px' }}>Player Setup</h1>
+      <h1 style={{ fontSize: '36px', marginBottom: '32px', marginTop: '40px' }}>Player Setup</h1>
       
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ width: '100%', maxWidth: '700px', marginBottom: '24px' }}>
         <label style={{ display: 'block', marginBottom: '12px', fontSize: '18px' }}>
           Number of Players:
         </label>
@@ -75,7 +76,7 @@ export function PlayerSetupScreen({ onContinue, onBack }: PlayerSetupScreenProps
         </div>
       </div>
 
-      <div style={{ width: '100%', maxWidth: '500px', marginBottom: '32px' }}>
+      <div style={{ width: '100%', maxWidth: '700px', marginBottom: '32px' }}>
         {players.map((player, index) => (
           <div key={player.id} style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
@@ -102,6 +103,7 @@ export function PlayerSetupScreen({ onContinue, onBack }: PlayerSetupScreenProps
 
       <div style={{ display: 'flex', gap: '16px' }}>
         <button
+          tabIndex={0}
           onClick={onBack}
           style={{
             padding: '12px 24px',
@@ -116,6 +118,7 @@ export function PlayerSetupScreen({ onContinue, onBack }: PlayerSetupScreenProps
           Back
         </button>
         <button
+          tabIndex={1}
           onClick={handleContinue}
           disabled={!players.every(p => p.name.trim())}
           style={{

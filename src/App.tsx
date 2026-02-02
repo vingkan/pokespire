@@ -98,8 +98,94 @@ function App() {
     const { gameState: state } = gameState;
 
     // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:97',message:'App render - game screen routing',data:{screen:state.screen,hasBattle:!!state.battle,hasCampaign:!!state.campaign,battleResult:state.battle?.result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:97',message:'App render - game screen routing',data:{screen:state.screen,hasBattle:!!state.battle,hasCampaign:!!state.campaign,battleResult:state.battle?.result,hasError:!!state.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
+
+    // Error modal
+    if (state.error) {
+      return (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1e293b',
+              padding: '32px',
+              borderRadius: '12px',
+              maxWidth: '600px',
+              color: 'white',
+              border: '2px solid #ef4444',
+            }}
+          >
+            <h2 style={{ fontSize: '24px', marginBottom: '16px', color: '#ef4444' }}>
+              Game Error
+            </h2>
+            <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+              An error occurred while processing your action. The game state has not been changed.
+            </p>
+            <p style={{ marginBottom: '24px', fontSize: '14px', color: '#9ca3af', fontFamily: 'monospace', backgroundColor: '#111827', padding: '12px', borderRadius: '6px' }}>
+              {state.error}
+            </p>
+            <p style={{ marginBottom: '24px', fontSize: '14px', color: '#9ca3af' }}>
+              Please check the browser console for more details.
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => {
+                  // Clear error and continue
+                  gameState.handleClearError?.();
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  flex: 1,
+                }}
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => {
+                  // Clear error by resetting game state
+                  gameState.handleResetGame();
+                  setScreen('intro');
+                  setPlayers([]);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  flex: 1,
+                }}
+              >
+                Reset Game
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     if (state.screen === 'map' && state.campaign) {
       return (
@@ -116,6 +202,11 @@ function App() {
           battleState={state.battle}
           onAction={gameState.handleBattleAction}
           onBattleEnd={gameState.handleBattleEnd}
+          onResetGame={() => {
+            gameState.handleResetGame();
+            setScreen('intro');
+            setPlayers([]);
+          }}
         />
       );
     }

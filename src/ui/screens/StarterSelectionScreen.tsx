@@ -32,22 +32,23 @@ export function StarterSelectionScreen({ players, onStart, onBack }: StarterSele
   return (
     <div
       style={{
+        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '20px',
+        justifyContent: 'flex-start',
+        padding: '40px',
         backgroundColor: '#0f172a',
         color: 'white',
+        overflow: 'auto',
       }}
     >
-      <h1 style={{ fontSize: '36px', marginBottom: '32px' }}>Choose Your Starter</h1>
+      <h1 style={{ fontSize: '36px', marginBottom: '32px', marginTop: '40px' }}>Choose Your Starter</h1>
       
       {players.map((player, playerIndex) => {
         const selected = selections[player.id];
         return (
-          <div key={player.id} style={{ marginBottom: '32px', width: '100%', maxWidth: '800px' }}>
+          <div key={player.id} style={{ marginBottom: '32px', width: '100%', maxWidth: '1000px' }}>
             <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>
               {player.name} - Choose Your Pokemon
             </h2>

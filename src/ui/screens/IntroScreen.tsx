@@ -8,21 +8,23 @@ export function IntroScreen({ onStart, onReset, hasSavedGame }: IntroScreenProps
   return (
     <div
       style={{
+        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '20px',
+        padding: '40px',
         backgroundColor: '#0f172a',
         color: 'white',
+        overflow: 'auto',
       }}
     >
-      <h1 style={{ fontSize: '48px', marginBottom: '20px', textAlign: 'center' }}>Pokespire</h1>
+      <h1 style={{ fontSize: '48px', marginBottom: '24px', textAlign: 'center' }}>Pokespire</h1>
       <div
         style={{
-          maxWidth: '600px',
-          padding: '24px',
+          maxWidth: '800px',
+          width: '100%',
+          padding: '32px',
           backgroundColor: '#1e293b',
           borderRadius: '12px',
           marginBottom: '32px',

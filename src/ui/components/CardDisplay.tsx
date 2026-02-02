@@ -13,10 +13,12 @@ export function CardDisplay({ card, canAfford, isSelected = false, onClick }: Ca
       style={{
         border: isSelected ? '3px solid #fbbf24' : '2px solid #4b5563',
         borderRadius: '8px',
-        padding: '12px',
+        padding: '10px',
         backgroundColor: canAfford ? '#1f2937' : '#374151',
         cursor: canAfford && onClick ? 'pointer' : 'not-allowed',
-        minWidth: '150px',
+        minWidth: '140px',
+        width: '140px',
+        flexShrink: 0,
         opacity: canAfford ? 1 : 0.6,
         transition: 'all 0.2s',
       }}

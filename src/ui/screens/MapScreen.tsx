@@ -19,15 +19,16 @@ export function MapScreen({ campaignState, onNodeClick }: MapScreenProps) {
   return (
     <div
       style={{
-        minHeight: '100vh',
-        padding: '20px',
+        height: '100vh',
+        padding: '24px',
         backgroundColor: '#0f172a',
         color: 'white',
+        overflow: 'auto',
       }}
     >
       <h1 style={{ fontSize: '36px', marginBottom: '24px', textAlign: 'center' }}>Campaign Map</h1>
       
-      <div style={{ marginBottom: '32px', padding: '16px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', marginBottom: '32px', padding: '20px', backgroundColor: '#1e293b', borderRadius: '8px' }}>
         <h2 style={{ fontSize: '20px', marginBottom: '12px' }}>Party Status</h2>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {campaignState.party.map((member, i) => {
@@ -50,7 +51,7 @@ export function MapScreen({ campaignState, onNodeClick }: MapScreenProps) {
         </div>
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', marginBottom: '24px' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>Current Node: {currentNode?.name}</h2>
         {availablePaths.length > 0 && (
           <div>
@@ -75,7 +76,7 @@ export function MapScreen({ campaignState, onNodeClick }: MapScreenProps) {
         )}
       </div>
 
-      <div>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>All Nodes:</h3>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {allNodes.map(node => (

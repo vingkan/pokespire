@@ -10,7 +10,18 @@ interface HandDisplayProps {
 
 export function HandDisplay({ pokemon, selectedCardIndex, onCardClick }: HandDisplayProps) {
   return (
-    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: '12px',
+        flexWrap: 'nowrap',
+        justifyContent: 'flex-start',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        padding: '4px 0',
+        minHeight: '120px',
+      }}
+    >
       {pokemon.hand.map((cardId, index) => {
         const card = getCardDefinition(cardId);
         if (!card) return null;

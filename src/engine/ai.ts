@@ -32,9 +32,15 @@ function getFrontMostAlivePlayer(battleState: BattleState): PokemonCombatState |
 }
 
 export function chooseEnemyAction(battleState: BattleState, enemy: PokemonCombatState): Action[] {
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ai.ts:34',message:'chooseEnemyAction entry',data:{enemyId:enemy.pokemonId,enemyMana:enemy.currentMana,enemyHand:enemy.hand,enemyHandLength:enemy.hand.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
   const actions: Action[] = [];
   let remainingMana = enemy.currentMana;
   const affordableCards = getAffordableCards(enemy);
+  // #region agent log
+  fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ai.ts:37',message:'Affordable cards found',data:{affordableCount:affordableCards.length,affordableCardIds:affordableCards.map(c => c.cardId)},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'G'})}).catch(()=>{});
+  // #endregion
 
   // Greedily play cards in priority order
   for (const { card, cardId } of affordableCards) {
@@ -73,6 +79,9 @@ export function chooseEnemyAction(battleState: BattleState, enemy: PokemonCombat
       }
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/052177c7-b559-47bb-b50f-ee17a791e993',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ai.ts:76',message:'Adding playCard action',data:{cardId,cardName:card.name,cardCost:card.cost,remainingMana,enemyHand:enemy.hand,cardInHand:enemy.hand.includes(cardId)},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
     actions.push({
       type: 'playCard',
       cardId,
