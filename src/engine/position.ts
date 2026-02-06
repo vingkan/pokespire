@@ -61,13 +61,16 @@ export function getValidTargets(
       // Single target in effective front row only
       return enemies.filter(c => c.position.row === effectiveFrontRow);
 
-    case 'back_enemy':
-      // Single target in back row only (if back row still exists as back)
-      if (effectiveFrontRow === 'back') {
-        // Row collapsed - no valid back row targets
-        return [];
+    case 'back_enemy': {
+      // Single target in back row only (if back row exists)
+      // If no back row enemies exist, fall back to front row
+      const backEnemies = enemies.filter(c => c.position.row === 'back');
+      if (backEnemies.length > 0) {
+        return backEnemies;
       }
-      return enemies.filter(c => c.position.row === 'back');
+      // No back row - allow targeting front row instead
+      return enemies.filter(c => c.position.row === effectiveFrontRow);
+    }
 
     case 'any_enemy':
       // Can target any enemy
@@ -77,10 +80,16 @@ export function getValidTargets(
       // All enemies in effective front row (need to select one to activate)
       return enemies.filter(c => c.position.row === effectiveFrontRow);
 
-    case 'back_row':
+    case 'back_row': {
       // All enemies in back row
-      if (effectiveFrontRow === 'back') return [];
-      return enemies.filter(c => c.position.row === 'back');
+      // If no back row enemies exist, fall back to front row
+      const backEnemies = enemies.filter(c => c.position.row === 'back');
+      if (backEnemies.length > 0) {
+        return backEnemies;
+      }
+      // No back row - allow targeting front row instead
+      return enemies.filter(c => c.position.row === effectiveFrontRow);
+    }
 
     case 'any_row':
       // Can target any enemy (selecting one picks the whole row)

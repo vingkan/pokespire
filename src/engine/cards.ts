@@ -14,6 +14,7 @@ import {
   checkRelentless, checkPoisonPoint, isAttackCard
 } from './passives';
 import { shuffle, MAX_HAND_SIZE } from './deck';
+import { getTypeEffectiveness, getEffectivenessLabel } from './typeChart';
 import { applySlipstream } from './turns';
 
 // ============================================================
@@ -213,22 +214,22 @@ function resolveTargets(
     }
 
     case 'back_enemy': {
-      // Single target in back row
-      if (effectiveFrontRow === 'back') {
-        // Row collapsed - no valid back row targets
-        return [];
+      // Single target in back row, falls back to front if no back row exists
+      let validTargets = enemies.filter(c => c.position.row === 'back');
+      if (validTargets.length === 0) {
+        // No back row enemies - fall back to front row
+        validTargets = enemies.filter(c => c.position.row === effectiveFrontRow);
       }
-      const validTargets = enemies.filter(c => c.position.row === 'back');
       if (targetId) {
         const target = getCombatant(state, targetId);
         if (!validTargets.some(t => t.id === target.id)) {
-          throw new Error(`Target ${targetId} is not in back row`);
+          throw new Error(`Target ${targetId} is not a valid back_enemy target`);
         }
         return [target];
       }
       if (validTargets.length === 1) return [validTargets[0]];
       if (validTargets.length === 0) return [];
-      throw new Error('back_enemy requires targetId when multiple back targets exist');
+      throw new Error('back_enemy requires targetId when multiple targets exist');
     }
 
     case 'any_enemy': {
@@ -244,10 +245,13 @@ function resolveTargets(
       // AoE: all enemies in effective front row
       return enemies.filter(c => c.position.row === effectiveFrontRow);
 
-    case 'back_row':
-      // AoE: all enemies in back row (empty if row collapsed)
-      if (effectiveFrontRow === 'back') return [];
-      return enemies.filter(c => c.position.row === 'back');
+    case 'back_row': {
+      // AoE: all enemies in back row, falls back to front if no back row exists
+      const backEnemies = enemies.filter(c => c.position.row === 'back');
+      if (backEnemies.length > 0) return backEnemies;
+      // No back row enemies - fall back to front row
+      return enemies.filter(c => c.position.row === effectiveFrontRow);
+    }
 
     case 'any_row': {
       // Player picks a row (front or back), hits all enemies in that row
@@ -407,6 +411,17 @@ function buildDamageModifiers(
     });
   }
 
+  // Type Effectiveness: Calculate multiplier based on move type vs target types
+  const typeEffectiveness = getTypeEffectiveness(card.type, target.types);
+  const effectivenessLabel = getEffectivenessLabel(typeEffectiveness);
+  if (effectivenessLabel) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `${effectivenessLabel} (x${typeEffectiveness.toFixed(2)})`,
+    });
+  }
+
   return {
     isBlazeStrike,
     bastionBarrageBonus: bastionBonus,
@@ -419,6 +434,7 @@ function buildDamageModifiers(
     underdogBonus,
     ragingBullMultiplier,
     familyFuryBonus: scrappyBonus + hustleBonus + relentlessBonus,  // Combine flat bonuses
+    typeEffectiveness,
     ignoreEvasion: false,  // No passive currently ignores evasion
   };
 }
@@ -438,6 +454,7 @@ function buildDamageBreakdown(r: ReturnType<typeof applyCardDamage>): string {
   if (r.enfeeble > 0) parts.push(`-${r.enfeeble} Enfeeble`);
   if (r.blazeStrikeMultiplier > 1) parts.push(`x${r.blazeStrikeMultiplier} Blaze`);
   if (r.ragingBullMultiplier > 1) parts.push(`x${r.ragingBullMultiplier} Bull`);
+  if (r.typeEffectiveness !== 1.0) parts.push(`x${r.typeEffectiveness.toFixed(2)} Type`);
   if (r.bloomingCycleReduction > 0) parts.push(`-${r.bloomingCycleReduction} Blooming`);
   if (r.staticFieldReduction > 0) parts.push(`-${r.staticFieldReduction} Static`);
   if (r.thickHideReduction > 0) parts.push(`-${r.thickHideReduction} Hide`);

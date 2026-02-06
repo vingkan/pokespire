@@ -28,7 +28,8 @@ export interface BattleHook {
     playerPositions: Position[],
     enemyPositions: Position[],
     playerPassives: Map<number, string[]>,
-    enemyPassives: Map<number, string[]>
+    enemyPassives: Map<number, string[]>,
+    hpOverrides?: Map<string, { maxHp?: number; startPercent?: number }>
   ) => void;
   playCard: (cardIndex: number, targetId?: string) => void;
   endPlayerTurn: () => void;
@@ -322,7 +323,8 @@ export function useBattle(): BattleHook {
     playerPositions: Position[],
     enemyPositions: Position[],
     playerPassives: Map<number, string[]>,
-    enemyPassives: Map<number, string[]>
+    enemyPassives: Map<number, string[]>,
+    hpOverrides?: Map<string, { maxHp?: number; startPercent?: number }>
   ) => {
     // Create combat state
     const s = createCombatState(players, enemies, playerPositions, enemyPositions);
@@ -344,6 +346,26 @@ export function useBattle(): BattleHook {
         combatant.passiveIds = passiveIds;
       }
     });
+
+    // Apply HP overrides (999 HP, start at 50%, etc.)
+    if (hpOverrides) {
+      hpOverrides.forEach((override, key) => {
+        const [side, indexStr] = key.split('-');
+        const index = parseInt(indexStr);
+        const combatant = s.combatants.find(c =>
+          c.side === side && c.slotIndex === index
+        );
+        if (combatant) {
+          if (override.maxHp) {
+            combatant.maxHp = override.maxHp;
+            combatant.hp = override.maxHp;
+          }
+          if (override.startPercent !== undefined) {
+            combatant.hp = Math.floor(combatant.maxHp * override.startPercent);
+          }
+        }
+      });
+    }
 
     initializeBattle(s);
   }, [initializeBattle]);

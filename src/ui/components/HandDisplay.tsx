@@ -7,9 +7,12 @@ interface Props {
   combatant: Combatant;
   selectedIndex: number | null;
   onSelectCard: (index: number) => void;
+  onDragStart?: (index: number) => void;
+  onDragEnd?: () => void;
+  draggingIndex?: number | null;
 }
 
-export function HandDisplay({ combatant, selectedIndex, onSelectCard }: Props) {
+export function HandDisplay({ combatant, selectedIndex, onSelectCard, onDragStart, onDragEnd, draggingIndex }: Props) {
   return (
     <div style={{
       display: 'flex',
@@ -33,6 +36,9 @@ export function HandDisplay({ combatant, selectedIndex, onSelectCard }: Props) {
             canAfford={canAfford}
             isSelected={selectedIndex === idx}
             onClick={() => onSelectCard(idx)}
+            onDragStart={() => onDragStart?.(idx)}
+            onDragEnd={onDragEnd}
+            isDragging={draggingIndex === idx}
           />
         );
       })}

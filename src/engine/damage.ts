@@ -25,6 +25,7 @@ export interface DamageResult {
   underdogBonus: number;         // Bonus from Underdog (+2 for common 1-cost cards)
   ragingBullMultiplier: number;   // Multiplier from Raging Bull (1.5x Normal below 50% HP)
   familyFuryBonus: number;        // Bonus from Family Fury (+2 per damaged ally)
+  typeEffectiveness: number;      // Type matchup multiplier (1.25x super effective, 0.75x not effective)
   evasion: number;
   afterEvasion: number;
   blockedAmount: number;
@@ -50,6 +51,7 @@ export interface DamageModifiers {
   underdogBonus?: number;
   ragingBullMultiplier?: number;
   familyFuryBonus?: number;
+  typeEffectiveness?: number;  // Type matchup multiplier
   ignoreEvasion?: boolean;  // For Scrappy
 }
 
@@ -86,6 +88,10 @@ export function applyCardDamage(
   // Step 1.6: Apply Raging Bull multiplier (Normal attacks +50% below 50% HP)
   const ragingBullMultiplier = mods.ragingBullMultiplier ?? 1.0;
   rawDamage = Math.floor(rawDamage * ragingBullMultiplier);
+
+  // Step 1.65: Apply Type Effectiveness multiplier
+  const typeEffectiveness = mods.typeEffectiveness ?? 1.0;
+  rawDamage = Math.floor(rawDamage * typeEffectiveness);
 
   // Step 1.7: Apply defensive reductions
   const bloomingReduction = mods.bloomingCycleReduction ?? 0;
@@ -138,6 +144,7 @@ export function applyCardDamage(
     underdogBonus: underdogBonus,
     ragingBullMultiplier: ragingBullMultiplier,
     familyFuryBonus: familyFuryBonus,
+    typeEffectiveness: typeEffectiveness,
     evasion,
     afterEvasion,
     blockedAmount: damageToBlock,

@@ -3,6 +3,8 @@ import type { CombatState, LogEntry, Combatant, Column } from '../../engine/type
 import { getCurrentCombatant } from '../../engine/combat';
 import { getMove } from '../../data/loaders';
 import { getValidTargets, requiresTargetSelection } from '../../engine/position';
+import { calculateDamagePreview } from '../../engine/preview';
+import type { DamagePreview } from '../../engine/preview';
 import { PokemonSprite } from '../components/PokemonSprite';
 import { HandDisplay } from '../components/HandDisplay';
 import { TurnOrderBar } from '../components/TurnOrderBar';
@@ -23,6 +25,7 @@ interface Props {
   pendingCardIndex: number | null;
   onSelectCard: (index: number | null) => void;
   onSelectTarget: (targetId: string) => void;
+  onPlayCard?: (cardIndex: number, targetId?: string) => void;
   onEndTurn: () => void;
   onRestart: () => void;
   onBattleEnd?: (result: BattleResult, combatants: Combatant[]) => void;
@@ -37,6 +40,11 @@ function BattleGrid({
   onSelectTarget,
   onInspect,
   side,
+  onDragEnterTarget,
+  onDragLeaveTarget,
+  onDropOnTarget,
+  hoveredTargetId,
+  damagePreviews,
 }: {
   combatants: Combatant[];
   currentCombatant: Combatant | null;
@@ -44,6 +52,11 @@ function BattleGrid({
   onSelectTarget: (id: string) => void;
   onInspect?: (combatant: Combatant) => void;
   side: 'player' | 'enemy';
+  onDragEnterTarget?: (id: string) => void;
+  onDragLeaveTarget?: () => void;
+  onDropOnTarget?: (id: string) => void;
+  hoveredTargetId?: string | null;
+  damagePreviews?: Map<string, DamagePreview | null>;
 }) {
   const frontRow = combatants.filter(c => c.position.row === 'front');
   const backRow = combatants.filter(c => c.position.row === 'back');
@@ -94,6 +107,11 @@ function BattleGrid({
                   isTargetable={targetableIds.has(combatant.id)}
                   onSelect={() => onSelectTarget(combatant.id)}
                   onInspect={onInspect ? () => onInspect(combatant) : undefined}
+                  onDragEnter={onDragEnterTarget ? () => onDragEnterTarget(combatant.id) : undefined}
+                  onDragLeave={onDragLeaveTarget}
+                  onDrop={onDropOnTarget ? () => onDropOnTarget(combatant.id) : undefined}
+                  isDragHovered={hoveredTargetId === combatant.id}
+                  damagePreview={damagePreviews?.get(combatant.id)}
                 />
               )}
             </div>
@@ -113,7 +131,7 @@ function BattleGrid({
 
 export function BattleScreen({
   state, phase, logs, pendingCardIndex,
-  onSelectCard, onSelectTarget, onEndTurn, onRestart, onBattleEnd, runState,
+  onSelectCard, onSelectTarget, onPlayCard, onEndTurn, onRestart, onBattleEnd, runState,
 }: Props) {
   const isPlayerTurn = phase === 'player_turn';
   const currentCombatant = state.phase === 'ongoing'
@@ -125,6 +143,10 @@ export function BattleScreen({
 
   // Inspection state - track which combatant is being inspected
   const [inspectedCombatantId, setInspectedCombatantId] = useState<string | null>(null);
+
+  // Drag-and-drop state
+  const [draggingCardIndex, setDraggingCardIndex] = useState<number | null>(null);
+  const [hoveredTargetId, setHoveredTargetId] = useState<string | null>(null);
 
   // Find the RunPokemon for an inspected player combatant
   const getRunPokemonForCombatant = (combatant: Combatant) => {
@@ -160,6 +182,70 @@ export function BattleScreen({
       setInspectedCombatantId(targetCombatant.id);
     }
   };
+
+  // Drag-and-drop handlers
+  const handleDragStart = useCallback((cardIndex: number) => {
+    if (!isPlayerTurn || !currentCombatant) return;
+    setDraggingCardIndex(cardIndex);
+    // Clear any pending click selection
+    onSelectCard(null);
+  }, [isPlayerTurn, currentCombatant, onSelectCard]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggingCardIndex(null);
+    setHoveredTargetId(null);
+  }, []);
+
+  const handleDragEnterTarget = useCallback((targetId: string) => {
+    setHoveredTargetId(targetId);
+  }, []);
+
+  const handleDragLeaveTarget = useCallback(() => {
+    setHoveredTargetId(null);
+  }, []);
+
+  const handleDropOnTarget = useCallback((targetId: string) => {
+    if (draggingCardIndex === null || !currentCombatant) return;
+
+    // Directly play the card (bypasses two-step selection to avoid flash of "Select target" message)
+    if (onPlayCard) {
+      onPlayCard(draggingCardIndex, targetId);
+    } else {
+      // Fallback to two-step if onPlayCard not provided
+      onSelectCard(draggingCardIndex);
+      setTimeout(() => onSelectTarget(targetId), 0);
+    }
+
+    // Reset drag state
+    setDraggingCardIndex(null);
+    setHoveredTargetId(null);
+  }, [draggingCardIndex, currentCombatant, onPlayCard, onSelectCard, onSelectTarget]);
+
+  // Calculate damage previews for all valid targets when dragging OR when a card is selected
+  const { dragTargetableIds, damagePreviews } = useMemo(() => {
+    // Show previews for either dragging or click-selected card
+    const activeCardIndex = draggingCardIndex ?? pendingCardIndex;
+
+    if (activeCardIndex === null || !isPlayerTurn || !currentCombatant) {
+      return { dragTargetableIds: new Set<string>(), damagePreviews: new Map<string, DamagePreview | null>() };
+    }
+
+    const cardId = currentCombatant.hand[activeCardIndex];
+    const card = getMove(cardId);
+    const validTargets = getValidTargets(state, currentCombatant, card.range);
+
+    // Calculate damage preview for each valid target
+    const previews = new Map<string, DamagePreview | null>();
+    for (const target of validTargets) {
+      const preview = calculateDamagePreview(state, currentCombatant, target, card);
+      previews.set(target.id, preview);
+    }
+
+    return {
+      dragTargetableIds: new Set(validTargets.map(t => t.id)),
+      damagePreviews: previews,
+    };
+  }, [draggingCardIndex, pendingCardIndex, isPlayerTurn, currentCombatant, state]);
 
   // Battle effects for visual feedback
   const battleEffects = useBattleEffects();
@@ -454,6 +540,7 @@ export function BattleScreen({
             onSelectTarget={onSelectTarget}
             onInspect={runState ? handleInspect : undefined}
             side="player"
+            // No drag targeting for player side (yet)
           />
         </div>
 
@@ -471,9 +558,14 @@ export function BattleScreen({
           <BattleGrid
             combatants={enemies}
             currentCombatant={currentCombatant}
-            targetableIds={targetableIds}
+            targetableIds={dragTargetableIds.size > 0 ? dragTargetableIds : targetableIds}
             onSelectTarget={onSelectTarget}
             side="enemy"
+            onDragEnterTarget={handleDragEnterTarget}
+            onDragLeaveTarget={handleDragLeaveTarget}
+            onDropOnTarget={handleDropOnTarget}
+            hoveredTargetId={hoveredTargetId}
+            damagePreviews={damagePreviews}
           />
         </div>
 
@@ -575,6 +667,9 @@ export function BattleScreen({
               combatant={currentCombatant}
               selectedIndex={pendingCardIndex}
               onSelectCard={handleCardClick}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              draggingIndex={draggingCardIndex}
             />
             <button
               onClick={onEndTurn}

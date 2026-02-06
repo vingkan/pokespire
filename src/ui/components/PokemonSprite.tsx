@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Combatant } from '../../engine/types';
+import type { DamagePreview } from '../../engine/preview';
 import { HealthBar } from './HealthBar';
 import { EnergyBar } from './EnergyBar';
 import { StatusIcons } from './StatusIcons';
@@ -11,9 +12,15 @@ interface Props {
   isTargetable: boolean;
   onSelect?: () => void;
   onInspect?: () => void;
+  // Drag-and-drop props
+  onDragEnter?: () => void;
+  onDragLeave?: () => void;
+  onDrop?: () => void;
+  damagePreview?: DamagePreview | null;
+  isDragHovered?: boolean;
 }
 
-export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect, onInspect }: Props) {
+export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect, onInspect, onDragEnter, onDragLeave, onDrop, damagePreview, isDragHovered }: Props) {
   const [imgError, setImgError] = useState(false);
   const isEnemy = combatant.side === 'enemy';
 
@@ -37,9 +44,50 @@ export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect
 
   const isClickable = (isTargetable && combatant.alive) || !!onInspect;
 
+  // Drag-and-drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    if (isTargetable && combatant.alive) {
+      e.preventDefault(); // Allow drop
+      e.dataTransfer.dropEffect = 'move';
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (isTargetable && combatant.alive) {
+      onDragEnter?.();
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only trigger if leaving the actual element (not entering a child)
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    onDragLeave?.();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (isTargetable && combatant.alive) {
+      onDrop?.();
+    }
+  };
+
+  // Get effectiveness color
+  const getEffectivenessColor = (multiplier: number): string => {
+    if (multiplier >= 1.4) return '#4ade80'; // Bright green for super effective
+    if (multiplier > 1.0) return '#86efac'; // Light green for effective
+    if (multiplier <= 0.6) return '#fca5a5'; // Red for barely effective
+    if (multiplier < 1.0) return '#fcd34d'; // Yellow for not very effective
+    return '#e2e8f0'; // Neutral
+  };
+
   return (
     <div
       onClick={isClickable ? handleClick : undefined}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -50,6 +98,10 @@ export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect
         opacity,
         transition: 'all 0.2s',
         minWidth: 140,
+        position: 'relative',
+        borderRadius: 8,
+        background: isDragHovered ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+        border: isDragHovered ? '2px dashed #ef4444' : '2px solid transparent',
       }}
     >
       {/* Current turn / targetable indicator - subtle glow instead of box */}
@@ -117,6 +169,75 @@ export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect
 
       {!combatant.alive && (
         <div style={{ fontSize: 15, color: '#ef4444', fontWeight: 'bold' }}>FAINTED</div>
+      )}
+
+      {/* Damage Preview - shown on all valid targets when a card is selected or being dragged */}
+      {isTargetable && damagePreview && (
+        <div style={{
+          position: 'absolute',
+          top: -10,
+          right: -10,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 2,
+          padding: '6px 10px',
+          background: 'rgba(0, 0, 0, 0.9)',
+          borderRadius: 8,
+          border: `2px solid ${getEffectivenessColor(damagePreview.typeEffectiveness)}`,
+          zIndex: 100,
+          minWidth: 60,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+        }}>
+          {/* Damage number */}
+          <div style={{
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: '#ef4444',
+            textShadow: '0 0 8px rgba(239, 68, 68, 0.6)',
+          }}>
+            -{damagePreview.isMultiHit ? damagePreview.totalDamage : damagePreview.finalDamage}
+          </div>
+
+          {/* Multi-hit indicator */}
+          {damagePreview.isMultiHit && (
+            <div style={{
+              fontSize: 11,
+              color: '#94a3b8',
+            }}>
+              ({damagePreview.hits}x {damagePreview.finalDamage})
+            </div>
+          )}
+
+          {/* Type effectiveness label */}
+          {damagePreview.effectivenessLabel && (
+            <div style={{
+              fontSize: 11,
+              fontWeight: 'bold',
+              color: getEffectivenessColor(damagePreview.typeEffectiveness),
+              textAlign: 'center',
+            }}>
+              {damagePreview.effectivenessLabel}
+            </div>
+          )}
+
+          {/* Block/Evasion preview */}
+          {(damagePreview.blockedAmount > 0 || damagePreview.evasionReduction > 0) && (
+            <div style={{
+              fontSize: 10,
+              color: '#64748b',
+              display: 'flex',
+              gap: 4,
+            }}>
+              {damagePreview.blockedAmount > 0 && (
+                <span>🛡️-{damagePreview.blockedAmount}</span>
+              )}
+              {damagePreview.evasionReduction > 0 && (
+                <span>👁️-{damagePreview.evasionReduction}</span>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

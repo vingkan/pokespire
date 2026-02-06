@@ -9,6 +9,7 @@ import { RestScreen } from './ui/screens/RestScreen';
 import { CardDraftScreen } from './ui/screens/CardDraftScreen';
 import { RunVictoryScreen } from './ui/screens/RunVictoryScreen';
 import { CardDexScreen } from './ui/screens/CardDexScreen';
+import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
 import type { RunState, BattleNode } from './run/types';
 import {
   createRunState,
@@ -23,7 +24,7 @@ import {
   applyLevelUp,
 } from './run/state';
 
-type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex';
+type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'sandbox_config';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('main_menu');
@@ -145,6 +146,11 @@ export default function App() {
     }
   }, [battle]);
 
+  // Handle direct card play (for drag-and-drop, bypasses two-step selection)
+  const handlePlayCard = useCallback((cardIndex: number, targetId?: string) => {
+    battle.playCard(cardIndex, targetId);
+  }, [battle]);
+
   // Handle level-up from map screen
   const handleLevelUp = useCallback((pokemonIndex: number) => {
     if (!runState) return;
@@ -158,9 +164,25 @@ export default function App() {
     setScreen('main_menu');
   }, []);
 
-  // Start sandbox battle directly
+  // Go to sandbox configuration screen
   const handleGoToSandbox = useCallback(() => {
-    battle.startSandboxBattle();
+    setScreen('sandbox_config');
+  }, []);
+
+  // Start a configured sandbox battle
+  const handleStartSandboxBattle = useCallback((
+    players: PokemonData[],
+    enemies: PokemonData[],
+    playerPositions: Position[],
+    enemyPositions: Position[],
+    playerPassives: Map<number, string[]>,
+    enemyPassives: Map<number, string[]>,
+    hpOverrides: Map<string, { maxHp?: number; startPercent?: number }>
+  ) => {
+    battle.startConfiguredBattle(
+      players, enemies, playerPositions, enemyPositions,
+      playerPassives, enemyPassives, hpOverrides
+    );
     setScreen('battle');
   }, [battle]);
 
@@ -257,6 +279,15 @@ export default function App() {
     return <CardDexScreen onBack={() => setScreen('main_menu')} />;
   }
 
+  if (screen === 'sandbox_config') {
+    return (
+      <SandboxConfigScreen
+        onStartBattle={handleStartSandboxBattle}
+        onBack={() => setScreen('main_menu')}
+      />
+    );
+  }
+
   if (screen === 'select') {
     return <PartySelectScreen onStart={handleStart} />;
   }
@@ -300,6 +331,7 @@ export default function App() {
         pendingCardIndex={battle.pendingCardIndex}
         onSelectCard={handleSelectCard}
         onSelectTarget={handleSelectTarget}
+        onPlayCard={handlePlayCard}
         onEndTurn={battle.endPlayerTurn}
         onRestart={handleRestart}
         onBattleEnd={handleBattleEnd}

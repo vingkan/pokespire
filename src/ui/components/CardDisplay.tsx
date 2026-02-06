@@ -13,6 +13,9 @@ interface Props {
   canAfford: boolean;
   isSelected: boolean;
   onClick: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }
 
 const EFFECT_COLORS: Record<string, string> = {
@@ -267,12 +270,27 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
   );
 }
 
-export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isSelected, onClick }: Props) {
+export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isSelected, onClick, onDragStart, onDragEnd, isDragging }: Props) {
   const [isHovered, setIsHovered] = useState(false);
   const primaryEffect = card.effects[0]?.type || 'damage';
   const effectColor = EFFECT_COLORS[primaryEffect] || '#888';
   const moveTypeColor = MOVE_TYPE_COLORS[card.type] || MOVE_TYPE_COLORS.normal;
   const isSTAB = hasSTAB(combatant, card.type);
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!canAfford) {
+      e.preventDefault();
+      return;
+    }
+    // Set drag data (required for Firefox)
+    e.dataTransfer.setData('text/plain', cardId || '');
+    e.dataTransfer.effectAllowed = 'move';
+    onDragStart?.();
+  };
+
+  const handleDragEnd = () => {
+    onDragEnd?.();
+  };
 
   // Check if this is a Parental Bond Echo copy
   const isEchoCopy = cardId ? isParentalBondCopy(cardId) : false;
@@ -290,9 +308,12 @@ export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isS
 
   return (
     <div
+      draggable={canAfford}
       onClick={canAfford ? onClick : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       style={{
         width: 130,
         minHeight: 160,
@@ -315,11 +336,12 @@ export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isS
         display: 'flex',
         flexDirection: 'column',
         gap: 5,
-        cursor: canAfford ? 'pointer' : 'not-allowed',
-        opacity: canAfford ? 1 : 0.5,
+        cursor: canAfford ? (isDragging ? 'grabbing' : 'grab') : 'not-allowed',
+        opacity: isDragging ? 0.5 : canAfford ? 1 : 0.5,
         transition: 'all 0.15s',
         position: 'relative',
         boxShadow: combinedShadow,
+        transform: isDragging ? 'scale(0.95)' : undefined,
       }}
     >
       {/* Cost badge */}
