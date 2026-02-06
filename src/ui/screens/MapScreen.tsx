@@ -43,19 +43,6 @@ function getNodeColor(node: MapNode, isAvailable: boolean, isVisited: boolean, i
   return '#444';
 }
 
-function getNodeLabel(node: MapNode): string {
-  if (node.type === 'spawn') return 'Start';
-  if (node.type === 'rest') return 'Rest: Heal or +HP';
-  if (node.type === 'battle') {
-    const enemyNames = node.enemies.map(id =>
-      id.charAt(0).toUpperCase() + id.slice(1)
-    ).join(', ');
-    if (node.stage === 8) return `BOSS: ${enemyNames}`;
-    return `Battle: ${enemyNames}`;
-  }
-  return '???';
-}
-
 // Layout constants
 const NODE_SIZE = 60;
 const NODE_GAP = 20;

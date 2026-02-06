@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import type { RunPokemon } from '../../run/types';
-import type { Combatant } from '../../engine/types';
+import type { Combatant, MoveDefinition } from '../../engine/types';
 import { getPokemon, getMove } from '../../data/loaders';
 import {
   getProgressionTree,
   canLevelUp,
   PASSIVE_DEFINITIONS,
+  type PassiveId,
 } from '../../run/progression';
 import { EXP_PER_LEVEL } from '../../run/state';
 import { getSpriteSize } from '../../data/heights';
@@ -61,7 +62,10 @@ export function PokemonDetailsPanel({
   const level = isFromBattle ? 1 : pokemon!.level; // Combatants don't track level
   const exp = isFromBattle ? 0 : pokemon!.exp;
   const passiveIds = isFromBattle ? combatant!.passiveIds : pokemon!.passiveIds;
-  const deck = isFromBattle ? combatant!.deck : pokemon!.deck;
+  // For combatants, combine all piles to show full deck; for RunPokemon just use deck
+  const deck: string[] = isFromBattle
+    ? [...combatant!.drawPile, ...combatant!.hand, ...combatant!.discardPile, ...combatant!.vanishedPile]
+    : pokemon!.deck;
 
   // Combat stats from base Pokemon data
   const energyPerTurn = basePokemon.energyPerTurn;
@@ -75,11 +79,11 @@ export function PokemonDetailsPanel({
   // Get all passive info
   const passiveInfos = passiveIds.map(id => ({
     id,
-    ...PASSIVE_DEFINITIONS[id],
+    ...PASSIVE_DEFINITIONS[id as PassiveId],
   }));
 
   // Get deck cards
-  const deckCards = deck.map(cardId => getMove(cardId));
+  const deckCards = deck.map((cardId: string) => getMove(cardId));
 
   const handleLevelUp = () => {
     if (onLevelUp && pokemonIndex !== undefined) {
@@ -448,7 +452,7 @@ export function PokemonDetailsPanel({
                 gap: 12,
                 justifyItems: 'center',
               }}>
-                {deckCards.map((card, i) => (
+                {deckCards.map((card: MoveDefinition, i: number) => (
                   <CardPreview
                     key={`${card.id}-${i}`}
                     card={card}
