@@ -1,9 +1,9 @@
 import type { Combatant, CombatState, LogEntry, PlayCardAction, MoveDefinition, MoveRange } from './types';
 import { getMove, isParentalBondCopy } from '../data/loaders';
-import { getCombatant, rebuildTurnOrderMidRound } from './combat';
+import { getCombatant, snapshotSpeeds, checkSpeedChangesAndRebuild } from './combat';
 import { applyCardDamage, applyHeal, applyBypassDamage, getBloomingCycleReduction } from './damage';
 import type { DamageModifiers } from './damage';
-import { applyStatus, isSpeedStatus } from './status';
+import { applyStatus } from './status';
 import { getEffectiveFrontRow } from './position';
 import {
   checkBlazeStrike, checkBastionBarrage, checkCounterCurrent, checkStaticField,
@@ -31,6 +31,10 @@ export function playCard(
   action: PlayCardAction,
 ): LogEntry[] {
   const logs: LogEntry[] = [];
+
+  // Snapshot speeds before card effects - we'll check for changes at the end
+  const speedsBefore = snapshotSpeeds(state);
+
   const cardId = action.cardInstanceId;
 
   // Validate card is in hand
@@ -164,6 +168,10 @@ export function playCard(
     const slipstreamLogs = applySlipstream(state, combatant);
     logs.push(...slipstreamLogs);
   }
+
+  // Check if any speed changed and rebuild turn order if needed
+  const speedChangeLogs = checkSpeedChangesAndRebuild(state, speedsBefore);
+  logs.push(...speedChangeLogs);
 
   return logs;
 }
@@ -498,12 +506,8 @@ function resolveEffects(
 
         // Trigger post-damage passive effects (e.g., Kindling, Numbing Strike)
         if (r.hpDamage > 0) {
-          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
+          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
-          if (passiveAffectsSpeed) {
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
-          }
 
           // Gust Force: Gust applies +1 Slow
           if (checkGustForce(source, card)) {
@@ -513,9 +517,6 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
-            // Slow affects speed - rebuild turn order
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
           }
 
           // Poison Point: Unblocked Poison attacks apply +1 Poison
@@ -555,12 +556,8 @@ function resolveEffects(
           totalDamage += r.hpDamage;
 
           if (r.hpDamage > 0) {
-            const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
+            const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
             logs.push(...postDmgLogs);
-            if (passiveAffectsSpeed) {
-              const reorderLogs = rebuildTurnOrderMidRound(state);
-              logs.push(...reorderLogs);
-            }
 
             // Gust Force: Gust applies +1 Slow (each hit)
             if (checkGustForce(source, card) && target.alive) {
@@ -570,9 +567,6 @@ function resolveEffects(
                 combatantId: source.id,
                 message: `Gust Force: +1 Slow applied to ${target.name}!`,
               });
-              // Slow affects speed - rebuild turn order
-              const reorderLogs = rebuildTurnOrderMidRound(state);
-              logs.push(...reorderLogs);
             }
 
             // Poison Point: Unblocked Poison attacks apply +1 Poison (each hit)
@@ -629,12 +623,8 @@ function resolveEffects(
         }
 
         if (r.hpDamage > 0) {
-          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
+          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
-          if (passiveAffectsSpeed) {
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
-          }
 
           if (checkGustForce(source, card) && target.alive) {
             applyStatus(state, target, 'slow', 1, source.id);
@@ -643,9 +633,6 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
-            // Slow affects speed - rebuild turn order
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
           }
 
           if (checkPoisonPoint(source, card, r.hpDamage) && target.alive) {
@@ -688,12 +675,8 @@ function resolveEffects(
         });
 
         if (r.hpDamage > 0) {
-          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
+          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
-          if (passiveAffectsSpeed) {
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
-          }
 
           if (checkGustForce(source, card) && target.alive) {
             applyStatus(state, target, 'slow', 1, source.id);
@@ -702,9 +685,6 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
-            // Slow affects speed - rebuild turn order
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
           }
 
           if (checkPoisonPoint(source, card, r.hpDamage) && target.alive) {
@@ -816,12 +796,8 @@ function resolveEffects(
         });
 
         if (r.hpDamage > 0) {
-          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
+          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
-          if (passiveAffectsSpeed) {
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
-          }
 
           if (checkGustForce(source, card) && target.alive) {
             applyStatus(state, target, 'slow', 1, source.id);
@@ -830,9 +806,6 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
-            // Slow affects speed - rebuild turn order
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
           }
 
           if (checkPoisonPoint(source, card, r.hpDamage) && target.alive) {
@@ -938,12 +911,6 @@ function resolveEffects(
           state, source, source, effect.status, effect.stacks
         );
         logs.push(...statusPassiveLogs);
-
-        // Rebuild turn order mid-round if speed was affected
-        if (isSpeedStatus(effect.status)) {
-          const reorderLogs = rebuildTurnOrderMidRound(state);
-          logs.push(...reorderLogs);
-        }
         break;
       }
 
@@ -971,13 +938,6 @@ function resolveEffects(
             combatantId: source.id,
             message: `${source.name} cleanses ${removedNames.join(', ')}!`,
           });
-
-          // Rebuild turn order if speed-affecting debuffs were removed
-          const speedDebuffs = ['paralysis', 'slow'];
-          if (toRemove.some(d => speedDebuffs.includes(d.type))) {
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
-          }
         } else {
           logs.push({
             round: state.round,
@@ -1030,12 +990,6 @@ function resolveEffects(
             state, source, target, effect.status, effect.stacks
           );
           logs.push(...statusPassiveLogs);
-
-          // Rebuild turn order mid-round if speed was affected
-          if (statusResult.affectsSpeed) {
-            const reorderLogs = rebuildTurnOrderMidRound(state);
-            logs.push(...reorderLogs);
-          }
         } else {
           // Status was blocked (e.g., by Immunity)
           logs.push({

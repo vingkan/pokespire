@@ -129,6 +129,49 @@ export function buildTurnOrder(state: CombatState): TurnQueueEntry[] {
 }
 
 /**
+ * Snapshot effective speeds for all alive combatants.
+ * Used to detect speed changes after an action.
+ */
+export function snapshotSpeeds(state: CombatState): Map<string, number> {
+  const speeds = new Map<string, number>();
+  for (const c of state.combatants) {
+    if (c.alive) {
+      speeds.set(c.id, getEffectiveSpeed(c));
+    }
+  }
+  return speeds;
+}
+
+/**
+ * Check if any combatant's speed changed, and rebuild turn order if so.
+ * This is the canonical way to handle speed changes - call this after any
+ * action that might affect speed (statuses, passives, future abilities, etc.)
+ */
+export function checkSpeedChangesAndRebuild(
+  state: CombatState,
+  previousSpeeds: Map<string, number>
+): LogEntry[] {
+  // Check if any speed changed
+  let speedChanged = false;
+  for (const c of state.combatants) {
+    if (c.alive) {
+      const prev = previousSpeeds.get(c.id);
+      const curr = getEffectiveSpeed(c);
+      if (prev !== curr) {
+        speedChanged = true;
+        break;
+      }
+    }
+  }
+
+  if (!speedChanged) {
+    return [];
+  }
+
+  return rebuildTurnOrderMidRound(state);
+}
+
+/**
  * Rebuild turn order mid-round after a speed change.
  * Keeps already-acted entries in place, re-sorts only the remaining entries
  * (including the current actor who is mid-turn).
