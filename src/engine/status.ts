@@ -1,6 +1,7 @@
 import type { Combatant, CombatState, StatusType, StatusInstance, LogEntry } from './types';
 import { applyBypassDamage, applyHeal } from './damage';
 import { getCombatant } from './combat';
+import { getPassiveSpeedBonus } from './passives';
 
 // ============================================================
 // Status Effects — Section 7 of spec
@@ -27,10 +28,25 @@ export function removeStatus(combatant: Combatant, type: StatusType): void {
  * Follows the stacking rules from Section 7.1.
  */
 /**
- * Returns true if the status affects speed (paralysis, slow).
+ * Returns true if the status affects speed (paralysis, slow, haste).
  */
 export function isSpeedStatus(type: StatusType): boolean {
-  return type === 'paralysis' || type === 'slow';
+  return type === 'paralysis' || type === 'slow' || type === 'haste';
+}
+
+/**
+ * Check if a combatant is immune to a status type.
+ * Returns true if the status should be blocked.
+ */
+export function checkStatusImmunity(
+  target: Combatant,
+  type: StatusType
+): boolean {
+  // Immunity: You cannot be Poisoned or Burned
+  if ((type === 'poison' || type === 'burn') && target.passiveIds.includes('immunity')) {
+    return true;
+  }
+  return false;
 }
 
 export function applyStatus(
@@ -39,7 +55,12 @@ export function applyStatus(
   type: StatusType,
   stacks: number,
   sourceId?: string,
-): void {
+): boolean {
+  // Check for immunity
+  if (checkStatusImmunity(target, type)) {
+    return false; // Status was blocked
+  }
+
   const existing = getStatus(target, type);
 
   switch (type) {
@@ -51,6 +72,7 @@ export function applyStatus(
     case 'slow':
     case 'enfeeble':
     case 'evasion':
+    case 'haste':
       // Additive stacking for all standard statuses
       if (existing) {
         existing.stacks += stacks;
@@ -78,15 +100,18 @@ export function applyStatus(
       }
       break;
   }
+  return true; // Status was applied
 }
 
 /**
- * Get the effective speed of a combatant, accounting for Paralysis and Slow.
+ * Get the effective speed of a combatant, accounting for Paralysis, Slow, Haste, and passive bonuses.
  */
 export function getEffectiveSpeed(combatant: Combatant): number {
   const paralysis = getStatusStacks(combatant, 'paralysis');
   const slow = getStatusStacks(combatant, 'slow');
-  return Math.max(combatant.baseSpeed - paralysis - slow, 0);
+  const haste = getStatusStacks(combatant, 'haste');
+  const passiveBonus = getPassiveSpeedBonus(combatant);
+  return Math.max(combatant.baseSpeed + passiveBonus + haste - paralysis - slow, 0);
 }
 
 /**
@@ -153,12 +178,19 @@ export function processRoundBoundary(state: CombatState): LogEntry[] {
       }
 
       // Poison: deal damage equal to stacks, then escalate by 1
+      // Potent Venom: Poison deals double damage
       if (status.type === 'poison') {
-        const dmg = applyBypassDamage(c, status.stacks);
+        // Check if any enemy has Potent Venom (to double our poison damage)
+        const hasPotentVenomApplied = status.sourceId
+          ? state.combatants.find(comb => comb.id === status.sourceId)?.passiveIds.includes('potent_venom')
+          : false;
+        const poisonDamage = hasPotentVenomApplied ? status.stacks * 2 : status.stacks;
+        const dmg = applyBypassDamage(c, poisonDamage);
+        const potentNote = hasPotentVenomApplied ? ' (Potent Venom!)' : '';
         logs.push({
           round: state.round,
           combatantId: c.id,
-          message: `Poison deals ${dmg} damage to ${c.name}. (${status.stacks} → ${status.stacks + 1} stacks)`,
+          message: `Poison deals ${dmg} damage to ${c.name}${potentNote}. (${status.stacks} → ${status.stacks + 1} stacks)`,
         });
         status.stacks += 1; // Poison escalates!
       }
@@ -198,10 +230,11 @@ export function processRoundBoundary(state: CombatState): LogEntry[] {
         }
       }
 
-      // All other statuses: decay by 1 per round
+      // All statuses: decay by 1 per round
       if (status.type === 'paralysis' || status.type === 'slow' ||
           status.type === 'enfeeble' || status.type === 'strength' ||
-          status.type === 'evasion' || status.type === 'sleep') {
+          status.type === 'evasion' || status.type === 'sleep' ||
+          status.type === 'haste') {
         const statusName = status.type.charAt(0).toUpperCase() + status.type.slice(1);
         logs.push({
           round: state.round,

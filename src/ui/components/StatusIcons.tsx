@@ -36,7 +36,11 @@ const STATUS_INFO: Record<string, { icon: string; color: string; describe: (stac
   },
   strength: {
     icon: '💪', color: '#ef4444',
-    describe: (s) => `Increases damage dealt by ${s}. Permanent.`,
+    describe: (s) => `Increases damage dealt by ${s}. Loses 1 stack each turn.`,
+  },
+  haste: {
+    icon: '💨', color: '#22d3ee',
+    describe: (s) => `Increases speed by ${s}. Loses 1 stack each turn.`,
   },
 };
 

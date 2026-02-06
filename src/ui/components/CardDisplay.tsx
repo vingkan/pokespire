@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { MoveDefinition, Combatant, MoveType, CardRarity } from '../../engine/types';
 import { getStatusStacks } from '../../engine/status';
 import { hasSTAB, STAB_BONUS } from '../../engine/damage';
+import { isParentalBondCopy } from '../../data/loaders';
+import { getEffectiveCost } from '../../engine/cards';
 
 interface Props {
   cardId?: string;
@@ -70,7 +72,7 @@ const RARITY_COLORS: Record<CardRarity, string | null> = {
   legendary: '#fbbf24', // Gold
 };
 
-/** Build a live description reflecting current Strength/Enfeeble/STAB/Blaze Strike/Bastion Barrage. */
+/** Build a live description reflecting current modifiers from passives. */
 function buildDescription(card: MoveDefinition, combatant: Combatant): React.ReactNode {
   const strength = getStatusStacks(combatant, 'strength');
   const enfeeble = getStatusStacks(combatant, 'enfeeble');
@@ -82,19 +84,32 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
     ? Math.floor(combatant.block * 0.25)
     : 0;
 
-  const additiveMod = strength + stab + bastionBonus - enfeeble;
+  // Check for Scrappy bonus (Normal attacks deal +2 damage)
+  const scrappyBonus = (combatant.passiveIds.includes('scrappy') && card.type === 'normal') ? 2 : 0;
+
+  // Check for Hustle bonus (attacks deal +2 damage)
+  const hustleBonus = combatant.passiveIds.includes('hustle') ? 2 : 0;
+
+  const additiveMod = strength + stab + bastionBonus + scrappyBonus + hustleBonus - enfeeble;
 
   // Check for Blaze Strike multiplier (first fire attack of the turn)
   const hasBlazeStrike = combatant.passiveIds.includes('blaze_strike');
   const blazeStrikeActive = hasBlazeStrike && card.type === 'fire' && !combatant.turnFlags.blazeStrikeUsedThisTurn;
-  const multiplier = blazeStrikeActive ? 2 : 1;
+
+  // Check for Raging Bull multiplier (all attacks +50% when below 50% HP)
+  const ragingBullActive = combatant.passiveIds.includes('raging_bull') &&
+    combatant.hp < combatant.maxHp * 0.5;
+
+  let multiplier = 1;
+  if (blazeStrikeActive) multiplier *= 2;
+  if (ragingBullActive) multiplier *= 1.5;
 
   const parts: React.ReactNode[] = [];
   for (const effect of card.effects) {
     switch (effect.type) {
       case 'damage': {
         const afterAdditive = Math.max(effect.value + additiveMod, 1);
-        const effective = afterAdditive * multiplier;
+        const effective = Math.floor(afterAdditive * multiplier);
         const changed = additiveMod !== 0 || multiplier > 1;
         parts.push(
           <span key={parts.length}>
@@ -109,7 +124,7 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
             {' '}damage.
             {changed && (
               <span style={{ fontSize: 11, color: '#64748b' }}>
-                {' '}({effect.value}{additiveMod > 0 ? `+${additiveMod}` : additiveMod !== 0 ? additiveMod : ''}{multiplier > 1 ? ` x${multiplier}` : ''})
+                {' '}({multiplier > 1 ? '(' : ''}{effect.value}{additiveMod > 0 ? `+${additiveMod}` : additiveMod !== 0 ? additiveMod : ''}{multiplier > 1 ? `) x${multiplier}` : ''})
               </span>
             )}
           </span>
@@ -126,7 +141,7 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
         parts.push(<span key={parts.length}>Apply {effect.status} {effect.stacks}.</span>);
         break;
       case 'multi_hit': {
-        const perHit = Math.max(effect.value + additiveMod, 1) * multiplier;
+        const perHit = Math.floor(Math.max(effect.value + additiveMod, 1) * multiplier);
         const total = perHit * effect.hits;
         const changed = additiveMod !== 0 || multiplier > 1;
         parts.push(
@@ -144,22 +159,36 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
       }
       case 'heal_on_hit': {
         const afterAdditive = Math.max(effect.value + additiveMod, 1);
-        const effective = afterAdditive * multiplier;
+        const effective = Math.floor(afterAdditive * multiplier);
         const healPct = Math.round(effect.healPercent * 100);
+        const changed = additiveMod !== 0 || multiplier > 1;
         parts.push(
           <span key={parts.length}>
-            Deal {effective} damage. Heal {healPct}% dealt.
+            Deal{' '}
+            {changed ? (
+              <span style={{ color: '#4ade80', fontWeight: 'bold' }}>{effective}</span>
+            ) : (
+              <>{effective}</>
+            )}
+            {' '}damage. Heal {healPct}% dealt.
           </span>
         );
         break;
       }
       case 'recoil': {
         const afterAdditive = Math.max(effect.value + additiveMod, 1);
-        const effective = afterAdditive * multiplier;
+        const effective = Math.floor(afterAdditive * multiplier);
         const recoilPct = Math.round(effect.recoilPercent * 100);
+        const changed = additiveMod !== 0 || multiplier > 1;
         parts.push(
           <span key={parts.length}>
-            Deal {effective} damage. Take {recoilPct}% recoil.
+            Deal{' '}
+            {changed ? (
+              <span style={{ color: '#4ade80', fontWeight: 'bold' }}>{effective}</span>
+            ) : (
+              <>{effective}</>
+            )}
+            {' '}damage. Take {recoilPct}% recoil.
           </span>
         );
         break;
@@ -183,10 +212,17 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
       }
       case 'self_ko': {
         const afterAdditive = Math.max(effect.value + additiveMod, 1);
-        const effective = afterAdditive * multiplier;
+        const effective = Math.floor(afterAdditive * multiplier);
+        const changed = additiveMod !== 0 || multiplier > 1;
         parts.push(
           <span key={parts.length} style={{ color: '#ef4444' }}>
-            Deal {effective} damage. <b>User faints.</b>
+            Deal{' '}
+            {changed ? (
+              <span style={{ fontWeight: 'bold' }}>{effective}</span>
+            ) : (
+              <>{effective}</>
+            )}
+            {' '}damage. <b>User faints.</b>
           </span>
         );
         break;
@@ -231,20 +267,26 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
   );
 }
 
-export function CardDisplay({ cardId: _cardId, handIndex, card, combatant, canAfford, isSelected, onClick }: Props) {
+export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isSelected, onClick }: Props) {
   const [isHovered, setIsHovered] = useState(false);
   const primaryEffect = card.effects[0]?.type || 'damage';
   const effectColor = EFFECT_COLORS[primaryEffect] || '#888';
   const moveTypeColor = MOVE_TYPE_COLORS[card.type] || MOVE_TYPE_COLORS.normal;
   const isSTAB = hasSTAB(combatant, card.type);
 
-  // Calculate effective cost with Inferno Momentum reduction
-  const hasInfernoReduction = combatant.turnFlags.infernoMomentumReducedIndex === handIndex;
-  const effectiveCost = Math.max(0, card.cost + (hasInfernoReduction ? -3 : 0));
-  const costReduced = hasInfernoReduction;
+  // Check if this is a Parental Bond Echo copy
+  const isEchoCopy = cardId ? isParentalBondCopy(cardId) : false;
+
+  // Calculate effective cost (includes Quick Feet, Hustle, Inferno Momentum)
+  const effectiveCost = handIndex !== undefined ? getEffectiveCost(combatant, handIndex) : card.cost;
+  const costReduced = effectiveCost < card.cost || isEchoCopy;
 
   // Hover glow for playable cards
   const showHoverGlow = canAfford && isHovered && !isSelected;
+
+  // Echo copies get a persistent purple glow
+  const echoGlow = isEchoCopy ? '0 0 12px 3px #a855f788' : '';
+  const combinedShadow = [echoGlow, showHoverGlow ? `0 0 16px 4px ${effectColor}66` : ''].filter(Boolean).join(', ') || 'none';
 
   return (
     <div
@@ -256,14 +298,18 @@ export function CardDisplay({ cardId: _cardId, handIndex, card, combatant, canAf
         minHeight: 160,
         background: isSelected
           ? '#3b3b5c'
-          : canAfford
-            ? '#1e1e2e'
-            : '#111118',
+          : isEchoCopy
+            ? '#2a1e3e'
+            : canAfford
+              ? '#1e1e2e'
+              : '#111118',
         border: isSelected
           ? `2px solid ${effectColor}`
-          : canAfford
-            ? '2px solid #444'
-            : '2px solid #222',
+          : isEchoCopy
+            ? '2px solid #a855f7'
+            : canAfford
+              ? '2px solid #444'
+              : '2px solid #222',
         borderRadius: 8,
         padding: 10,
         display: 'flex',
@@ -273,7 +319,7 @@ export function CardDisplay({ cardId: _cardId, handIndex, card, combatant, canAf
         opacity: canAfford ? 1 : 0.5,
         transition: 'all 0.15s',
         position: 'relative',
-        boxShadow: showHoverGlow ? `0 0 16px 4px ${effectColor}66` : 'none',
+        boxShadow: combinedShadow,
       }}
     >
       {/* Cost badge */}
@@ -326,8 +372,20 @@ export function CardDisplay({ cardId: _cardId, handIndex, card, combatant, canAf
         {buildDescription(card, combatant)}
       </div>
 
+      {/* Echo badge for Parental Bond copies */}
+      {isEchoCopy && (
+        <div style={{
+          fontSize: 11,
+          color: '#a855f7',
+          fontWeight: 'bold',
+          textAlign: 'center',
+        }}>
+          ECHO
+        </div>
+      )}
+
       {/* Vanish badge */}
-      {card.vanish && (
+      {card.vanish && !isEchoCopy && (
         <div style={{
           fontSize: 11,
           color: '#f97316',

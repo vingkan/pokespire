@@ -3,6 +3,7 @@ import type { RunState } from '../../run/types';
 import { getPokemon, getMove, MOVES } from '../../data/loaders';
 import { createRng, sampleCards } from '../../run/rng';
 import { CardPreview } from '../components/CardPreview';
+import { PokemonDetailsPanel } from '../components/PokemonDetailsPanel';
 
 interface Props {
   run: RunState;
@@ -16,6 +17,8 @@ export function CardDraftScreen({ run, onDraftComplete }: Props) {
   const [currentDraftIndex, setCurrentDraftIndex] = useState(0);
   // Track drafted cards: Map<pokemonIndex, cardId | null (skip)>
   const [drafts, setDrafts] = useState<Map<number, string | null>>(new Map());
+  // Track which Pokemon's details panel is open (null = none)
+  const [detailsPokemonIndex, setDetailsPokemonIndex] = useState<number | null>(null);
 
   // Get alive party members to draft for
   const alivePokemonIndices = run.party
@@ -85,17 +88,24 @@ export function CardDraftScreen({ run, onDraftComplete }: Props) {
         Pokemon {currentDraftIndex + 1} of {alivePokemonIndices.length}
       </div>
 
-      {/* Current Pokemon */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 8,
-        padding: 16,
-        background: '#1e1e2e',
-        borderRadius: 12,
-        border: '2px solid #facc15',
-      }}>
+      {/* Current Pokemon (clickable to view details) */}
+      <div
+        onClick={() => setDetailsPokemonIndex(currentPokemonIndex)}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 8,
+          padding: 16,
+          background: '#1e1e2e',
+          borderRadius: 12,
+          border: '2px solid #facc15',
+          cursor: 'pointer',
+          transition: 'transform 0.1s',
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
         <img
           src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${currentPokemon.formId}.gif`}
           alt={basePokemon.name}
@@ -104,6 +114,9 @@ export function CardDraftScreen({ run, onDraftComplete }: Props) {
         <div style={{ fontSize: 20, fontWeight: 'bold' }}>{basePokemon.name}</div>
         <div style={{ fontSize: 13, color: '#94a3b8' }}>
           Current deck size: {currentPokemon.deck.length} cards
+        </div>
+        <div style={{ fontSize: 11, color: '#60a5fa' }}>
+          Click to view details
         </div>
       </div>
 
@@ -148,6 +161,16 @@ export function CardDraftScreen({ run, onDraftComplete }: Props) {
       >
         Skip (Add No Card)
       </button>
+
+      {/* Pokemon Details Panel */}
+      {detailsPokemonIndex !== null && (
+        <PokemonDetailsPanel
+          pokemon={run.party[detailsPokemonIndex]}
+          pokemonIndex={detailsPokemonIndex}
+          onClose={() => setDetailsPokemonIndex(null)}
+          readOnly={true}
+        />
+      )}
     </div>
   );
 }

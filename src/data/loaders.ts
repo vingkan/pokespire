@@ -74,6 +74,12 @@ export const STARTER_POKEMON: Record<string, PokemonData> = {
   squirtle: POKEMON.squirtle,
   charmander: POKEMON.charmander,
   pikachu: POKEMON.pikachu,
+  pidgey: POKEMON.pidgey,
+  rattata: POKEMON.rattata,
+  ekans: POKEMON.ekans,
+  tauros: POKEMON.tauros,
+  snorlax: POKEMON.snorlax,
+  kangaskhan: POKEMON.kangaskhan,
 };
 
 /** Enemy Pokemon */
@@ -85,12 +91,53 @@ export const ENEMY_POKEMON: Record<string, PokemonData> = {
 
 /**
  * Get a move definition by ID.
+ * Handles Parental Bond copies (cards ending in __parental).
  * @throws Error if move not found
  */
 export function getMove(id: string): MoveDefinition {
+  // Check for Parental Bond copy (e.g., "tackle__parental")
+  if (id.endsWith('__parental')) {
+    const baseId = id.replace('__parental', '');
+    const baseMove = MOVES[baseId];
+    if (!baseMove) throw new Error(`Move not found: ${baseId}`);
+
+    // Create a modified copy with 0 cost, vanish, and halved damage
+    return {
+      ...baseMove,
+      id: id,  // Keep the __parental suffix in the ID
+      name: `${baseMove.name} (Echo)`,
+      cost: 0,
+      vanish: true,
+      effects: baseMove.effects.map(effect => {
+        // Halve all damage-dealing effects
+        switch (effect.type) {
+          case 'damage':
+            return { ...effect, value: Math.floor(effect.value / 2) };
+          case 'multi_hit':
+            return { ...effect, value: Math.floor(effect.value / 2) };
+          case 'recoil':
+            return { ...effect, value: Math.floor(effect.value / 2) };
+          case 'heal_on_hit':
+            return { ...effect, value: Math.floor(effect.value / 2) };
+          case 'self_ko':
+            return { ...effect, value: Math.floor(effect.value / 2) };
+          default:
+            return effect;
+        }
+      }),
+    };
+  }
+
   const move = MOVES[id];
   if (!move) throw new Error(`Move not found: ${id}`);
   return move;
+}
+
+/**
+ * Check if a card ID is a Parental Bond copy.
+ */
+export function isParentalBondCopy(id: string): boolean {
+  return id.endsWith('__parental');
 }
 
 /**

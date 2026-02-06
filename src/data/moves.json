@@ -53,81 +53,81 @@
   },
   "double-slap": {
     "name": "Double Slap",
-    "cost": 1,
+    "cost": 2,
     "type": "normal",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 2, "hits": 3 }
+      { "type": "multi_hit", "value": 5, "hits": 2 }
     ],
-    "rarity": "basic",
+    "rarity": "common",
     "pools": ["normal"],
-    "description": "Hit 3 times for 2 damage each. (Front row)"
+    "description": "Hit 2 times for 5 damage each. (Front row)"
   },
   "comet-punch": {
     "name": "Comet Punch",
-    "cost": 1,
+    "cost": 2,
     "type": "normal",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 4, "hits": 2 }
+      { "type": "multi_hit", "value": 5, "hits": 2 }
     ],
     "rarity": "common",
     "pools": ["normal"],
-    "description": "Hit 2 times for 4 damage each. (Front row)"
+    "description": "Hit 2 times for 5 damage each. (Front row)"
   },
   "fury-attack": {
     "name": "Fury Attack",
-    "cost": 1,
+    "cost": 2,
     "type": "normal",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 2, "hits": 3 }
+      { "type": "multi_hit", "value": 3, "hits": 3 }
     ],
     "rarity": "basic",
     "pools": ["normal"],
-    "description": "Hit 3 times for 2 damage each. (Front row)"
+    "description": "Hit 3 times for 3 damage each. (Front row)"
   },
   "fury-swipes": {
     "name": "Fury Swipes",
-    "cost": 1,
+    "cost": 2,
     "type": "normal",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 2, "hits": 3 }
-    ],
-    "rarity": "basic",
-    "pools": ["normal"],
-    "description": "Hit 3 times for 2 damage each. (Front row)"
-  },
-  "spike-cannon": {
-    "name": "Spike Cannon",
-    "cost": 1,
-    "type": "normal",
-    "range": "front_enemy",
-    "vanish": false,
-    "effects": [
-      { "type": "multi_hit", "value": 4, "hits": 2 }
+      { "type": "multi_hit", "value": 3, "hits": 3 }
     ],
     "rarity": "common",
     "pools": ["normal"],
-    "description": "Hit 2 times for 4 damage each. (Front row)"
+    "description": "Hit 3 times for 3 damage each. (Front row)"
   },
-  "barrage": {
-    "name": "Barrage",
-    "cost": 1,
+  "spike-cannon": {
+    "name": "Spike Cannon",
+    "cost": 3,
     "type": "normal",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 2, "hits": 3 }
+      { "type": "multi_hit", "value": 3, "hits": 4 }
     ],
-    "rarity": "basic",
+    "rarity": "common",
     "pools": ["normal"],
-    "description": "Hit 3 times for 2 damage each. (Front row)"
+    "description": "Hit 4 times for 3 damage each. (Front row)"
+  },
+  "barrage": {
+    "name": "Barrage",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      { "type": "multi_hit", "value": 3, "hits": 4 }
+    ],
+    "rarity": "common",
+    "pools": ["normal"],
+    "description": "Hit 4 times for 3 damage each. (Front row)"
   },
   "vice-grip": {
     "name": "Vice Grip",
@@ -465,14 +465,14 @@
     "name": "Razor Wind",
     "cost": 2,
     "type": "normal",
-    "range": "any_enemy",
+    "range": "any_row",
     "vanish": false,
     "effects": [
       { "type": "damage", "value": 11 }
     ],
-    "rarity": "uncommon",
-    "pools": ["normal"],
-    "description": "Deal 11 damage."
+    "rarity": "rare",
+    "pools": ["normal", "flying"],
+    "description": "Deal 11 damage to a row."
   },
   "horn-attack": {
     "name": "Horn Attack",
@@ -1014,28 +1014,28 @@
 
   "twineedle": {
     "name": "Twineedle",
-    "cost": 1,
+    "cost": 2,
     "type": "bug",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 3, "hits": 2 },
+      { "type": "multi_hit", "value": 4, "hits": 2 },
       { "type": "apply_status", "status": "poison", "stacks": 1 }
     ],
     "rarity": "common",
     "pools": ["bug"],
-    "description": "Hit 2 times for 3 damage each. Apply Poison 1. (Front row)"
+    "description": "Hit 2 times for 4 damage each. Apply Poison 1. (Front row)"
   },
   "pin-missile": {
     "name": "Pin Missile",
-    "cost": 2,
+    "cost": 3,
     "type": "bug",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
       { "type": "multi_hit", "value": 3, "hits": 4 }
     ],
-    "rarity": "uncommon",
+    "rarity": "common",
     "pools": ["bug"],
     "description": "Hit 4 times for 3 damage each. (Front row)"
   },
@@ -1189,16 +1189,16 @@
   },
   "double-kick": {
     "name": "Double Kick",
-    "cost": 1,
+    "cost": 2,
     "type": "fighting",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 3, "hits": 2 }
+      { "type": "multi_hit", "value": 4, "hits": 2 }
     ],
     "rarity": "common",
     "pools": ["fighting"],
-    "description": "Hit 2 times for 3 damage each. (Front row)"
+    "description": "Hit 2 times for 4 damage each. (Front row)"
   },
   "rolling-kick": {
     "name": "Rolling Kick",
@@ -1639,16 +1639,16 @@
   },
   "bonemerang": {
     "name": "Bonemerang",
-    "cost": 1,
+    "cost": 2,
     "type": "ground",
     "range": "front_enemy",
     "vanish": false,
     "effects": [
-      { "type": "multi_hit", "value": 4, "hits": 2 }
+      { "type": "multi_hit", "value": 5, "hits": 2 }
     ],
     "rarity": "common",
     "pools": ["ground"],
-    "description": "Hit 2 times for 4 damage each. (Front row)"
+    "description": "Hit 2 times for 5 damage each. (Front row)"
   },
   "dig": {
     "name": "Dig",
@@ -2069,14 +2069,14 @@
     "cost": 2,
     "type": "psychic",
     "range": "self",
-    "vanish": false,
+    "vanish": true,
     "effects": [
-      { "type": "heal", "value": 25 },
-      { "type": "apply_status_self", "status": "sleep", "stacks": 1 }
+      { "type": "heal_percent", "percent": 0.5 },
+      { "type": "apply_status_self", "status": "sleep", "stacks": 2 }
     ],
-    "rarity": "rare",
+    "rarity": "epic",
     "pools": ["psychic"],
-    "description": "Heal 25 HP. Apply Sleep 1 to self."
+    "description": "Heal 50% of max HP. Apply Sleep 2 to self. Vanish."
   },
 
   "rock-throw": {

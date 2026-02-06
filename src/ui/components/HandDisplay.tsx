@@ -1,5 +1,6 @@
 import type { Combatant } from '../../engine/types';
 import { getMove } from '../../data/loaders';
+import { getEffectiveCost } from '../../engine/cards';
 import { CardDisplay } from './CardDisplay';
 
 interface Props {
@@ -18,9 +19,8 @@ export function HandDisplay({ combatant, selectedIndex, onSelectCard }: Props) {
     }}>
       {combatant.hand.map((cardId, idx) => {
         const card = getMove(cardId);
-        // Calculate effective cost with Inferno Momentum reduction
-        const hasInfernoReduction = combatant.turnFlags.infernoMomentumReducedIndex === idx;
-        const effectiveCost = Math.max(0, card.cost + (hasInfernoReduction ? -3 : 0));
+        // Use centralized cost calculation (includes Quick Feet, Hustle, Inferno Momentum)
+        const effectiveCost = getEffectiveCost(combatant, idx);
         const canAfford = combatant.energy >= effectiveCost;
 
         return (

@@ -5,21 +5,55 @@
 // Passive ability IDs
 export type PassiveId =
   | 'none'
+  // Charmander line
   | 'kindling'
   | 'spreading_flames'
   | 'blaze_strike'
   | 'inferno_momentum'
+  // Squirtle line
   | 'baby_shell'
   | 'pressure_hull'
   | 'fortified_cannons'
   | 'bastion_barrage'
+  // Bulbasaur line
   | 'baby_vines'
   | 'spreading_spores'
   | 'overgrow'
   | 'blooming_cycle'
+  // Pikachu line
   | 'numbing_strike'
   | 'static_field'
-  | 'counter_current';
+  | 'counter_current'
+  // Pidgey line
+  | 'gust_force'
+  | 'whipping_winds'
+  | 'hurricane'
+  | 'slipstream'
+  // Rattata line
+  | 'scurry'
+  | 'quick_feet'
+  | 'relentless'
+  | 'underdog'
+  | 'hustle'
+  // Ekans line
+  | 'shed_skin'
+  | 'poison_point'
+  | 'intimidate'
+  | 'predators_patience'
+  // Tauros
+  | 'thick_hide'
+  | 'anger_point'
+  | 'raging_bull'
+  // Snorlax
+  | 'thick_fat'
+  | 'immunity'
+  | 'leftovers'
+  | 'power_nap'
+  // Kangaskhan
+  | 'scrappy'
+  | 'parental_bond'
+  | 'protective_instinct'
+  | 'family_fury';
 
 // A single rung in the progression ladder
 export interface ProgressionRung {
@@ -103,6 +137,108 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   counter_current: {
     name: 'Counter-Current',
     description: 'Deal bonus damage to slower enemies (floor((yourSpeed - theirSpeed) / 2)).',
+  },
+  // Pidgey line
+  gust_force: {
+    name: 'Gust Force',
+    description: 'Gust applies +1 Slow.',
+  },
+  whipping_winds: {
+    name: 'Whipping Winds',
+    description: 'Enemies with Slow take +1 damage from your attacks.',
+  },
+  hurricane: {
+    name: 'Hurricane',
+    description: 'Your row-targeting attacks hit ALL enemies instead.',
+  },
+  slipstream: {
+    name: 'Slipstream',
+    description: 'When you use Gust, allies act immediately after you.',
+  },
+  // Rattata line
+  scurry: {
+    name: 'Scurry',
+    description: 'Gain 2 Haste at the start of combat.',
+  },
+  quick_feet: {
+    name: 'Quick Feet',
+    description: 'Your first attack each turn costs 1 less.',
+  },
+  relentless: {
+    name: 'Relentless',
+    description: 'Each card you play this turn gives your next attack +1 damage.',
+  },
+  underdog: {
+    name: 'Underdog',
+    description: 'Basic or Common rarity cards that cost 1 deal +2 damage.',
+  },
+  hustle: {
+    name: 'Hustle',
+    description: 'Draw an extra card at start of turn. Your attacks deal +3 damage but cost +1.',
+  },
+  // Ekans line
+  shed_skin: {
+    name: 'Shed Skin',
+    description: 'At end of turn, remove 1 debuff from yourself.',
+  },
+  poison_point: {
+    name: 'Poison Point',
+    description: 'Unblocked Poison attacks apply +1 Poison.',
+  },
+  intimidate: {
+    name: 'Intimidate',
+    description: 'Start of combat: apply Enfeeble 2 to all enemies.',
+  },
+  predators_patience: {
+    name: "Predator's Patience",
+    description: 'Enemies with Poison take +2 damage from your attacks.',
+  },
+  // Tauros
+  thick_hide: {
+    name: 'Thick Hide',
+    description: 'Take 1 less damage from all attacks.',
+  },
+  anger_point: {
+    name: 'Anger Point',
+    description: 'When you take unblocked damage, gain 1 Strength.',
+  },
+  raging_bull: {
+    name: 'Raging Bull',
+    description: 'Your attacks deal +50% damage when below 50% HP.',
+  },
+  // Snorlax
+  thick_fat: {
+    name: 'Thick Fat',
+    description: 'Take 25% less damage from Fire and Ice attacks.',
+  },
+  immunity: {
+    name: 'Immunity',
+    description: 'You cannot be Poisoned or Burned. Cleanse on application.',
+  },
+  leftovers: {
+    name: 'Leftovers',
+    description: 'At the end of your turn, heal 4 HP.',
+  },
+  power_nap: {
+    name: 'Power Nap',
+    description: 'When you play Rest, also gain 3 Strength for 2 turns.',
+  },
+  // Kangaskhan
+  scrappy: {
+    name: 'Scrappy',
+    description: 'Your Normal attacks deal +2 damage.',
+  },
+  parental_bond: {
+    name: 'Parental Bond',
+    description: 'The first attack each turn triggers twice (second hit deals 50% damage).',
+  },
+  protective_instinct: {
+    name: 'Protective Instinct',
+    description: 'When an ally takes damage, gain 3 Block.',
+  },
+  family_fury: {
+    name: 'Family Fury',
+    description: 'When below 50% HP, ALL your attacks trigger Parental Bond.',
   },
 };
 
@@ -269,12 +405,256 @@ export const PIKACHU_PROGRESSION: ProgressionTree = {
   ],
 };
 
+// Pidgey progression tree - speed manipulation, AoE wind attacks
+export const PIDGEY_PROGRESSION: ProgressionTree = {
+  baseFormId: 'pidgey',
+  rungs: [
+    {
+      level: 1,
+      name: 'Pidgey',
+      description: 'Starting form with Gust Force passive.',
+      passiveId: 'gust_force',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Pidgeotto',
+      description: 'Evolve to Pidgeotto. Gain Whipping Winds.',
+      evolvesTo: 'pidgeotto',
+      passiveId: 'whipping_winds',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 3,
+      name: 'Pidgeot',
+      description: 'Evolve to Pidgeot. Add Razor Wind. Gain Hurricane.',
+      evolvesTo: 'pidgeot',
+      passiveId: 'hurricane',
+      hpBoost: 0,
+      cardsToAdd: ['razor-wind'],
+    },
+    {
+      level: 4,
+      name: 'Pidgeot (Mastered)',
+      description: 'Gain Slipstream.',
+      passiveId: 'slipstream',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Rattata progression tree - multi-hit frenzy, speed advantage
+export const RATTATA_PROGRESSION: ProgressionTree = {
+  baseFormId: 'rattata',
+  rungs: [
+    {
+      level: 1,
+      name: 'Rattata',
+      description: 'Starting form. Gain Scurry.',
+      passiveId: 'scurry',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Rattata',
+      description: 'Add Fury Swipes. Gain Quick Feet.',
+      passiveId: 'quick_feet',
+      hpBoost: 0,
+      cardsToAdd: ['fury-swipes'],
+    },
+    {
+      level: 3,
+      name: 'Raticate',
+      description: 'Evolve to Raticate. Gain Underdog.',
+      evolvesTo: 'raticate',
+      passiveId: 'underdog',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 4,
+      name: 'Raticate (Mastered)',
+      description: 'Gain Hustle.',
+      passiveId: 'hustle',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Ekans progression tree - poison stacking, debuff on combat start
+export const EKANS_PROGRESSION: ProgressionTree = {
+  baseFormId: 'ekans',
+  rungs: [
+    {
+      level: 1,
+      name: 'Ekans',
+      description: 'Starting form with Shed Skin passive.',
+      passiveId: 'shed_skin',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Ekans',
+      description: 'Add Sludge. Gain Poison Point.',
+      passiveId: 'poison_point',
+      hpBoost: 0,
+      cardsToAdd: ['sludge'],
+    },
+    {
+      level: 3,
+      name: 'Arbok',
+      description: 'Evolve to Arbok. Add Toxic. Gain Intimidate.',
+      evolvesTo: 'arbok',
+      passiveId: 'intimidate',
+      hpBoost: 0,
+      cardsToAdd: ['toxic'],
+    },
+    {
+      level: 4,
+      name: 'Arbok (Mastered)',
+      description: "Gain Predator's Patience.",
+      passiveId: 'predators_patience',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Tauros progression tree - anger/rage theme (no evolution)
+export const TAUROS_PROGRESSION: ProgressionTree = {
+  baseFormId: 'tauros',
+  rungs: [
+    {
+      level: 1,
+      name: 'Tauros',
+      description: 'Starting form with Thick Hide passive.',
+      passiveId: 'thick_hide',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Tauros',
+      description: 'Gain Anger Point.',
+      passiveId: 'anger_point',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+    {
+      level: 3,
+      name: 'Tauros',
+      description: 'Add Double-Edge. Gain Intimidate.',
+      passiveId: 'intimidate',
+      hpBoost: 5,
+      cardsToAdd: ['double-edge'],
+    },
+    {
+      level: 4,
+      name: 'Tauros (Mastered)',
+      description: 'Gain Raging Bull.',
+      passiveId: 'raging_bull',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Snorlax progression tree - rest/recovery theme (no evolution)
+export const SNORLAX_PROGRESSION: ProgressionTree = {
+  baseFormId: 'snorlax',
+  rungs: [
+    {
+      level: 1,
+      name: 'Snorlax',
+      description: 'Starting form with Immunity passive.',
+      passiveId: 'immunity',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Snorlax',
+      description: 'Gain Thick Fat.',
+      passiveId: 'thick_fat',
+      hpBoost: 10,
+      cardsToAdd: [],
+    },
+    {
+      level: 3,
+      name: 'Snorlax',
+      description: 'Add Body Slam. Gain Leftovers.',
+      passiveId: 'leftovers',
+      hpBoost: 10,
+      cardsToAdd: ['body-slam'],
+    },
+    {
+      level: 4,
+      name: 'Snorlax (Mastered)',
+      description: 'Gain Power Nap.',
+      passiveId: 'power_nap',
+      hpBoost: 10,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Kangaskhan progression tree - parental bond/multi-hit (no evolution)
+export const KANGASKHAN_PROGRESSION: ProgressionTree = {
+  baseFormId: 'kangaskhan',
+  rungs: [
+    {
+      level: 1,
+      name: 'Kangaskhan',
+      description: 'Starting form with Scrappy passive.',
+      passiveId: 'scrappy',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Kangaskhan',
+      description: 'Gain Parental Bond.',
+      passiveId: 'parental_bond',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+    {
+      level: 3,
+      name: 'Kangaskhan',
+      description: 'Add Body Slam. Gain Protective Instinct.',
+      passiveId: 'protective_instinct',
+      hpBoost: 5,
+      cardsToAdd: ['body-slam'],
+    },
+    {
+      level: 4,
+      name: 'Kangaskhan (Mastered)',
+      description: 'Gain Family Fury.',
+      passiveId: 'family_fury',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+  ],
+};
+
 // All progression trees indexed by base form ID
 export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   charmander: CHARMANDER_PROGRESSION,
   bulbasaur: BULBASAUR_PROGRESSION,
   squirtle: SQUIRTLE_PROGRESSION,
   pikachu: PIKACHU_PROGRESSION,
+  pidgey: PIDGEY_PROGRESSION,
+  rattata: RATTATA_PROGRESSION,
+  ekans: EKANS_PROGRESSION,
+  tauros: TAUROS_PROGRESSION,
+  snorlax: SNORLAX_PROGRESSION,
+  kangaskhan: KANGASKHAN_PROGRESSION,
 };
 
 /**
@@ -299,6 +679,15 @@ export function getProgressionTree(pokemonId: string): ProgressionTree | null {
   if (pokemonId === 'raichu') {
     return PIKACHU_PROGRESSION;
   }
+  if (pokemonId === 'pidgeotto' || pokemonId === 'pidgeot') {
+    return PIDGEY_PROGRESSION;
+  }
+  if (pokemonId === 'raticate') {
+    return RATTATA_PROGRESSION;
+  }
+  if (pokemonId === 'arbok') {
+    return EKANS_PROGRESSION;
+  }
   return null;
 }
 
@@ -317,6 +706,15 @@ export function getBaseFormId(pokemonId: string): string {
   }
   if (pokemonId === 'raichu') {
     return 'pikachu';
+  }
+  if (pokemonId === 'pidgeotto' || pokemonId === 'pidgeot') {
+    return 'pidgey';
+  }
+  if (pokemonId === 'raticate') {
+    return 'rattata';
+  }
+  if (pokemonId === 'arbok') {
+    return 'ekans';
   }
   return pokemonId;
 }

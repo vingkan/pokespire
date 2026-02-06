@@ -67,10 +67,13 @@ export function PokemonDetailsPanel({
     ? [...combatant!.drawPile, ...combatant!.hand, ...combatant!.discardPile, ...combatant!.vanishedPile]
     : pokemon!.deck;
 
-  // Combat stats from base Pokemon data
+  // Combat stats from base Pokemon data (use combatant values if in battle for modified stats)
   const energyPerTurn = basePokemon.energyPerTurn;
   const energyCap = basePokemon.energyCap;
-  const handSize = basePokemon.handSize;
+  // Hand size can be modified by passives like Hustle (+1)
+  const baseHandSize = isFromBattle ? combatant!.handSize : basePokemon.handSize;
+  const hustleBonus = passiveIds.includes('hustle') && !isFromBattle ? 1 : 0;
+  const handSize = baseHandSize + hustleBonus;
   const speed = basePokemon.baseSpeed;
 
   const tree = getProgressionTree(baseFormId);
@@ -375,6 +378,19 @@ export function PokemonDetailsPanel({
                         <div style={{ fontSize: 13, color: '#94a3b8' }}>
                           {rung.description}
                         </div>
+                        {rung.passiveId !== 'none' && (
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: '#60a5fa',
+                              marginTop: 4,
+                              fontStyle: 'italic',
+                            }}
+                            title={PASSIVE_DEFINITIONS[rung.passiveId]?.description || ''}
+                          >
+                            💡 {PASSIVE_DEFINITIONS[rung.passiveId]?.name}: {PASSIVE_DEFINITIONS[rung.passiveId]?.description}
+                          </div>
+                        )}
                       </div>
 
                       {/* Next indicator */}

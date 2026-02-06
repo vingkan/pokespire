@@ -3,7 +3,7 @@
     "name": "Bulbasaur",
     "types": ["grass", "poison"],
     "maxHp": 36,
-    "baseSpeed": 5,
+    "baseSpeed": 4,
     "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
@@ -110,8 +110,8 @@
   "charmander": {
     "name": "Charmander",
     "types": ["fire"],
-    "maxHp": 30,
-    "baseSpeed": 6,
+    "maxHp": 32,
+    "baseSpeed": 5,
     "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
@@ -128,8 +128,8 @@
   "charmeleon": {
     "name": "Charmeleon",
     "types": ["fire"],
-    "maxHp": 40,
-    "baseSpeed": 7,
+    "maxHp": 42,
+    "baseSpeed": 6,
     "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
@@ -146,8 +146,8 @@
   "charizard": {
     "name": "Charizard",
     "types": ["fire", "flying"],
-    "maxHp": 50,
-    "baseSpeed": 8,
+    "maxHp": 52,
+    "baseSpeed": 6,
     "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
@@ -221,8 +221,9 @@
     "energyCap": 10,
     "handSize": 5,
     "deck": [
-      "peck", "peck", "peck",
+      "peck", "peck",
       "wing-attack", "wing-attack",
+      "gust", "gust",
       "sand-attack"
     ],
     "abilities": []
@@ -230,7 +231,7 @@
   "ekans": {
     "name": "Ekans",
     "types": ["poison"],
-    "maxHp": 30,
+    "maxHp": 25,
     "baseSpeed": 4,
     "energyPerTurn": 3,
     "energyCap": 10,
@@ -246,9 +247,9 @@
   "snorlax": {
     "name": "Snorlax",
     "types": ["normal"],
-    "maxHp": 100,
+    "maxHp": 130,
     "baseSpeed": 2,
-    "energyPerTurn": 4,
+    "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
     "deck": [
@@ -281,7 +282,7 @@
   "arbok": {
     "name": "Arbok",
     "types": ["poison"],
-    "maxHp": 55,
+    "maxHp": 48,
     "baseSpeed": 5,
     "energyPerTurn": 3,
     "energyCap": 10,
@@ -315,7 +316,7 @@
   "pidgeot": {
     "name": "Pidgeot",
     "types": ["normal", "flying"],
-    "maxHp": 60,
+    "maxHp": 55,
     "baseSpeed": 8,
     "energyPerTurn": 3,
     "energyCap": 10,
@@ -333,7 +334,7 @@
     "name": "Tauros",
     "types": ["normal"],
     "maxHp": 65,
-    "baseSpeed": 6,
+    "baseSpeed": 7,
     "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
@@ -351,7 +352,7 @@
     "name": "Kangaskhan",
     "types": ["normal"],
     "maxHp": 70,
-    "baseSpeed": 5,
+    "baseSpeed": 6,
     "energyPerTurn": 3,
     "energyCap": 10,
     "handSize": 5,
@@ -368,9 +369,9 @@
   "mewtwo": {
     "name": "Mewtwo",
     "types": ["psychic"],
-    "maxHp": 130,
-    "baseSpeed": 9,
-    "energyPerTurn": 4,
+    "maxHp": 200,
+    "baseSpeed": 12,
+    "energyPerTurn": 5,
     "energyCap": 12,
     "handSize": 6,
     "deck": [

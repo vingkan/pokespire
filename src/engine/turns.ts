@@ -1,6 +1,7 @@
-import type { CombatState, BattleAction, LogEntry } from './types';
+import type { CombatState, BattleAction, LogEntry, Combatant } from './types';
 import {
   getCurrentCombatant, checkBattleEnd, removeDeadFromTurnOrder, advanceRound,
+  getCombatant,
 } from './combat';
 import { processStartOfTurnStatuses, processEndOfTurnStatuses } from './status';
 import { drawCards, discardHand } from './deck';
@@ -179,6 +180,48 @@ function advanceToNextTurn(state: CombatState): LogEntry[] {
       state.currentTurnIndex++;
     }
   }
+
+  return logs;
+}
+
+/**
+ * Slipstream: Move all allies to act immediately after the current combatant.
+ * Triggered when using Gust with the Slipstream passive.
+ */
+export function applySlipstream(state: CombatState, combatant: Combatant): LogEntry[] {
+  const logs: LogEntry[] = [];
+  const currentIdx = state.currentTurnIndex;
+
+  // Find allies that haven't acted yet (excluding current combatant)
+  const allyIndices: number[] = [];
+  for (let i = currentIdx + 1; i < state.turnOrder.length; i++) {
+    const entry = state.turnOrder[i];
+    if (entry.hasActed) continue;
+    const c = getCombatant(state, entry.combatantId);
+    if (c.side === combatant.side && c.id !== combatant.id && c.alive) {
+      allyIndices.push(i);
+    }
+  }
+
+  if (allyIndices.length === 0) return logs;
+
+  // Extract ally entries (in reverse order to maintain relative order when removing)
+  const allyEntries = allyIndices.map(i => state.turnOrder[i]);
+
+  // Remove allies from their current positions (in reverse order)
+  for (let i = allyIndices.length - 1; i >= 0; i--) {
+    state.turnOrder.splice(allyIndices[i], 1);
+  }
+
+  // Insert allies right after current combatant
+  state.turnOrder.splice(currentIdx + 1, 0, ...allyEntries);
+
+  const allyNames = allyEntries.map(e => getCombatant(state, e.combatantId).name);
+  logs.push({
+    round: state.round,
+    combatantId: combatant.id,
+    message: `${combatant.name}'s gust stirs up a slipstream! ${allyNames.join(', ')} will act next!`,
+  });
 
   return logs;
 }

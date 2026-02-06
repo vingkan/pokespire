@@ -5,6 +5,7 @@ import type {
 import { shuffle } from './deck';
 import { getEffectiveSpeed, processRoundBoundary } from './status';
 import { assignPartyPositions } from './position';
+import { onRoundEnd } from './passives';
 
 // ============================================================
 // Combat State Creation & Turn Order — Sections 3, 9
@@ -44,7 +45,12 @@ function createCombatant(
     alive: true,
     // Passive ability system - defaults
     passiveIds: [],
-    turnFlags: { blazeStrikeUsedThisTurn: false, infernoMomentumReducedIndex: null },
+    turnFlags: {
+      blazeStrikeUsedThisTurn: false,
+      infernoMomentumReducedIndex: null,
+      relentlessUsedThisTurn: false,
+      alliesDamagedThisRound: new Set(),
+    },
     costModifiers: {},
   };
 }
@@ -244,6 +250,9 @@ export function advanceRound(state: CombatState): LogEntry[] {
   const oldOrder = state.turnOrder.map(e => e.combatantId);
 
   const logs = processRoundBoundary(state);
+
+  // Reset round-based passive flags
+  onRoundEnd(state);
 
   state.round += 1;
   state.turnOrder = buildTurnOrder(state);

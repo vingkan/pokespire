@@ -4,13 +4,14 @@ import type {
   PokemonData, Position, Combatant,
 } from '../../engine/types';
 import {
-  createCombatState, getCurrentCombatant,
+  createCombatState, getCurrentCombatant, buildTurnOrder,
 } from '../../engine/combat';
 import { startTurn, processAction, endTurn, skipTurnAndAdvance } from '../../engine/turns';
 import { chooseEnemyAction } from '../../engine/ai';
 import type { RunState, BattleNode as MapBattleNode } from '../../run/types';
 import { getRunPokemonData, getRunPositions } from '../../run/state';
 import { getPokemon } from '../../data/loaders';
+import { onBattleStart } from '../../engine/passives';
 
 export type BattlePhase = 'selecting' | 'player_turn' | 'enemy_turn' | 'animating' | 'victory' | 'defeat';
 
@@ -21,6 +22,14 @@ export interface BattleHook {
   startBattle: (players: PokemonData[], enemies: PokemonData[], playerPositions?: Position[], enemyPositions?: Position[]) => void;
   startBattleFromRun: (run: RunState, node: MapBattleNode) => void;
   startSandboxBattle: () => void;
+  startConfiguredBattle: (
+    players: PokemonData[],
+    enemies: PokemonData[],
+    playerPositions: Position[],
+    enemyPositions: Position[],
+    playerPassives: Map<number, string[]>,
+    enemyPassives: Map<number, string[]>
+  ) => void;
   playCard: (cardIndex: number, targetId?: string) => void;
   endPlayerTurn: () => void;
   needsTarget: boolean;
@@ -166,7 +175,17 @@ export function useBattle(): BattleHook {
     }
 
     setState(s);
-    setLogs([{ round: 1, combatantId: '', message: '--- Battle Start! ---' }]);
+    const initialLogs: LogEntry[] = [{ round: 1, combatantId: '', message: '--- Battle Start! ---' }];
+
+    // Trigger battle start passives (Intimidate, Scurry, etc.)
+    const battleStartLogs = onBattleStart(s);
+    initialLogs.push(...battleStartLogs);
+
+    // Rebuild turn order after battle start passives (Haste from Scurry affects speed)
+    s.turnOrder = buildTurnOrder(s);
+    s.currentTurnIndex = 0;
+
+    setLogs(initialLogs);
     setPhase('selecting');
 
     // Start first turn
@@ -296,6 +315,39 @@ export function useBattle(): BattleHook {
     initializeBattle(s);
   }, [initializeBattle]);
 
+  // Start a configured battle from sandbox config screen
+  const startConfiguredBattle = useCallback((
+    players: PokemonData[],
+    enemies: PokemonData[],
+    playerPositions: Position[],
+    enemyPositions: Position[],
+    playerPassives: Map<number, string[]>,
+    enemyPassives: Map<number, string[]>
+  ) => {
+    // Create combat state
+    const s = createCombatState(players, enemies, playerPositions, enemyPositions);
+
+    // Apply player passive overrides
+    const playerCombatants = s.combatants.filter(c => c.side === 'player');
+    playerPassives.forEach((passiveIds, slotIndex) => {
+      const combatant = playerCombatants.find(c => c.slotIndex === slotIndex);
+      if (combatant) {
+        combatant.passiveIds = passiveIds;
+      }
+    });
+
+    // Apply enemy passive overrides
+    const enemyCombatants = s.combatants.filter(c => c.side === 'enemy');
+    enemyPassives.forEach((passiveIds, slotIndex) => {
+      const combatant = enemyCombatants.find(c => c.slotIndex === slotIndex);
+      if (combatant) {
+        combatant.passiveIds = passiveIds;
+      }
+    });
+
+    initializeBattle(s);
+  }, [initializeBattle]);
+
   const playCard = useCallback((cardIndex: number, targetId?: string) => {
     if (!state || phase !== 'player_turn') return;
 
@@ -348,6 +400,7 @@ export function useBattle(): BattleHook {
     startBattle,
     startBattleFromRun,
     startSandboxBattle,
+    startConfiguredBattle,
     playCard,
     endPlayerTurn,
     needsTarget,

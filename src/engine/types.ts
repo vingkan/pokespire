@@ -41,6 +41,7 @@ export type CardEffectType =
   | 'damage'
   | 'block'
   | 'heal'
+  | 'heal_percent'
   | 'apply_status'
   | 'multi_hit'
   | 'heal_on_hit'
@@ -66,6 +67,12 @@ export interface BlockEffect {
 export interface HealEffect {
   type: 'heal';
   value: number;
+}
+
+/** Percentage HP healing - heals % of max HP */
+export interface HealPercentEffect {
+  type: 'heal_percent';
+  percent: number;  // 0.5 = 50% of max HP
 }
 
 export interface ApplyStatusEffect {
@@ -143,6 +150,7 @@ export type CardEffect =
   | DamageEffect
   | BlockEffect
   | HealEffect
+  | HealPercentEffect
   | ApplyStatusEffect
   | MultiHitEffect
   | HealOnHitEffect
@@ -216,7 +224,8 @@ export type StatusType =
   | 'sleep'
   | 'leech'
   | 'evasion'
-  | 'strength';
+  | 'strength'
+  | 'haste';
 
 export interface StatusInstance {
   type: StatusType;
@@ -237,6 +246,8 @@ export type CombatantSide = 'player' | 'enemy';
 export interface CombatantTurnFlags {
   blazeStrikeUsedThisTurn: boolean;
   infernoMomentumReducedIndex: number | null;  // Index of card with cost reduced by Inferno Momentum
+  relentlessUsedThisTurn: boolean;  // First attack costs 0 (Rattata line)
+  alliesDamagedThisRound: Set<string>;  // IDs of allies who took damage this round (for Family Fury)
 }
 
 export interface Combatant {
@@ -272,7 +283,7 @@ export interface Combatant {
   // Passive ability system
   passiveIds: string[];      // IDs of all passive abilities (e.g., ["kindling", "spreading_flames"])
   turnFlags: CombatantTurnFlags;  // Per-turn flags, reset at turn start
-  costModifiers: Record<number, number>;  // Temporary cost modifiers by hand index
+  costModifiers: Record<string | number, number>;  // Temporary cost modifiers and passive counters
 }
 
 // --- Combat State ---
