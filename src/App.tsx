@@ -9,7 +9,6 @@ import { RestScreen } from './ui/screens/RestScreen';
 import { CardDraftScreen } from './ui/screens/CardDraftScreen';
 import { RunVictoryScreen } from './ui/screens/RunVictoryScreen';
 import { CardDexScreen } from './ui/screens/CardDexScreen';
-import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
 import type { RunState, BattleNode } from './run/types';
 import {
   createRunState,
@@ -24,7 +23,7 @@ import {
   applyLevelUp,
 } from './run/state';
 
-type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'sandbox_config';
+type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('main_menu');
@@ -159,21 +158,9 @@ export default function App() {
     setScreen('main_menu');
   }, []);
 
-  // Go to sandbox config screen
+  // Start sandbox battle directly
   const handleGoToSandbox = useCallback(() => {
-    setScreen('sandbox_config');
-  }, []);
-
-  // Start configured sandbox battle
-  const handleStartSandboxBattle = useCallback((
-    players: PokemonData[],
-    enemies: PokemonData[],
-    playerPositions: Position[],
-    enemyPositions: Position[],
-    playerPassives: Map<number, string[]>,
-    enemyPassives: Map<number, string[]>
-  ) => {
-    battle.startConfiguredBattle(players, enemies, playerPositions, enemyPositions, playerPassives, enemyPassives);
+    battle.startSandboxBattle();
     setScreen('battle');
   }, [battle]);
 
@@ -263,15 +250,6 @@ export default function App() {
           Sandbox: Configure custom battles for testing
         </div>
       </div>
-    );
-  }
-
-  if (screen === 'sandbox_config') {
-    return (
-      <SandboxConfigScreen
-        onStart={handleStartSandboxBattle}
-        onCancel={() => setScreen('main_menu')}
-      />
     );
   }
 
