@@ -289,7 +289,7 @@ export default function App() {
   }
 
   if (screen === 'select') {
-    return <PartySelectScreen onStart={handleStart} />;
+    return <PartySelectScreen onStart={handleStart} onRestart={handleRestart} />;
   }
 
   if (screen === 'map' && runState) {
@@ -298,6 +298,7 @@ export default function App() {
         run={runState}
         onSelectNode={handleSelectNode}
         onLevelUp={handleLevelUp}
+        onRestart={handleRestart}
       />
     );
   }
@@ -309,6 +310,7 @@ export default function App() {
         onHeal={handleRestHeal}
         onTrain={handleRestTrain}
         onMeditate={handleRestMeditate}
+        onRestart={handleRestart}
       />
     );
   }
@@ -318,6 +320,7 @@ export default function App() {
       <CardDraftScreen
         run={runState}
         onDraftComplete={handleDraftComplete}
+        onRestart={handleRestart}
       />
     );
   }

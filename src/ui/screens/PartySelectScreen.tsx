@@ -4,16 +4,22 @@ import { STARTER_POKEMON } from '../../data/loaders';
 
 interface Props {
   onStart: (party: PokemonData[], positions: Position[]) => void;
+  onRestart: () => void;
 }
 
-const starters = Object.values(STARTER_POKEMON);
+const allPokemon = Object.values(STARTER_POKEMON);
+
+// Split into recommended (classic starters) and others
+const RECOMMENDED_IDS = ['charmander', 'squirtle', 'bulbasaur', 'pikachu'];
+const recommendedPokemon = allPokemon.filter(p => RECOMMENDED_IDS.includes(p.id));
+const otherPokemon = allPokemon.filter(p => !RECOMMENDED_IDS.includes(p.id));
 
 type Phase = 'select' | 'position';
 
 // Grid slot: row + column
 type SlotKey = `${Row}-${Column}`;
 
-export function PartySelectScreen({ onStart }: Props) {
+export function PartySelectScreen({ onStart, onRestart }: Props) {
   const [phase, setPhase] = useState<Phase>('select');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // Map from slot key to pokemon id
@@ -37,7 +43,7 @@ export function PartySelectScreen({ onStart }: Props) {
     });
   };
 
-  const party = starters.filter(s => selected.has(s.id));
+  const party = allPokemon.filter(s => selected.has(s.id));
 
   const goToPositioning = () => {
     // Initialize with selected Pokemon as unplaced
@@ -148,7 +154,7 @@ export function PartySelectScreen({ onStart }: Props) {
     formation.forEach((pokemonId, slotKey) => {
       const [row, colStr] = slotKey.split('-') as [Row, string];
       const col = parseInt(colStr) as Column;
-      const pokemon = starters.find(p => p.id === pokemonId);
+      const pokemon = allPokemon.find(p => p.id === pokemonId);
       if (pokemon) {
         partyList.push(pokemon);
         positions.push({ row, column: col });
@@ -164,7 +170,7 @@ export function PartySelectScreen({ onStart }: Props) {
     const key: SlotKey = `${row}-${col}`;
     const id = formation.get(key);
     if (!id) return null;
-    return starters.find(p => p.id === id) || null;
+    return allPokemon.find(p => p.id === id) || null;
   };
 
   // Selection phase
@@ -177,7 +183,27 @@ export function PartySelectScreen({ onStart }: Props) {
         gap: 24,
         padding: 32,
         color: '#e2e8f0',
+        position: 'relative',
       }}>
+        {/* Reset button */}
+        <button
+          onClick={onRestart}
+          style={{
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            padding: '8px 16px',
+            fontSize: 13,
+            borderRadius: 6,
+            border: '1px solid #555',
+            background: 'transparent',
+            color: '#94a3b8',
+            cursor: 'pointer',
+          }}
+        >
+          Main Menu
+        </button>
+
         <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>
           Choose Your Party
         </h1>
@@ -185,39 +211,108 @@ export function PartySelectScreen({ onStart }: Props) {
           Select 1-4 Pokemon for battle
         </p>
 
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {starters.map(pokemon => {
-            const isSelected = selected.has(pokemon.id);
-            return (
-              <div
-                key={pokemon.id}
-                onClick={() => toggle(pokemon.id)}
-                style={{
-                  width: 160,
-                  padding: 16,
-                  borderRadius: 12,
-                  border: isSelected ? '3px solid #facc15' : '3px solid #333',
-                  background: isSelected ? '#2d2d3f' : '#1e1e2e',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <img
-                  src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
-                  alt={pokemon.name}
-                  style={{ width: 80, height: 80, imageRendering: 'pixelated', objectFit: 'contain' }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <div style={{ fontSize: 17, fontWeight: 'bold', marginTop: 8 }}>
-                  {pokemon.name}
+        {/* Recommended Section */}
+        <div style={{ width: '100%', maxWidth: 800 }}>
+          <div style={{
+            fontSize: 14,
+            color: '#facc15',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            marginBottom: 12,
+            textAlign: 'center',
+          }}>
+            Recommended
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {recommendedPokemon.map(pokemon => {
+              const isSelected = selected.has(pokemon.id);
+              return (
+                <div
+                  key={pokemon.id}
+                  onClick={() => toggle(pokemon.id)}
+                  style={{
+                    width: 160,
+                    padding: 16,
+                    borderRadius: 12,
+                    border: isSelected ? '3px solid #facc15' : '3px solid #333',
+                    background: isSelected ? '#2d2d3f' : '#1e1e2e',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <img
+                    src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
+                    alt={pokemon.name}
+                    style={{ width: 80, height: 80, imageRendering: 'pixelated', objectFit: 'contain' }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div style={{ fontSize: 17, fontWeight: 'bold', marginTop: 8 }}>
+                    {pokemon.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+                    HP: {pokemon.maxHp} | SPD: {pokemon.baseSpeed}
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                  HP: {pokemon.maxHp} | SPD: {pokemon.baseSpeed}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Others Section */}
+        <div style={{
+          width: '100%',
+          maxWidth: 800,
+          marginTop: 24,
+          padding: 20,
+          background: '#1a1a24',
+          borderRadius: 12,
+          border: '1px solid #333',
+        }}>
+          <div style={{
+            fontSize: 14,
+            color: '#94a3b8',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            marginBottom: 12,
+            textAlign: 'center',
+          }}>
+            Others
+          </div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {otherPokemon.map(pokemon => {
+              const isSelected = selected.has(pokemon.id);
+              return (
+                <div
+                  key={pokemon.id}
+                  onClick={() => toggle(pokemon.id)}
+                  style={{
+                    width: 140,
+                    padding: 12,
+                    borderRadius: 10,
+                    border: isSelected ? '3px solid #facc15' : '2px solid #333',
+                    background: isSelected ? '#2d2d3f' : '#1e1e2e',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <img
+                    src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
+                    alt={pokemon.name}
+                    style={{ width: 64, height: 64, imageRendering: 'pixelated', objectFit: 'contain' }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div style={{ fontSize: 15, fontWeight: 'bold', marginTop: 6 }}>
+                    {pokemon.name}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                    HP: {pokemon.maxHp} | SPD: {pokemon.baseSpeed}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <button
@@ -249,7 +344,27 @@ export function PartySelectScreen({ onStart }: Props) {
       gap: 24,
       padding: 32,
       color: '#e2e8f0',
+      position: 'relative',
     }}>
+      {/* Reset button */}
+      <button
+        onClick={onRestart}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid #555',
+          background: 'transparent',
+          color: '#94a3b8',
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>
         Set Formation
       </h1>
@@ -344,7 +459,7 @@ export function PartySelectScreen({ onStart }: Props) {
         >
           {unplacedPokemon.length > 0 ? (
             unplacedPokemon.map(id => {
-              const pokemon = starters.find(p => p.id === id);
+              const pokemon = allPokemon.find(p => p.id === id);
               if (!pokemon) return null;
               return (
                 <div

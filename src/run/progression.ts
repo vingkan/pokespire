@@ -26,8 +26,8 @@ export type PassiveId =
   | 'counter_current'
   // Pidgey line
   | 'gust_force'
+  | 'keen_eye'
   | 'whipping_winds'
-  | 'hurricane'
   | 'slipstream'
   // Rattata line
   | 'scurry'
@@ -143,12 +143,12 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
     name: 'Gust Force',
     description: 'Gust applies +1 Slow.',
   },
-  whipping_winds: {
-    name: 'Whipping Winds',
+  keen_eye: {
+    name: 'Keen Eye',
     description: 'Enemies with Slow take +1 damage from your attacks.',
   },
-  hurricane: {
-    name: 'Hurricane',
+  whipping_winds: {
+    name: 'Whipping Winds',
     description: 'Your row-targeting attacks hit ALL enemies instead.',
   },
   slipstream: {
@@ -420,18 +420,18 @@ export const PIDGEY_PROGRESSION: ProgressionTree = {
     {
       level: 2,
       name: 'Pidgeotto',
-      description: 'Evolve to Pidgeotto. Gain Whipping Winds.',
+      description: 'Evolve to Pidgeotto. Gain Keen Eye.',
       evolvesTo: 'pidgeotto',
-      passiveId: 'whipping_winds',
+      passiveId: 'keen_eye',
       hpBoost: 0,
       cardsToAdd: [],
     },
     {
       level: 3,
       name: 'Pidgeot',
-      description: 'Evolve to Pidgeot. Add Razor Wind. Gain Hurricane.',
+      description: 'Evolve to Pidgeot. Add Razor Wind. Gain Whipping Winds.',
       evolvesTo: 'pidgeot',
-      passiveId: 'hurricane',
+      passiveId: 'whipping_winds',
       hpBoost: 0,
       cardsToAdd: ['razor-wind'],
     },

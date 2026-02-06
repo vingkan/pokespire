@@ -8,11 +8,12 @@ import { PokemonDetailsPanel } from '../components/PokemonDetailsPanel';
 interface Props {
   run: RunState;
   onDraftComplete: (drafts: Map<number, string | null>) => void;
+  onRestart: () => void;
 }
 
 const CARDS_PER_DRAFT = 3;
 
-export function CardDraftScreen({ run, onDraftComplete }: Props) {
+export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
   // Track which Pokemon we're drafting for (index into party)
   const [currentDraftIndex, setCurrentDraftIndex] = useState(0);
   // Track drafted cards: Map<pokemonIndex, cardId | null (skip)>
@@ -78,7 +79,27 @@ export function CardDraftScreen({ run, onDraftComplete }: Props) {
       color: '#e2e8f0',
       minHeight: '100vh',
       background: '#0f0f17',
+      position: 'relative',
     }}>
+      {/* Reset button */}
+      <button
+        onClick={onRestart}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid #555',
+          background: 'transparent',
+          color: '#94a3b8',
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>
         Card Draft
       </h1>

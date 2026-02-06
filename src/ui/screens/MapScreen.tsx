@@ -10,6 +10,7 @@ interface Props {
   run: RunState;
   onSelectNode: (nodeId: string) => void;
   onLevelUp: (pokemonIndex: number) => void;
+  onRestart: () => void;
 }
 
 // Position for a node in the map coordinate system
@@ -78,7 +79,7 @@ function calculateNodePositions(
   return positions;
 }
 
-export function MapScreen({ run, onSelectNode, onLevelUp }: Props) {
+export function MapScreen({ run, onSelectNode, onLevelUp, onRestart }: Props) {
   const [selectedPokemonIndex, setSelectedPokemonIndex] = useState<number | null>(null);
   const [hoveredNode, setHoveredNode] = useState<MapNode | null>(null);
 
@@ -127,7 +128,27 @@ export function MapScreen({ run, onSelectNode, onLevelUp }: Props) {
       color: '#e2e8f0',
       minHeight: '100vh',
       background: '#0f0f17',
+      position: 'relative',
     }}>
+      {/* Reset button */}
+      <button
+        onClick={onRestart}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid #555',
+          background: 'transparent',
+          color: '#94a3b8',
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>
         Act 1 - Map
       </h1>

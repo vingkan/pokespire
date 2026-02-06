@@ -212,8 +212,9 @@ export function onDamageDealt(
   target: Combatant,
   card: MoveDefinition,
   damageDealt: number // Damage that actually got through (after block)
-): LogEntry[] {
+): { logs: LogEntry[], affectsSpeed: boolean } {
   const logs: LogEntry[] = [];
+  let affectsSpeed = false;
 
   // Kindling: Unblocked Fire attacks apply +1 Burn
   if (attacker.passiveIds.includes('kindling') && card.type === 'fire' && damageDealt > 0) {
@@ -265,9 +266,10 @@ export function onDamageDealt(
       combatantId: attacker.id,
       message: `Numbing Strike: +1 Paralysis applied to ${target.name}!`,
     });
+    affectsSpeed = true; // Paralysis affects speed
   }
 
-  return logs;
+  return { logs, affectsSpeed };
 }
 
 /**

@@ -8,6 +8,7 @@ interface Props {
   onHeal: (pokemonIndex: number) => void;
   onTrain: (pokemonIndex: number) => void;
   onMeditate: (pokemonIndex: number) => void;
+  onRestart: () => void;
 }
 
 type RestChoice = 'heal' | 'train' | 'meditate';
@@ -66,7 +67,7 @@ function getSpriteUrl(pokemonId: string): string {
   return `https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemonId}.gif`;
 }
 
-export function RestScreen({ run, onHeal, onTrain, onMeditate }: Props) {
+export function RestScreen({ run, onHeal, onTrain, onMeditate, onRestart }: Props) {
   const [selectedChoice, setSelectedChoice] = useState<RestChoice>('heal');
 
   const handleSelectPokemon = (pokemonIndex: number) => {
@@ -91,7 +92,27 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate }: Props) {
       color: '#e2e8f0',
       minHeight: '100vh',
       background: '#0f0f17',
+      position: 'relative',
     }}>
+      {/* Reset button */}
+      <button
+        onClick={onRestart}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid #555',
+          background: 'transparent',
+          color: '#94a3b8',
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>
         Pokemon Center
       </h1>

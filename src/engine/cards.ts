@@ -496,10 +496,14 @@ function resolveEffects(
           message: dmgMsg,
         });
 
-        // Trigger post-damage passive effects (e.g., Kindling)
+        // Trigger post-damage passive effects (e.g., Kindling, Numbing Strike)
         if (r.hpDamage > 0) {
-          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
+          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
+          if (passiveAffectsSpeed) {
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
+          }
 
           // Gust Force: Gust applies +1 Slow
           if (checkGustForce(source, card)) {
@@ -509,6 +513,9 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
+            // Slow affects speed - rebuild turn order
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
           }
 
           // Poison Point: Unblocked Poison attacks apply +1 Poison
@@ -548,8 +555,12 @@ function resolveEffects(
           totalDamage += r.hpDamage;
 
           if (r.hpDamage > 0) {
-            const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
+            const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
             logs.push(...postDmgLogs);
+            if (passiveAffectsSpeed) {
+              const reorderLogs = rebuildTurnOrderMidRound(state);
+              logs.push(...reorderLogs);
+            }
 
             // Gust Force: Gust applies +1 Slow (each hit)
             if (checkGustForce(source, card) && target.alive) {
@@ -559,6 +570,9 @@ function resolveEffects(
                 combatantId: source.id,
                 message: `Gust Force: +1 Slow applied to ${target.name}!`,
               });
+              // Slow affects speed - rebuild turn order
+              const reorderLogs = rebuildTurnOrderMidRound(state);
+              logs.push(...reorderLogs);
             }
 
             // Poison Point: Unblocked Poison attacks apply +1 Poison (each hit)
@@ -615,8 +629,12 @@ function resolveEffects(
         }
 
         if (r.hpDamage > 0) {
-          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
+          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
+          if (passiveAffectsSpeed) {
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
+          }
 
           if (checkGustForce(source, card) && target.alive) {
             applyStatus(state, target, 'slow', 1, source.id);
@@ -625,6 +643,9 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
+            // Slow affects speed - rebuild turn order
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
           }
 
           if (checkPoisonPoint(source, card, r.hpDamage) && target.alive) {
@@ -667,8 +688,12 @@ function resolveEffects(
         });
 
         if (r.hpDamage > 0) {
-          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
+          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
+          if (passiveAffectsSpeed) {
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
+          }
 
           if (checkGustForce(source, card) && target.alive) {
             applyStatus(state, target, 'slow', 1, source.id);
@@ -677,6 +702,9 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
+            // Slow affects speed - rebuild turn order
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
           }
 
           if (checkPoisonPoint(source, card, r.hpDamage) && target.alive) {
@@ -788,8 +816,12 @@ function resolveEffects(
         });
 
         if (r.hpDamage > 0) {
-          const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
+          const { logs: postDmgLogs, affectsSpeed: passiveAffectsSpeed } = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
+          if (passiveAffectsSpeed) {
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
+          }
 
           if (checkGustForce(source, card) && target.alive) {
             applyStatus(state, target, 'slow', 1, source.id);
@@ -798,6 +830,9 @@ function resolveEffects(
               combatantId: source.id,
               message: `Gust Force: +1 Slow applied to ${target.name}!`,
             });
+            // Slow affects speed - rebuild turn order
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
           }
 
           if (checkPoisonPoint(source, card, r.hpDamage) && target.alive) {
@@ -982,8 +1017,8 @@ function resolveEffects(
         break;
       }
       case 'apply_status': {
-        const statusApplied = applyStatus(state, target, effect.status, effect.stacks, source.id);
-        if (statusApplied) {
+        const statusResult = applyStatus(state, target, effect.status, effect.stacks, source.id);
+        if (statusResult.applied) {
           logs.push({
             round: state.round,
             combatantId: target.id,
@@ -995,6 +1030,12 @@ function resolveEffects(
             state, source, target, effect.status, effect.stacks
           );
           logs.push(...statusPassiveLogs);
+
+          // Rebuild turn order mid-round if speed was affected
+          if (statusResult.affectsSpeed) {
+            const reorderLogs = rebuildTurnOrderMidRound(state);
+            logs.push(...reorderLogs);
+          }
         } else {
           // Status was blocked (e.g., by Immunity)
           logs.push({
@@ -1002,12 +1043,6 @@ function resolveEffects(
             combatantId: target.id,
             message: `Immunity makes ${target.name} immune to ${effect.status}!`,
           });
-        }
-
-        // Rebuild turn order mid-round if speed was affected
-        if (statusApplied && isSpeedStatus(effect.status)) {
-          const reorderLogs = rebuildTurnOrderMidRound(state);
-          logs.push(...reorderLogs);
         }
         break;
       }

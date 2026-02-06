@@ -49,16 +49,21 @@ export function checkStatusImmunity(
   return false;
 }
 
+export interface ApplyStatusResult {
+  applied: boolean;
+  affectsSpeed: boolean;
+}
+
 export function applyStatus(
   state: CombatState,
   target: Combatant,
   type: StatusType,
   stacks: number,
   sourceId?: string,
-): boolean {
+): ApplyStatusResult {
   // Check for immunity
   if (checkStatusImmunity(target, type)) {
-    return false; // Status was blocked
+    return { applied: false, affectsSpeed: false }; // Status was blocked
   }
 
   const existing = getStatus(target, type);
@@ -100,7 +105,7 @@ export function applyStatus(
       }
       break;
   }
-  return true; // Status was applied
+  return { applied: true, affectsSpeed: isSpeedStatus(type) };
 }
 
 /**
