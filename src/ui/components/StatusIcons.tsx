@@ -12,7 +12,7 @@ const STATUS_INFO: Record<string, { icon: string; color: string; describe: (stac
   },
   paralysis: {
     icon: '⚡', color: '#facc15',
-    describe: (s) => `Reduces speed by ${s}. Permanent until cleansed.`,
+    describe: (s) => `Reduces speed by ${s}. Loses 1 stack each turn.`,
   },
   slow: {
     icon: '🐌', color: '#6b7280',

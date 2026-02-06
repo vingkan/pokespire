@@ -6,6 +6,7 @@ import { shuffle } from './deck';
 import { getEffectiveSpeed, processRoundBoundary } from './status';
 import { assignPartyPositions } from './position';
 import { onRoundEnd } from './passives';
+import { getProgressionTree, getRungForLevel } from '../run/progression';
 
 // ============================================================
 // Combat State Creation & Turn Order — Sections 3, 9
@@ -77,6 +78,18 @@ export function createCombatState(
     ...playerParty.map((p, i) => createCombatant(p, 'player', i, pPositions[i])),
     ...enemyParty.map((e, i) => createCombatant(e, 'enemy', i, ePositions[i])),
   ];
+
+  // Assign level 1 passives to enemies
+  const enemyCombatants = combatants.filter(c => c.side === 'enemy');
+  for (const enemy of enemyCombatants) {
+    const tree = getProgressionTree(enemy.pokemonId);
+    if (tree) {
+      const level1Rung = getRungForLevel(tree, 1);
+      if (level1Rung && level1Rung.passiveId !== 'none') {
+        enemy.passiveIds = [level1Rung.passiveId];
+      }
+    }
+  }
 
   const state: CombatState = {
     combatants,

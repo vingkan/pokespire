@@ -10,6 +10,7 @@ import { CardDraftScreen } from './ui/screens/CardDraftScreen';
 import { RunVictoryScreen } from './ui/screens/RunVictoryScreen';
 import { CardDexScreen } from './ui/screens/CardDexScreen';
 import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
+import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
 import type { RunState, BattleNode } from './run/types';
 import {
   createRunState,
@@ -29,6 +30,9 @@ type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('main_menu');
   const [runState, setRunState] = useState<RunState | null>(null);
+  const [isSandboxBattle, setIsSandboxBattle] = useState(false);
+  const [sandboxPlayerTeam, setSandboxPlayerTeam] = useState<SandboxPokemon[]>([]);
+  const [sandboxEnemyTeam, setSandboxEnemyTeam] = useState<SandboxPokemon[]>([]);
   const battle = useBattle();
 
   // Start a new run after party selection
@@ -183,8 +187,21 @@ export default function App() {
       players, enemies, playerPositions, enemyPositions,
       playerPassives, enemyPassives, hpOverrides
     );
+    setIsSandboxBattle(true);
     setScreen('battle');
   }, [battle]);
+
+  // Go back to sandbox config (from sandbox battle)
+  const handleBackToSandboxConfig = useCallback(() => {
+    setIsSandboxBattle(false);
+    setScreen('sandbox_config');
+  }, []);
+
+  // Update sandbox config state (called by SandboxConfigScreen)
+  const handleSandboxConfigChange = useCallback((playerTeam: SandboxPokemon[], enemyTeam: SandboxPokemon[]) => {
+    setSandboxPlayerTeam(playerTeam);
+    setSandboxEnemyTeam(enemyTeam);
+  }, []);
 
   // Render based on current screen
   if (screen === 'main_menu') {
@@ -284,6 +301,9 @@ export default function App() {
       <SandboxConfigScreen
         onStartBattle={handleStartSandboxBattle}
         onBack={() => setScreen('main_menu')}
+        initialPlayerTeam={sandboxPlayerTeam}
+        initialEnemyTeam={sandboxEnemyTeam}
+        onConfigChange={handleSandboxConfigChange}
       />
     );
   }
@@ -339,6 +359,7 @@ export default function App() {
         onRestart={handleRestart}
         onBattleEnd={handleBattleEnd}
         runState={runState ?? undefined}
+        onBackToSandboxConfig={isSandboxBattle ? handleBackToSandboxConfig : undefined}
       />
     );
   }

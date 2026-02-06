@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { PokemonData, Position, Row, Column, MoveType, CardRarity } from '../../engine/types';
 import { getPokemon, getMove, MOVES } from '../../data/loaders';
 import {
@@ -43,7 +43,7 @@ const TYPE_COLORS: Record<MoveType, string> = {
   ground: '#e0c068',
 };
 
-interface SandboxPokemon {
+export interface SandboxPokemon {
   id: string; // unique id for this slot
   baseFormId: string;
   level: number;
@@ -64,6 +64,10 @@ interface Props {
     hpOverrides: Map<string, { maxHp?: number; startPercent?: number }>
   ) => void;
   onBack: () => void;
+  // Persisted state from parent
+  initialPlayerTeam?: SandboxPokemon[];
+  initialEnemyTeam?: SandboxPokemon[];
+  onConfigChange?: (playerTeam: SandboxPokemon[], enemyTeam: SandboxPokemon[]) => void;
 }
 
 // Get the Pokemon form ID at a given level (handles evolution)
@@ -715,9 +719,20 @@ function PokemonDetailsPanel({
   );
 }
 
-export function SandboxConfigScreen({ onStartBattle, onBack }: Props) {
-  const [playerTeam, setPlayerTeam] = useState<SandboxPokemon[]>([]);
-  const [enemyTeam, setEnemyTeam] = useState<SandboxPokemon[]>([]);
+export function SandboxConfigScreen({
+  onStartBattle,
+  onBack,
+  initialPlayerTeam = [],
+  initialEnemyTeam = [],
+  onConfigChange,
+}: Props) {
+  const [playerTeam, setPlayerTeam] = useState<SandboxPokemon[]>(initialPlayerTeam);
+  const [enemyTeam, setEnemyTeam] = useState<SandboxPokemon[]>(initialEnemyTeam);
+
+  // Notify parent when config changes so it can persist state
+  useEffect(() => {
+    onConfigChange?.(playerTeam, enemyTeam);
+  }, [playerTeam, enemyTeam, onConfigChange]);
 
   const [selectedPokemonId, setSelectedPokemonId] = useState<string | null>(null);
   const [selectedSide, setSelectedSide] = useState<'player' | 'enemy'>('player');

@@ -30,6 +30,7 @@ interface Props {
   onRestart: () => void;
   onBattleEnd?: (result: BattleResult, combatants: Combatant[]) => void;
   runState?: RunState;
+  onBackToSandboxConfig?: () => void;  // Only present in sandbox mode
 }
 
 /** Render a 2-row grid for one side of the battle */
@@ -132,6 +133,7 @@ function BattleGrid({
 export function BattleScreen({
   state, phase, logs, pendingCardIndex,
   onSelectCard, onSelectTarget, onPlayCard, onEndTurn, onRestart, onBattleEnd, runState,
+  onBackToSandboxConfig,
 }: Props) {
   const isPlayerTurn = phase === 'player_turn';
   const currentCombatant = state.phase === 'ongoing'
@@ -162,12 +164,9 @@ export function BattleScreen({
     ? getRunPokemonForCombatant(inspectedCombatant)
     : null;
 
-  // Handle Pokemon inspection
+  // Handle Pokemon inspection (both player and enemy)
   const handleInspect = (combatant: Combatant) => {
-    // Only allow inspection of player Pokemon with runState available
-    if (combatant.side === 'player' && runState) {
-      setInspectedCombatantId(combatant.id);
-    }
+    setInspectedCombatantId(combatant.id);
   };
 
   const handleCloseInspection = () => {
@@ -465,6 +464,25 @@ export function BattleScreen({
         <div style={{ flex: 1 }}>
           <TurnOrderBar state={state} />
         </div>
+        {onBackToSandboxConfig && (
+          <button
+            onClick={onBackToSandboxConfig}
+            style={{
+              padding: '6px 14px',
+              fontSize: 15,
+              fontWeight: 'bold',
+              borderRadius: 6,
+              border: '1px solid #555',
+              background: '#333',
+              color: '#ccc',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              marginRight: 8,
+            }}
+          >
+            ← Config
+          </button>
+        )}
         <button
           onClick={onRestart}
           style={{
@@ -538,7 +556,7 @@ export function BattleScreen({
             currentCombatant={currentCombatant}
             targetableIds={new Set()} // Players targeting allies not implemented yet
             onSelectTarget={onSelectTarget}
-            onInspect={runState ? handleInspect : undefined}
+            onInspect={handleInspect}
             side="player"
             // No drag targeting for player side (yet)
           />
@@ -560,6 +578,7 @@ export function BattleScreen({
             currentCombatant={currentCombatant}
             targetableIds={dragTargetableIds.size > 0 ? dragTargetableIds : targetableIds}
             onSelectTarget={onSelectTarget}
+            onInspect={handleInspect}
             side="enemy"
             onDragEnterTarget={handleDragEnterTarget}
             onDragLeaveTarget={handleDragLeaveTarget}
@@ -694,16 +713,26 @@ export function BattleScreen({
         <BattleLog logs={logs} />
       </div>
 
-      {/* Pokemon inspection panel */}
-      {inspectedRunPokemon && inspectedCombatant && runState && (
-        <PokemonDetailsPanel
-          pokemon={inspectedRunPokemon}
-          pokemonIndex={inspectedCombatant.slotIndex}
-          partySize={runState.party.length}
-          onClose={handleCloseInspection}
-          onNavigate={handleNavigateInspection}
-          readOnly
-        />
+      {/* Pokemon inspection panel - works for both player and enemy */}
+      {inspectedCombatant && (
+        inspectedCombatant.side === 'player' && inspectedRunPokemon && runState ? (
+          // Player Pokemon with full RunPokemon data
+          <PokemonDetailsPanel
+            pokemon={inspectedRunPokemon}
+            pokemonIndex={inspectedCombatant.slotIndex}
+            partySize={runState.party.length}
+            onClose={handleCloseInspection}
+            onNavigate={handleNavigateInspection}
+            readOnly
+          />
+        ) : (
+          // Enemy Pokemon or sandbox mode - use combatant data only
+          <PokemonDetailsPanel
+            combatant={inspectedCombatant}
+            onClose={handleCloseInspection}
+            readOnly
+          />
+        )
       )}
     </div>
   );

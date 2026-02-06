@@ -184,18 +184,26 @@ export function onTurnStart(
 export function checkBlazeStrike(
   state: CombatState,
   attacker: Combatant,
-  card: MoveDefinition
+  card: MoveDefinition,
+  dryRun: boolean = false  // If true, don't set the flag (for preview calculations)
 ): { shouldApply: boolean; logs: LogEntry[] } {
   const logs: LogEntry[] = [];
 
+  const hasBlaze = attacker.passiveIds.includes('blaze_strike');
+  const isFire = card.type === 'fire';
+  const notUsed = !attacker.turnFlags.blazeStrikeUsedThisTurn;
+
   // Blaze Strike: First Fire attack each turn deals double damage
-  if (attacker.passiveIds.includes('blaze_strike') && card.type === 'fire' && !attacker.turnFlags.blazeStrikeUsedThisTurn) {
-    attacker.turnFlags.blazeStrikeUsedThisTurn = true;
-    logs.push({
-      round: state.round,
-      combatantId: attacker.id,
-      message: `Blaze Strike: ${card.name} deals double damage!`,
-    });
+  if (hasBlaze && isFire && notUsed) {
+    // Only set the flag if this is NOT a dry run (actual card play)
+    if (!dryRun) {
+      attacker.turnFlags.blazeStrikeUsedThisTurn = true;
+      logs.push({
+        round: state.round,
+        combatantId: attacker.id,
+        message: `Blaze Strike: ${card.name} deals double damage!`,
+      });
+    }
     return { shouldApply: true, logs };
   }
 

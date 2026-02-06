@@ -211,6 +211,7 @@ export interface MoveDefinition {
   effects: CardEffect[];
   description: string;
   rarity?: CardRarity;
+  pools?: MoveType[];  // Which type pools this card belongs to (for drafting)
 }
 
 // --- Status Effects ---

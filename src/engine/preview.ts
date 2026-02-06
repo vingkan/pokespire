@@ -82,8 +82,8 @@ export function calculateDamagePreview(
   const hustleBonus = checkHustleDamageBonus(source);
   const relentlessBonus = checkRelentless(source);
 
-  // Multipliers
-  const { shouldApply: isBlazeStrike } = checkBlazeStrike(state, source, card);
+  // Multipliers (dryRun=true to avoid side effects during preview)
+  const { shouldApply: isBlazeStrike } = checkBlazeStrike(state, source, card, true);
   const blazeStrikeMultiplier = isBlazeStrike ? 2 : 1;
   const ragingBullMultiplier = checkRagingBull(source);
 

@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import type { RunState } from '../../run/types';
-import { getPokemon, getMove, MOVES } from '../../data/loaders';
-import { createRng, sampleCards } from '../../run/rng';
+import { getPokemon, getMove } from '../../data/loaders';
+import { createRng } from '../../run/rng';
+import { sampleDraftCards } from '../../run/draft';
 import { CardPreview } from '../components/CardPreview';
 import { PokemonDetailsPanel } from '../components/PokemonDetailsPanel';
 
@@ -31,8 +32,9 @@ export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
   const currentPokemonIndex = alivePokemonIndices[currentDraftIndex];
   const currentPokemon = currentPokemonIndex !== undefined ? run.party[currentPokemonIndex] : null;
 
-  // Generate card options using seeded RNG
+  // Generate card options using seeded RNG with type-based pools
   // Seed is based on run seed + node id hash + pokemon index for determinism
+  // NOTE: currentDraftIndex included explicitly to force recompute when switching Pokemon
   const cardOptions = useMemo(() => {
     if (currentPokemon === null) return [];
 
@@ -41,11 +43,13 @@ export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
     const draftSeed = run.seed + nodeHash * 1000 + currentPokemonIndex * 100;
     const rng = createRng(draftSeed);
 
-    // Get all available card IDs
-    const allCardIds = Object.keys(MOVES);
+    // Get Pokemon's types for pool selection
+    const pokemonData = getPokemon(currentPokemon.formId);
+    const types = pokemonData.types;
 
-    return sampleCards(rng, allCardIds, CARDS_PER_DRAFT);
-  }, [run.seed, run.currentNodeId, currentPokemonIndex, currentPokemon]);
+    // Sample cards using type-based pools with rarity weights based on level
+    return sampleDraftCards(rng, types, currentPokemon.level, CARDS_PER_DRAFT);
+  }, [run.seed, run.currentNodeId, currentPokemonIndex, currentDraftIndex, currentPokemon]);
 
   const handleSelectCard = (cardId: string | null) => {
     const newDrafts = new Map(drafts);
@@ -145,19 +149,22 @@ export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
         Choose a card to add to {basePokemon.name}'s deck, or skip
       </p>
 
-      {/* Card Options */}
-      <div style={{
-        display: 'flex',
-        gap: 20,
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        paddingBottom: 12,
-      }}>
-        {cardOptions.map(cardId => {
+      {/* Card Options - key forces remount when draft index changes */}
+      <div
+        key={`draft-options-${currentDraftIndex}`}
+        style={{
+          display: 'flex',
+          gap: 20,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          paddingBottom: 12,
+        }}
+      >
+        {cardOptions.slice(0, CARDS_PER_DRAFT).map((cardId, idx) => {
           const card = getMove(cardId);
           return (
             <CardPreview
-              key={cardId}
+              key={`${currentDraftIndex}-${cardId}-${idx}`}
               card={card}
               onClick={() => handleSelectCard(cardId)}
             />

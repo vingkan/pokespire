@@ -48,8 +48,8 @@ export function PokemonDetailsPanel({
   // Determine which data source we're using
   const isFromBattle = !!combatant;
 
-  // Default to 'skills' on map, 'stats' in battle (since skills tab not available)
-  const [activeTab, setActiveTab] = useState<Tab>(isFromBattle ? 'stats' : 'skills');
+  // Default to 'skills' tab - shows passives for both map view and battle view
+  const [activeTab, setActiveTab] = useState<Tab>('skills');
 
   // Get base data - normalize from either source
   const formId = isFromBattle ? combatant!.pokemonId : pokemon!.formId;
@@ -228,11 +228,9 @@ export function PokemonDetailsPanel({
           padding: '8px 16px 0',
           background: '#1a1a24',
         }}>
-          {!isFromBattle && (
-            <button style={tabStyle('skills')} onClick={() => setActiveTab('skills')}>
-              Skills
-            </button>
-          )}
+          <button style={tabStyle('skills')} onClick={() => setActiveTab('skills')}>
+            Skills
+          </button>
           <button style={tabStyle('stats')} onClick={() => setActiveTab('stats')}>
             Stats
           </button>
@@ -322,10 +320,47 @@ export function PokemonDetailsPanel({
           )}
 
           {/* Skills Tab */}
-          {activeTab === 'skills' && tree && (
+          {activeTab === 'skills' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Progression Rungs */}
+              {/* Active Passives (shown for all, especially useful for enemies) */}
+              {passiveInfos.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 'bold', color: '#94a3b8', marginBottom: 8 }}>
+                    Active Passives
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {passiveInfos.map((passive) => (
+                      <div
+                        key={passive.id}
+                        style={{
+                          padding: 12,
+                          borderRadius: 8,
+                          background: '#22c55e22',
+                          border: '1px solid #22c55e44',
+                        }}
+                      >
+                        <div style={{ fontSize: 15, fontWeight: 'bold', color: '#22c55e' }}>
+                          {passive.name}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>
+                          {passive.description}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {passiveInfos.length === 0 && !tree && (
+                <div style={{ color: '#64748b', fontStyle: 'italic', textAlign: 'center', padding: 24 }}>
+                  No passive abilities
+                </div>
+              )}
+              {/* Progression Rungs (only for Pokemon with progression trees) */}
+              {tree && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 'bold', color: '#94a3b8', marginBottom: 4 }}>
+                  Skill Tree
+                </div>
                 {tree.rungs.map((rung, i) => {
                   const isUnlocked = level >= rung.level;
                   const isCurrent = level === rung.level;
@@ -410,8 +445,11 @@ export function PokemonDetailsPanel({
                   );
                 })}
               </div>
+              )}
 
-              {/* Level Up Button */}
+              {/* Level Up Button (only shown when tree exists) */}
+              {tree && (
+                <>
               {canLevel && onLevelUp && (
                 <button
                   onClick={handleLevelUp}
@@ -452,6 +490,8 @@ export function PokemonDetailsPanel({
                 }}>
                   Max Level Reached!
                 </div>
+              )}
+              </>
               )}
             </div>
           )}

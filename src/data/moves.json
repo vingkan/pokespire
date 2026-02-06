@@ -1115,11 +1115,11 @@
     "range": "any_enemy",
     "vanish": false,
     "effects": [
-      { "type": "apply_status", "status": "paralysis", "stacks": 5 }
+      { "type": "apply_status", "status": "paralysis", "stacks": 2 }
     ],
     "rarity": "common",
     "pools": ["electric"],
-    "description": "Apply Paralysis 5."
+    "description": "Apply Paralysis 2."
   },
   "thunder-punch": {
     "name": "Thunder Punch",
@@ -1353,11 +1353,11 @@
     "range": "any_enemy",
     "vanish": false,
     "effects": [
-      { "type": "damage", "value": 5 }
+      { "type": "damage", "value": 7 }
     ],
-    "rarity": "basic",
+    "rarity": "common",
     "pools": ["flying"],
-    "description": "Deal 5 damage."
+    "description": "Deal 7 damage."
   },
   "peck": {
     "name": "Peck",

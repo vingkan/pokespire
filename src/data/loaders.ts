@@ -16,6 +16,7 @@ interface RawMoveData {
   effects: CardEffect[];
   description: string;
   rarity?: string;
+  pools?: string[];
 }
 
 // Type for raw pokemon data from JSON (without id)
@@ -45,6 +46,7 @@ export const MOVES: Record<string, MoveDefinition> = Object.fromEntries(
       effects: move.effects,
       description: move.description,
       rarity: move.rarity as MoveDefinition['rarity'],
+      pools: move.pools as MoveType[] | undefined,
     },
   ])
 );
