@@ -82,6 +82,9 @@ export const STARTER_POKEMON: Record<string, PokemonData> = {
   tauros: POKEMON.tauros,
   snorlax: POKEMON.snorlax,
   kangaskhan: POKEMON.kangaskhan,
+  'nidoran-m': POKEMON['nidoran-m'],
+  'nidoran-f': POKEMON['nidoran-f'],
+  rhyhorn: POKEMON.rhyhorn,
 };
 
 /** Enemy Pokemon */

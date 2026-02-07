@@ -30,11 +30,12 @@ export interface RunState {
   currentNodeId: string;      // Current node ID
   visitedNodeIds: string[];   // All visited node IDs (for path tracking)
   nodes: MapNode[];           // All nodes in the map
+  currentAct: number;         // 1 = Act 1, 2 = Act 2
 }
 
 // --- Node Types ---
 
-export type MapNode = SpawnNode | RestNode | BattleNode;
+export type MapNode = SpawnNode | RestNode | BattleNode | CardRemovalNode | ActTransitionNode;
 
 export interface BaseNode {
   id: string;                 // Unique node ID
@@ -56,6 +57,17 @@ export interface BattleNode extends BaseNode {
   type: 'battle';
   enemies: string[];          // Pokemon IDs
   enemyPositions: Position[];
+  enemyHpMultiplier?: number; // Optional HP multiplier for boss fights
+}
+
+export interface CardRemovalNode extends BaseNode {
+  type: 'card_removal';
+  maxRemovals: number;        // 1-2 cards can be removed
+}
+
+export interface ActTransitionNode extends BaseNode {
+  type: 'act_transition';
+  nextAct: number;            // Act number to transition to
 }
 
 // Legacy types for backwards compatibility

@@ -10,22 +10,29 @@ import { CardDraftScreen } from './ui/screens/CardDraftScreen';
 import { RunVictoryScreen } from './ui/screens/RunVictoryScreen';
 import { CardDexScreen } from './ui/screens/CardDexScreen';
 import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
+import { ActTransitionScreen } from './ui/screens/ActTransitionScreen';
+import { CardRemovalScreen } from './ui/screens/CardRemovalScreen';
 import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
 import type { RunState, BattleNode } from './run/types';
 import {
   createRunState,
   applyPercentHeal,
+  applyFullHealAll,
   applyMaxHpBoost,
   applyExpBoost,
   addCardToDeck,
   syncBattleResults,
   moveToNode,
   isRunComplete,
+  isAct1Complete,
   getCurrentNode,
   applyLevelUp,
+  transitionToAct2,
+  removeCardsFromDeck,
+  getCurrentCardRemovalNode,
 } from './run/state';
 
-type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'sandbox_config';
+type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'sandbox_config' | 'act_transition' | 'card_removal';
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('main_menu');
@@ -59,6 +66,10 @@ export default function App() {
     } else if (node.type === 'battle') {
       battle.startBattleFromRun(newRun, node as BattleNode);
       setScreen('battle');
+    } else if (node.type === 'act_transition') {
+      setScreen('act_transition');
+    } else if (node.type === 'card_removal') {
+      setScreen('card_removal');
     }
     // spawn nodes don't do anything special, just stay on map
   }, [runState, battle]);
@@ -86,6 +97,18 @@ export default function App() {
     if (!runState) return;
 
     const newRun = applyExpBoost(runState, pokemonIndex, 1);
+    setRunState(newRun);
+    setScreen('map');
+  }, [runState]);
+
+  // Handle rest choice: forget cards (remove from deck)
+  const handleRestForget = useCallback((removals: Map<number, number[]>) => {
+    if (!runState) return;
+
+    let newRun = runState;
+    removals.forEach((cardIndices, pokemonIndex) => {
+      newRun = removeCardsFromDeck(newRun, pokemonIndex, cardIndices);
+    });
     setRunState(newRun);
     setScreen('map');
   }, [runState]);
@@ -122,13 +145,19 @@ export default function App() {
     }
 
     // Sync HP from battle back to run state
-    const newRun = syncBattleResults(runState, combatants);
-    setRunState(newRun);
+    let newRun = syncBattleResults(runState, combatants);
 
-    // Check if this was the final boss
+    // Check if this was the final boss (Mewtwo in Act 2)
     if (isRunComplete(newRun)) {
       setScreen('run_victory');
+      setRunState(newRun);
+    } else if (isAct1Complete(newRun)) {
+      // Giovanni defeated - full heal and go to act transition
+      newRun = applyFullHealAll(newRun);
+      setRunState(newRun);
+      setScreen('act_transition');
     } else {
+      setRunState(newRun);
       // Go to card draft after battle
       setScreen('card_draft');
     }
@@ -161,6 +190,32 @@ export default function App() {
     const newRun = applyLevelUp(runState, pokemonIndex);
     setRunState(newRun);
   }, [runState]);
+
+  // Handle act transition - continue to Act 2
+  const handleActTransitionContinue = useCallback(() => {
+    if (!runState) return;
+    const newRun = transitionToAct2(runState);
+    setRunState(newRun);
+    setScreen('map');
+  }, [runState]);
+
+  // Handle card removal completion
+  const handleCardRemovalComplete = useCallback((removals: Map<number, number[]>) => {
+    if (!runState) return;
+
+    let newRun = runState;
+    removals.forEach((cardIndices, pokemonIndex) => {
+      newRun = removeCardsFromDeck(newRun, pokemonIndex, cardIndices);
+    });
+
+    setRunState(newRun);
+    setScreen('map');
+  }, [runState]);
+
+  // Handle card removal skip
+  const handleCardRemovalSkip = useCallback(() => {
+    setScreen('map');
+  }, []);
 
   // Restart to main menu
   const handleRestart = useCallback(() => {
@@ -330,6 +385,7 @@ export default function App() {
         onHeal={handleRestHeal}
         onTrain={handleRestTrain}
         onMeditate={handleRestMeditate}
+        onForget={handleRestForget}
         onRestart={handleRestart}
       />
     );
@@ -362,6 +418,32 @@ export default function App() {
         onBackToSandboxConfig={isSandboxBattle ? handleBackToSandboxConfig : undefined}
       />
     );
+  }
+
+  if (screen === 'act_transition' && runState) {
+    return (
+      <ActTransitionScreen
+        run={runState}
+        onContinue={handleActTransitionContinue}
+      />
+    );
+  }
+
+  if (screen === 'card_removal' && runState) {
+    const cardRemovalNode = getCurrentCardRemovalNode(runState);
+    if (cardRemovalNode) {
+      return (
+        <CardRemovalScreen
+          run={runState}
+          node={cardRemovalNode}
+          onComplete={handleCardRemovalComplete}
+          onSkip={handleCardRemovalSkip}
+        />
+      );
+    }
+    // Fallback to map if node not found
+    setScreen('map');
+    return null;
   }
 
   if (screen === 'run_victory' && runState) {

@@ -53,7 +53,24 @@ export type PassiveId =
   | 'scrappy'
   | 'parental_bond'
   | 'protective_instinct'
-  | 'family_fury';
+  | 'family_fury'
+  // Persian (Giovanni)
+  | 'technician'
+  // Nidoking line - "Rampage"
+  | 'poison_point'  // Already exists for Ekans, shared with Nido lines
+  // anger_point shared with Tauros
+  | 'toxic_horn'
+  | 'sheer_force'
+  // Nidoqueen line - "Matriarch"
+  // poison_point shared
+  // thick_hide shared with Tauros
+  | 'protective_toxins'
+  // sheer_force shared
+  // Rhyhorn/Rhydon line
+  // thick_hide shared
+  | 'rock_head'
+  | 'lightning_rod'
+  | 'reckless';
 
 // A single rung in the progression ladder
 export interface ProgressionRung {
@@ -193,18 +210,18 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
     name: "Predator's Patience",
     description: 'Enemies with Poison take +2 damage from your attacks.',
   },
-  // Tauros
+  // Tauros (shared with Nido lines)
   thick_hide: {
     name: 'Thick Hide',
     description: 'Take 1 less damage from all attacks.',
   },
   anger_point: {
     name: 'Anger Point',
-    description: 'When you take unblocked damage, gain 1 Strength.',
+    description: 'Your attacks deal +50% damage when below 50% HP.',
   },
   raging_bull: {
     name: 'Raging Bull',
-    description: 'Your attacks deal +50% damage when below 50% HP.',
+    description: 'When you take unblocked damage, gain 4 Strength.',
   },
   // Snorlax
   thick_fat: {
@@ -239,6 +256,40 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   family_fury: {
     name: 'Family Fury',
     description: 'When below 50% HP, ALL your attacks trigger Parental Bond.',
+  },
+  // Persian (Giovanni) - placeholder passives
+  technician: {
+    name: 'Technician',
+    description: '+5 Max HP (placeholder passive).',
+  },
+  // Nidoking line - "Rampage"
+  // anger_point shared with Tauros (L2)
+  toxic_horn: {
+    name: 'Toxic Horn',
+    description: 'When attacking poisoned enemies, gain Strength equal to total damage dealt / 4.',
+  },
+  sheer_force: {
+    name: 'Sheer Force',
+    description: 'Your attacks deal 30% more damage. Your moves cannot apply status effects.',
+  },
+  // Nidoqueen line - "Matriarch"
+  // thick_hide shared with Tauros (L2)
+  protective_toxins: {
+    name: 'Protective Toxins',
+    description: 'When attacking poisoned enemies, all allies gain Block equal to total damage dealt.',
+  },
+  // Rhyhorn/Rhydon line
+  rock_head: {
+    name: 'Rock Head',
+    description: 'You take no recoil damage from your attacks.',
+  },
+  lightning_rod: {
+    name: 'Lightning Rod',
+    description: 'Electric attacks targeting allies hit you instead.',
+  },
+  reckless: {
+    name: 'Reckless',
+    description: 'Your recoil moves deal 30% more damage.',
   },
 };
 
@@ -643,6 +694,167 @@ export const KANGASKHAN_PROGRESSION: ProgressionTree = {
   ],
 };
 
+// Persian progression tree (Giovanni's Pokemon - placeholder)
+export const PERSIAN_PROGRESSION: ProgressionTree = {
+  baseFormId: 'persian',
+  rungs: [
+    {
+      level: 1,
+      name: 'Persian',
+      description: 'Starting form with Technician passive.',
+      passiveId: 'technician',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Persian',
+      description: '+5 Max HP.',
+      passiveId: 'technician',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+    {
+      level: 3,
+      name: 'Persian',
+      description: '+5 Max HP.',
+      passiveId: 'technician',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+    {
+      level: 4,
+      name: 'Persian (Mastered)',
+      description: '+5 Max HP.',
+      passiveId: 'technician',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Nidoran♂ progression tree - "Rampage" offensive poison synergy
+export const NIDORAN_M_PROGRESSION: ProgressionTree = {
+  baseFormId: 'nidoran-m',
+  rungs: [
+    {
+      level: 1,
+      name: 'Nidoran♂',
+      description: 'Starting form with Poison Point passive.',
+      passiveId: 'poison_point',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Nidorino',
+      description: 'Evolve to Nidorino. Add Sludge Bomb. Gain Anger Point.',
+      evolvesTo: 'nidorino',
+      passiveId: 'anger_point',
+      hpBoost: 0,
+      cardsToAdd: ['sludge-bomb'],
+    },
+    {
+      level: 3,
+      name: 'Nidoking',
+      description: 'Evolve to Nidoking. Add Earthquake. Gain Toxic Horn.',
+      evolvesTo: 'nidoking',
+      passiveId: 'toxic_horn',
+      hpBoost: 0,
+      cardsToAdd: ['earthquake'],
+    },
+    {
+      level: 4,
+      name: 'Nidoking (Mastered)',
+      description: 'Add Megahorn. Gain Sheer Force.',
+      passiveId: 'sheer_force',
+      hpBoost: 0,
+      cardsToAdd: ['megahorn'],
+    },
+  ],
+};
+
+// Nidoran♀ progression tree - "Matriarch" defensive poison synergy
+export const NIDORAN_F_PROGRESSION: ProgressionTree = {
+  baseFormId: 'nidoran-f',
+  rungs: [
+    {
+      level: 1,
+      name: 'Nidoran♀',
+      description: 'Starting form with Poison Point passive.',
+      passiveId: 'poison_point',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Nidorina',
+      description: 'Evolve to Nidorina. Add Sludge. Gain Thick Hide.',
+      evolvesTo: 'nidorina',
+      passiveId: 'thick_hide',
+      hpBoost: 0,
+      cardsToAdd: ['sludge'],
+    },
+    {
+      level: 3,
+      name: 'Nidoqueen',
+      description: 'Evolve to Nidoqueen. Add Earthquake. Gain Protective Toxins.',
+      evolvesTo: 'nidoqueen',
+      passiveId: 'protective_toxins',
+      hpBoost: 0,
+      cardsToAdd: ['earthquake'],
+    },
+    {
+      level: 4,
+      name: 'Nidoqueen (Mastered)',
+      description: 'Add Body Slam. Gain Sheer Force.',
+      passiveId: 'sheer_force',
+      hpBoost: 0,
+      cardsToAdd: ['body-slam'],
+    },
+  ],
+};
+
+// Rhyhorn → Rhydon progression tree
+export const RHYHORN_PROGRESSION: ProgressionTree = {
+  baseFormId: 'rhyhorn',
+  rungs: [
+    {
+      level: 1,
+      name: 'Rhyhorn',
+      description: 'Starting form with Thick Hide passive.',
+      passiveId: 'thick_hide',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Rhyhorn',
+      description: 'Add Take-Down. Gain Rock Head.',
+      passiveId: 'rock_head',
+      hpBoost: 0,
+      cardsToAdd: ['take-down'],
+    },
+    {
+      level: 3,
+      name: 'Rhydon',
+      description: 'Evolve to Rhydon. Add Earthquake. Gain Lightning Rod.',
+      evolvesTo: 'rhydon',
+      passiveId: 'lightning_rod',
+      hpBoost: 0,
+      cardsToAdd: ['earthquake'],
+    },
+    {
+      level: 4,
+      name: 'Rhydon (Mastered)',
+      description: 'Add Double-Edge. Gain Reckless.',
+      passiveId: 'reckless',
+      hpBoost: 0,
+      cardsToAdd: ['double-edge'],
+    },
+  ],
+};
+
 // All progression trees indexed by base form ID
 export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   charmander: CHARMANDER_PROGRESSION,
@@ -655,6 +867,10 @@ export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   tauros: TAUROS_PROGRESSION,
   snorlax: SNORLAX_PROGRESSION,
   kangaskhan: KANGASKHAN_PROGRESSION,
+  persian: PERSIAN_PROGRESSION,
+  'nidoran-m': NIDORAN_M_PROGRESSION,
+  'nidoran-f': NIDORAN_F_PROGRESSION,
+  rhyhorn: RHYHORN_PROGRESSION,
 };
 
 /**
@@ -688,6 +904,12 @@ export function getProgressionTree(pokemonId: string): ProgressionTree | null {
   if (pokemonId === 'arbok') {
     return EKANS_PROGRESSION;
   }
+  if (pokemonId === 'nidorino' || pokemonId === 'nidoking') {
+    return NIDORAN_M_PROGRESSION;
+  }
+  if (pokemonId === 'nidorina' || pokemonId === 'nidoqueen') {
+    return NIDORAN_F_PROGRESSION;
+  }
   return null;
 }
 
@@ -716,6 +938,12 @@ export function getBaseFormId(pokemonId: string): string {
   if (pokemonId === 'arbok') {
     return 'ekans';
   }
+  if (pokemonId === 'nidorino' || pokemonId === 'nidoking') {
+    return 'nidoran-m';
+  }
+  if (pokemonId === 'nidorina' || pokemonId === 'nidoqueen') {
+    return 'nidoran-f';
+  }
   return pokemonId;
 }
 
@@ -728,11 +956,11 @@ export function getRungForLevel(tree: ProgressionTree, level: number): Progressi
 
 /**
  * Check if a Pokemon can level up (has enough EXP).
- * Requires 2 EXP per level up.
+ * Requires 3 EXP per level up (for Act 1/2 pacing).
  */
 export function canLevelUp(level: number, exp: number): boolean {
   // Max level is 4
   if (level >= 4) return false;
-  // Need at least 2 EXP to level up
-  return exp >= 2;
+  // Need at least 3 EXP to level up
+  return exp >= 3;
 }

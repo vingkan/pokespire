@@ -5,8 +5,8 @@ import { getTypeEffectiveness, getEffectivenessLabel } from './typeChart';
 import {
   checkBlazeStrike, checkBastionBarrage, checkCounterCurrent, checkStaticField,
   checkWhippingWinds, checkPredatorsPatience, checkThickHide, checkThickFat,
-  checkUnderdog, checkRagingBull, checkScrappy,
-  checkHustleDamageBonus, checkRelentless
+  checkUnderdog, checkAngerPoint, checkSheerForce, checkScrappy,
+  checkHustleDamageBonus, checkRelentless, checkReckless
 } from './passives';
 import { getBloomingCycleReduction } from './damage';
 
@@ -85,7 +85,10 @@ export function calculateDamagePreview(
   // Multipliers (dryRun=true to avoid side effects during preview)
   const { shouldApply: isBlazeStrike } = checkBlazeStrike(state, source, card, true);
   const blazeStrikeMultiplier = isBlazeStrike ? 2 : 1;
-  const ragingBullMultiplier = checkRagingBull(source);
+  const angerPointMultiplier = checkAngerPoint(source);
+  const sheerForceMultiplier = checkSheerForce(source);
+  const recklessMultiplier = checkReckless(source, card);
+  const combinedMultiplier = angerPointMultiplier * sheerForceMultiplier * recklessMultiplier;
 
   // Type effectiveness
   const typeEffectiveness = getTypeEffectiveness(card.type, target.types);
@@ -105,7 +108,7 @@ export function calculateDamagePreview(
 
   // Apply multipliers
   rawDamage = rawDamage * blazeStrikeMultiplier;
-  rawDamage = Math.floor(rawDamage * ragingBullMultiplier);
+  rawDamage = Math.floor(rawDamage * combinedMultiplier);  // Anger Point + Sheer Force
   rawDamage = Math.floor(rawDamage * typeEffectiveness);
 
   // Apply defensive reductions

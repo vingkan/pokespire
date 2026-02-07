@@ -417,13 +417,13 @@ export function onDamageTaken(
   // Only trigger on actual HP damage (unblocked)
   if (hpDamage <= 0) return logs;
 
-  // Anger Point: When you take unblocked damage, gain 1 Strength
-  if (target.passiveIds.includes('anger_point') && target.alive) {
-    applyStatus(state, target, 'strength', 1, target.id);
+  // Raging Bull: When you take unblocked damage, gain 4 Strength
+  if (target.passiveIds.includes('raging_bull') && target.alive) {
+    applyStatus(state, target, 'strength', 4, target.id);
     logs.push({
       round: state.round,
       combatantId: target.id,
-      message: `Anger Point: ${target.name} gains 1 Strength!`,
+      message: `Raging Bull: ${target.name} gains 4 Strength!`,
     });
   }
 
@@ -553,12 +553,12 @@ export function checkUnderdog(
 }
 
 /**
- * Check Raging Bull damage multiplier.
- * Raging Bull: Your attacks deal +50% damage when below 50% HP.
+ * Check Anger Point damage multiplier.
+ * Anger Point: Your attacks deal +50% damage when below 50% HP.
  * Returns the multiplier (1.0 normally, 1.5 when active).
  */
-export function checkRagingBull(attacker: Combatant): number {
-  if (attacker.passiveIds.includes('raging_bull') &&
+export function checkAngerPoint(attacker: Combatant): number {
+  if (attacker.passiveIds.includes('anger_point') &&
       attacker.hp < attacker.maxHp * 0.5) {
     return 1.5;
   }
@@ -747,4 +747,149 @@ export function checkStaticField(
   }
 
   return { reduction, logs };
+}
+
+/**
+ * Check Sheer Force damage multiplier.
+ * Sheer Force: Your attacks deal 30% more damage. Your moves cannot apply status effects.
+ * Returns the multiplier (1.0 normally, 1.3 when active).
+ */
+export function checkSheerForce(attacker: Combatant): number {
+  if (attacker.passiveIds.includes('sheer_force')) {
+    return 1.3;
+  }
+  return 1.0;
+}
+
+/**
+ * Check if Sheer Force blocks status application from moves.
+ * Returns true if the attacker has Sheer Force (blocking move-based status effects).
+ */
+export function sheerForceBlocksStatus(attacker: Combatant): boolean {
+  return attacker.passiveIds.includes('sheer_force');
+}
+
+/**
+ * Process Toxic Horn after attacking poisoned enemies.
+ * Toxic Horn: When attacking poisoned enemies, gain Strength equal to total damage dealt / 4.
+ * This should be called after all damage from a card is dealt.
+ */
+export function processToxicHorn(
+  state: CombatState,
+  attacker: Combatant,
+  totalDamageToPoisoned: number
+): LogEntry[] {
+  const logs: LogEntry[] = [];
+
+  if (!attacker.passiveIds.includes('toxic_horn')) return logs;
+  if (totalDamageToPoisoned <= 0) return logs;
+
+  const strengthGain = Math.floor(totalDamageToPoisoned / 4);
+  if (strengthGain > 0) {
+    applyStatus(state, attacker, 'strength', strengthGain, attacker.id);
+    logs.push({
+      round: state.round,
+      combatantId: attacker.id,
+      message: `Toxic Horn: ${attacker.name} gains ${strengthGain} Strength from ${totalDamageToPoisoned} damage to poisoned enemies!`,
+    });
+  }
+
+  return logs;
+}
+
+/**
+ * Process Protective Toxins after attacking poisoned enemies.
+ * Protective Toxins: When attacking poisoned enemies, all allies gain Block equal to total damage dealt.
+ * This should be called after all damage from a card is dealt.
+ */
+export function processProtectiveToxins(
+  state: CombatState,
+  attacker: Combatant,
+  totalDamageToPoisoned: number
+): LogEntry[] {
+  const logs: LogEntry[] = [];
+
+  if (!attacker.passiveIds.includes('protective_toxins')) return logs;
+  if (totalDamageToPoisoned <= 0) return logs;
+
+  // Get all living allies (same team as attacker)
+  const allies = state.combatants.filter(c =>
+    c.alive && c.team === attacker.team
+  );
+
+  for (const ally of allies) {
+    ally.block += totalDamageToPoisoned;
+  }
+
+  const allyNames = allies.map(a => a.name).join(', ');
+  logs.push({
+    round: state.round,
+    combatantId: attacker.id,
+    message: `Protective Toxins: ${allyNames} ${allies.length === 1 ? 'gains' : 'gain'} ${totalDamageToPoisoned} Block!`,
+  });
+
+  return logs;
+}
+
+/**
+ * Check if a target is poisoned.
+ */
+export function isPoisoned(target: Combatant): boolean {
+  return target.statuses.some(s => s.type === 'poison' && s.stacks > 0);
+}
+
+// ============================================================
+// Rhyhorn/Rhydon Passives
+// ============================================================
+
+/**
+ * Rock Head: Prevents recoil damage.
+ * Returns true if the combatant has Rock Head.
+ */
+export function hasRockHead(combatant: Combatant): boolean {
+  return combatant.passiveIds.includes('rock_head');
+}
+
+/**
+ * Reckless: Recoil moves deal 30% more damage.
+ * Returns the damage multiplier (1.3 if has Reckless, 1.0 otherwise).
+ */
+export function checkReckless(attacker: Combatant, card: MoveDefinition): number {
+  if (!attacker.passiveIds.includes('reckless')) return 1.0;
+  // Check if the card has a recoil effect
+  const hasRecoil = card.effects.some(e => e.type === 'recoil');
+  return hasRecoil ? 1.3 : 1.0;
+}
+
+/**
+ * Lightning Rod: Redirects Electric attacks targeting allies in the same row.
+ * Returns the combatant who should receive the attack (redirected target or original).
+ * Also returns whether redirection occurred for damage reduction.
+ */
+export function checkLightningRod(
+  state: CombatState,
+  attacker: Combatant,
+  originalTarget: Combatant,
+  card: MoveDefinition
+): { target: Combatant; redirected: boolean } {
+  // Only applies to Electric-type attacks
+  if (card.type !== 'electric') {
+    return { target: originalTarget, redirected: false };
+  }
+
+  // Find an ally with Lightning Rod in the same row as the target
+  const allies = state.combatants.filter(c =>
+    c.alive &&
+    c.team === originalTarget.team &&
+    c.id !== originalTarget.id &&
+    c.row === originalTarget.row &&
+    c.passiveIds.includes('lightning_rod')
+  );
+
+  if (allies.length === 0) {
+    return { target: originalTarget, redirected: false };
+  }
+
+  // Redirect to the first ally with Lightning Rod
+  return { target: allies[0], redirected: true };
 }

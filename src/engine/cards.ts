@@ -9,9 +9,11 @@ import {
   checkBlazeStrike, checkBastionBarrage, checkCounterCurrent, checkStaticField,
   onDamageDealt, onDamageTaken, onStatusApplied,
   checkGustForce, checkWhippingWinds, checkPredatorsPatience, checkThickHide, checkThickFat,
-  checkUnderdog, checkRagingBull, checkScrappy,
+  checkUnderdog, checkAngerPoint, checkScrappy, checkSheerForce,
   checkQuickFeet, checkHustleDamageBonus, checkHustleCostIncrease,
-  checkRelentless, checkPoisonPoint, isAttackCard
+  checkRelentless, checkPoisonPoint, isAttackCard,
+  processToxicHorn, processProtectiveToxins, isPoisoned, sheerForceBlocksStatus,
+  hasRockHead, checkReckless, checkLightningRod
 } from './passives';
 import { shuffle, MAX_HAND_SIZE } from './deck';
 import { getTypeEffectiveness, getEffectivenessLabel } from './typeChart';
@@ -103,7 +105,30 @@ export function playCard(
   combatant.hand.splice(handIndex, 1);
 
   // Resolve targets
-  const targets = resolveTargets(state, combatant, card.range, action.targetId);
+  let targets = resolveTargets(state, combatant, card.range, action.targetId);
+
+  // Lightning Rod: Redirect Electric attacks to ally with Lightning Rod
+  if (card.type === 'electric') {
+    const redirectedTargets: Combatant[] = [];
+    const redirected = new Set<string>(); // Track which Lightning Rod users were already logged
+
+    for (const target of targets) {
+      const result = checkLightningRod(state, combatant, target, card);
+      if (result.redirected && !redirected.has(result.target.id)) {
+        logs.push({
+          round: state.round,
+          combatantId: result.target.id,
+          message: `Lightning Rod: ${result.target.name} absorbs the Electric attack!`,
+        });
+        redirected.add(result.target.id);
+      }
+      // Only add unique targets (if multiple redirects go to same Pokemon)
+      if (!redirectedTargets.some(t => t.id === result.target.id)) {
+        redirectedTargets.push(result.target);
+      }
+    }
+    targets = redirectedTargets;
+  }
 
   // Log Quick Feet reduction if applicable
   if (quickFeetReduction > 0) {
@@ -120,10 +145,22 @@ export function playCard(
     message: `${combatant.name} plays ${card.name} (cost ${effectiveCost}).`,
   });
 
-  // Resolve effects on each target
+  // Resolve effects on each target, tracking damage to poisoned enemies
+  let totalDamageToPoisoned = 0;
   for (const target of targets) {
-    const effectLogs = resolveEffects(state, combatant, target, card);
-    logs.push(...effectLogs);
+    const result = resolveEffects(state, combatant, target, card);
+    logs.push(...result.logs);
+    totalDamageToPoisoned += result.damageToPoisoned;
+  }
+
+  // Toxic Horn: Gain Strength from damage to poisoned enemies
+  if (totalDamageToPoisoned > 0) {
+    const toxicHornLogs = processToxicHorn(state, combatant, totalDamageToPoisoned);
+    logs.push(...toxicHornLogs);
+
+    // Protective Toxins: Gain Block from damage to poisoned enemies
+    const protectiveToxinsLogs = processProtectiveToxins(state, combatant, totalDamageToPoisoned);
+    logs.push(...protectiveToxinsLogs);
   }
 
   // Parental Bond: Add a copy of the card to hand
@@ -380,13 +417,33 @@ function buildDamageModifiers(
     });
   }
 
-  // Raging Bull: Your attacks deal +50% damage when below 50% HP
-  const ragingBullMultiplier = checkRagingBull(source);
-  if (ragingBullMultiplier > 1) {
+  // Anger Point: Your attacks deal +50% damage when below 50% HP
+  const angerPointMultiplier = checkAngerPoint(source);
+  if (angerPointMultiplier > 1) {
     logs.push({
       round: state.round,
       combatantId: source.id,
-      message: `Raging Bull: x1.5 damage (below 50% HP)!`,
+      message: `Anger Point: x1.5 damage (below 50% HP)!`,
+    });
+  }
+
+  // Sheer Force: Your attacks deal 30% more damage
+  const sheerForceMultiplier = checkSheerForce(source);
+  if (sheerForceMultiplier > 1) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Sheer Force: x1.3 damage!`,
+    });
+  }
+
+  // Reckless: Recoil moves deal 30% more damage
+  const recklessMultiplier = checkReckless(source, card);
+  if (recklessMultiplier > 1) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Reckless: x1.3 damage (recoil move)!`,
     });
   }
 
@@ -431,6 +488,9 @@ function buildDamageModifiers(
     });
   }
 
+  // Combine Anger Point, Sheer Force, and Reckless multipliers
+  const combinedMultiplier = angerPointMultiplier * sheerForceMultiplier * recklessMultiplier;
+
   return {
     isBlazeStrike,
     bastionBarrageBonus: bastionBonus,
@@ -441,7 +501,7 @@ function buildDamageModifiers(
     thickHideReduction,
     thickFatMultiplier,
     underdogBonus,
-    ragingBullMultiplier,
+    ragingBullMultiplier: combinedMultiplier,  // Now includes Anger Point + Sheer Force
     familyFuryBonus: scrappyBonus + hustleBonus + relentlessBonus,  // Combine flat bonuses
     typeEffectiveness,
     ignoreEvasion: false,  // No passive currently ignores evasion
@@ -462,7 +522,7 @@ function buildDamageBreakdown(r: ReturnType<typeof applyCardDamage>): string {
   if (r.familyFuryBonus > 0) parts.push(`+${r.familyFuryBonus} Fury`);
   if (r.enfeeble > 0) parts.push(`-${r.enfeeble} Enfeeble`);
   if (r.blazeStrikeMultiplier > 1) parts.push(`x${r.blazeStrikeMultiplier} Blaze`);
-  if (r.ragingBullMultiplier > 1) parts.push(`x${r.ragingBullMultiplier} Bull`);
+  if (r.ragingBullMultiplier > 1) parts.push(`x${r.ragingBullMultiplier.toFixed(2)}`);
   if (r.typeEffectiveness !== 1.0) parts.push(`x${r.typeEffectiveness.toFixed(2)} Type`);
   if (r.bloomingCycleReduction > 0) parts.push(`-${r.bloomingCycleReduction} Blooming`);
   if (r.staticFieldReduction > 0) parts.push(`-${r.staticFieldReduction} Static`);
@@ -474,6 +534,14 @@ function buildDamageBreakdown(r: ReturnType<typeof applyCardDamage>): string {
 }
 
 /**
+ * Result from resolving effects on a target.
+ */
+interface EffectResolutionResult {
+  logs: LogEntry[];
+  damageToPoisoned: number;  // Damage dealt to this target if they were poisoned
+}
+
+/**
  * Resolve an ordered list of effects against a target.
  */
 function resolveEffects(
@@ -481,8 +549,10 @@ function resolveEffects(
   source: Combatant,
   target: Combatant,
   card: MoveDefinition,
-): LogEntry[] {
+): EffectResolutionResult {
   const logs: LogEntry[] = [];
+  let damageToPoisoned = 0;
+  const targetWasPoisoned = isPoisoned(target);  // Check before any damage
 
   for (const effect of card.effects) {
     if (!target.alive && effect.type !== 'apply_status_self' && effect.type !== 'draw_cards' && effect.type !== 'gain_energy') break;
@@ -507,6 +577,11 @@ function resolveEffects(
 
         // Trigger post-damage passive effects (e.g., Kindling, Numbing Strike)
         if (r.hpDamage > 0) {
+          // Track damage to poisoned enemies for Toxic Horn / Protective Toxins
+          if (targetWasPoisoned) {
+            damageToPoisoned += r.hpDamage;
+          }
+
           const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
 
@@ -526,7 +601,7 @@ function resolveEffects(
             logs.push({
               round: state.round,
               combatantId: source.id,
-              message: `Poison Point: +1 Poison applied to ${target.name}!`,
+              message: `Poison Point (on contact): ${target.name} gains 1 Poison!`,
             });
           }
 
@@ -576,13 +651,18 @@ function resolveEffects(
               logs.push({
                 round: state.round,
                 combatantId: source.id,
-                message: `Poison Point: +1 Poison applied to ${target.name}!`,
+                message: `Poison Point (on contact): ${target.name} gains 1 Poison!`,
               });
             }
 
             const takenLogs = onDamageTaken(state, source, target, r.hpDamage, card);
             logs.push(...takenLogs);
           }
+        }
+
+        // Track total damage to poisoned enemies for Toxic Horn / Protective Toxins
+        if (targetWasPoisoned && totalDamage > 0) {
+          damageToPoisoned += totalDamage;
         }
 
         logs.push({
@@ -624,6 +704,11 @@ function resolveEffects(
         }
 
         if (r.hpDamage > 0) {
+          // Track damage to poisoned enemies for Toxic Horn / Protective Toxins
+          if (targetWasPoisoned) {
+            damageToPoisoned += r.hpDamage;
+          }
+
           const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
 
@@ -641,7 +726,7 @@ function resolveEffects(
             logs.push({
               round: state.round,
               combatantId: source.id,
-              message: `Poison Point: +1 Poison applied to ${target.name}!`,
+              message: `Poison Point (on contact): ${target.name} gains 1 Poison!`,
             });
           }
 
@@ -676,6 +761,11 @@ function resolveEffects(
         });
 
         if (r.hpDamage > 0) {
+          // Track damage to poisoned enemies for Toxic Horn / Protective Toxins
+          if (targetWasPoisoned) {
+            damageToPoisoned += r.hpDamage;
+          }
+
           const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
 
@@ -693,7 +783,7 @@ function resolveEffects(
             logs.push({
               round: state.round,
               combatantId: source.id,
-              message: `Poison Point: +1 Poison applied to ${target.name}!`,
+              message: `Poison Point (on contact): ${target.name} gains 1 Poison!`,
             });
           }
 
@@ -710,21 +800,30 @@ function resolveEffects(
         }
 
         // Apply recoil damage to source (bypasses block/evasion)
+        // Rock Head prevents recoil damage
         const recoilDamage = Math.floor(r.rawDamage * effect.recoilPercent);
         if (recoilDamage > 0 && source.alive) {
-          applyBypassDamage(source, recoilDamage);
-          logs.push({
-            round: state.round,
-            combatantId: source.id,
-            message: `${source.name} takes ${recoilDamage} recoil damage! (HP: ${source.hp}/${source.maxHp})`,
-          });
-
-          if (!source.alive) {
+          if (hasRockHead(source)) {
             logs.push({
               round: state.round,
               combatantId: source.id,
-              message: `${source.name} is defeated by recoil!`,
+              message: `Rock Head: ${source.name} takes no recoil damage!`,
             });
+          } else {
+            applyBypassDamage(source, recoilDamage);
+            logs.push({
+              round: state.round,
+              combatantId: source.id,
+              message: `${source.name} takes ${recoilDamage} recoil damage! (HP: ${source.hp}/${source.maxHp})`,
+            });
+
+            if (!source.alive) {
+              logs.push({
+                round: state.round,
+                combatantId: source.id,
+                message: `${source.name} is defeated by recoil!`,
+              });
+            }
           }
         }
         break;
@@ -797,6 +896,11 @@ function resolveEffects(
         });
 
         if (r.hpDamage > 0) {
+          // Track damage to poisoned enemies for Toxic Horn / Protective Toxins
+          if (targetWasPoisoned) {
+            damageToPoisoned += r.hpDamage;
+          }
+
           const postDmgLogs = onDamageDealt(state, source, target, card, r.hpDamage);
           logs.push(...postDmgLogs);
 
@@ -814,7 +918,7 @@ function resolveEffects(
             logs.push({
               round: state.round,
               combatantId: source.id,
-              message: `Poison Point: +1 Poison applied to ${target.name}!`,
+              message: `Poison Point (on contact): ${target.name} gains 1 Poison!`,
             });
           }
 
@@ -978,6 +1082,16 @@ function resolveEffects(
         break;
       }
       case 'apply_status': {
+        // Sheer Force: Moves cannot apply status effects
+        if (sheerForceBlocksStatus(source)) {
+          logs.push({
+            round: state.round,
+            combatantId: source.id,
+            message: `Sheer Force: move's ${effect.status} effect blocked`,
+          });
+          break;
+        }
+
         const statusResult = applyStatus(state, target, effect.status, effect.stacks, source.id);
         if (statusResult.applied) {
           logs.push({
@@ -1004,7 +1118,7 @@ function resolveEffects(
     }
   }
 
-  return logs;
+  return { logs, damageToPoisoned };
 }
 
 /**

@@ -383,5 +383,168 @@
       "amnesia"
     ],
     "abilities": []
+  },
+  "persian": {
+    "name": "Persian",
+    "types": ["normal"],
+    "maxHp": 48,
+    "baseSpeed": 8,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "scratch", "scratch",
+      "bite", "bite",
+      "slash",
+      "fake-out",
+      "pay-day",
+      "swift"
+    ],
+    "abilities": []
+  },
+  "nidoran-m": {
+    "name": "Nidoran♂",
+    "types": ["poison"],
+    "maxHp": 30,
+    "baseSpeed": 5,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "peck", "peck",
+      "defend", "defend",
+      "poison-sting", "poison-sting",
+      "smog",
+      "horn-attack",
+      "leer"
+    ],
+    "abilities": []
+  },
+  "nidorino": {
+    "name": "Nidorino",
+    "types": ["poison"],
+    "maxHp": 40,
+    "baseSpeed": 6,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "peck", "peck",
+      "defend", "defend",
+      "poison-sting", "poison-sting",
+      "smog",
+      "horn-attack",
+      "leer"
+    ],
+    "abilities": []
+  },
+  "nidoking": {
+    "name": "Nidoking",
+    "types": ["poison", "ground"],
+    "maxHp": 52,
+    "baseSpeed": 6,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "peck", "peck",
+      "smog",
+      "defend", "defend",
+      "poison-sting", "poison-sting",
+      "horn-attack",
+      "leer"
+    ],
+    "abilities": []
+  },
+  "nidoran-f": {
+    "name": "Nidoran♀",
+    "types": ["poison"],
+    "maxHp": 32,
+    "baseSpeed": 4,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "scratch",
+      "counter",
+      "defend", "defend",
+      "poison-sting", "poison-sting",
+      "smog",
+      "bite",
+      "tail-whip"
+    ],
+    "abilities": []
+  },
+  "nidorina": {
+    "name": "Nidorina",
+    "types": ["poison"],
+    "maxHp": 42,
+    "baseSpeed": 5,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "scratch",
+      "smog",
+      "counter",
+      "defend", "defend",
+      "poison-sting", "poison-sting",
+      "bite",
+      "tail-whip"
+    ],
+    "abilities": []
+  },
+  "nidoqueen": {
+    "name": "Nidoqueen",
+    "types": ["poison", "ground"],
+    "maxHp": 55,
+    "baseSpeed": 5,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "scratch",
+      "smog",
+      "counter",
+      "defend", "defend",
+      "poison-sting", "poison-sting",
+      "bite",
+      "tail-whip"
+    ],
+    "abilities": []
+  },
+  "rhyhorn": {
+    "name": "Rhyhorn",
+    "types": ["ground", "rock"],
+    "maxHp": 40,
+    "baseSpeed": 2,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "horn-attack", "horn-attack",
+      "stomp", "stomp",
+      "rock-slide",
+      "defend", "defend"
+    ],
+    "abilities": []
+  },
+  "rhydon": {
+    "name": "Rhydon",
+    "types": ["ground", "rock"],
+    "maxHp": 58,
+    "baseSpeed": 3,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "horn-attack", "horn-attack",
+      "stomp", "stomp",
+      "rock-slide",
+      "earthquake",
+      "take-down",
+      "defend"
+    ],
+    "abilities": []
   }
 }

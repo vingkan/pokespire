@@ -1,7 +1,7 @@
 import type { PokemonData, Position, Combatant } from '../engine/types';
-import type { RunState, RunPokemon, MapNode, BattleNode } from './types';
+import type { RunState, RunPokemon, MapNode, BattleNode, ActTransitionNode, CardRemovalNode } from './types';
 import { getPokemon } from '../data/loaders';
-import { ACT1_NODES, getNodeById } from './nodes';
+import { ACT1_NODES, ACT2_NODES, getNodeById } from './nodes';
 import {
   getProgressionTree,
   getRungForLevel,
@@ -13,8 +13,8 @@ import {
 // EXP Constants
 // ============================================================
 
-/** EXP required per level up */
-export const EXP_PER_LEVEL = 2;
+/** EXP required per level up (changed from 2 to 3 for Act 1/2 pacing) */
+export const EXP_PER_LEVEL = 3;
 
 // ============================================================
 // Run State Management
@@ -46,7 +46,7 @@ export function createRunState(
       deck: [...pokemon.deck],
       position: positions[i],
       level: 1,
-      exp: 1, // Start with 1 EXP (from spawn node)
+      exp: 0, // No starting EXP - first EXP comes from first battle
       passiveIds: initialPassives,
     };
   });
@@ -66,6 +66,7 @@ export function createRunState(
     currentNodeId: 's0-spawn', // Start at spawn
     visitedNodeIds: ['s0-spawn'],
     nodes,
+    currentAct: 1,
   };
 }
 
@@ -125,11 +126,97 @@ export function moveToNode(run: RunState, nodeId: string): RunState {
 }
 
 /**
- * Check if the run is complete (boss defeated).
+ * Check if the run is complete (Mewtwo defeated in Act 2).
  */
 export function isRunComplete(run: RunState): boolean {
-  const bossNode = run.nodes.find(n => n.type === 'battle' && n.stage === 8);
-  return bossNode?.completed ?? false;
+  if (run.currentAct !== 2) return false;
+  const mewtwoNode = run.nodes.find(n => n.id === 'a2-s6-boss-mewtwo');
+  return mewtwoNode?.completed ?? false;
+}
+
+/**
+ * Check if Act 1 is complete (Giovanni defeated).
+ */
+export function isAct1Complete(run: RunState): boolean {
+  if (run.currentAct !== 1) return false;
+  const giovanniNode = run.nodes.find(n => n.id === 's6-boss-giovanni');
+  return giovanniNode?.completed ?? false;
+}
+
+/**
+ * Check if we're at an act transition node.
+ */
+export function isAtActTransition(run: RunState): boolean {
+  const currentNode = getCurrentNode(run);
+  return currentNode?.type === 'act_transition';
+}
+
+/**
+ * Transition to Act 2 - preserves party, resets nodes to Act 2 map.
+ * Note: Party is healed before showing the transition screen.
+ */
+export function transitionToAct2(run: RunState): RunState {
+  // Deep copy Act 2 nodes
+  const act2Nodes = ACT2_NODES.map(node => ({ ...node }));
+
+  // Mark spawn as completed
+  const spawnNode = act2Nodes.find(n => n.type === 'spawn');
+  if (spawnNode) {
+    spawnNode.completed = true;
+  }
+
+  return {
+    ...run,
+    currentAct: 2,
+    currentNodeId: 'a2-s0-spawn',
+    visitedNodeIds: ['a2-s0-spawn'],
+    nodes: act2Nodes,
+  };
+}
+
+/**
+ * Get the current act transition node (if at one).
+ */
+export function getCurrentActTransitionNode(run: RunState): ActTransitionNode | null {
+  const node = getCurrentNode(run);
+  if (node?.type === 'act_transition') return node;
+  return null;
+}
+
+/**
+ * Get the current card removal node (if at one).
+ */
+export function getCurrentCardRemovalNode(run: RunState): CardRemovalNode | null {
+  const node = getCurrentNode(run);
+  if (node?.type === 'card_removal') return node;
+  return null;
+}
+
+/**
+ * Remove cards from a Pokemon's deck.
+ */
+export function removeCardsFromDeck(
+  run: RunState,
+  pokemonIndex: number,
+  cardIndices: number[]
+): RunState {
+  const newParty = run.party.map((pokemon, i) => {
+    if (i !== pokemonIndex) return pokemon;
+    // Remove cards by index (remove from highest to lowest to preserve indices)
+    const sortedIndices = [...cardIndices].sort((a, b) => b - a);
+    const newDeck = [...pokemon.deck];
+    for (const idx of sortedIndices) {
+      if (idx >= 0 && idx < newDeck.length) {
+        newDeck.splice(idx, 1);
+      }
+    }
+    return {
+      ...pokemon,
+      deck: newDeck,
+    };
+  });
+
+  return { ...run, party: newParty };
 }
 
 /**
@@ -162,6 +249,19 @@ export function applyPercentHeal(
       currentHp: newCurrentHp,
     };
   });
+
+  return { ...run, party: newParty };
+}
+
+/**
+ * Apply full heal to all party Pokemon.
+ * Used after defeating act bosses.
+ */
+export function applyFullHealAll(run: RunState): RunState {
+  const newParty = run.party.map(pokemon => ({
+    ...pokemon,
+    currentHp: pokemon.maxHp,
+  }));
 
   return { ...run, party: newParty };
 }
