@@ -51,6 +51,8 @@ function createCombatant(
       infernoMomentumReducedIndex: null,
       relentlessUsedThisTurn: false,
       alliesDamagedThisRound: new Set(),
+      overgrowHealUsedThisTurn: false,
+      torrentShieldUsedThisTurn: false,
     },
     costModifiers: {},
   };
@@ -62,20 +64,23 @@ function createCombatant(
  * @param enemyParty - Array of Pokemon data for the enemy's team
  * @param playerPositions - Optional custom positions for player Pokemon (auto-assigned if not provided)
  * @param enemyPositions - Optional custom positions for enemy Pokemon (auto-assigned if not provided)
+ * @param playerSlotIndices - Optional slot indices for players (used when some party members are knocked out)
  */
 export function createCombatState(
   playerParty: PokemonData[],
   enemyParty: PokemonData[],
   playerPositions?: Position[],
   enemyPositions?: Position[],
+  playerSlotIndices?: number[],
 ): CombatState {
   combatantCounter = 0;
 
   const pPositions = playerPositions ?? assignPartyPositions(playerParty.length);
   const ePositions = enemyPositions ?? assignPartyPositions(enemyParty.length);
+  const pSlotIndices = playerSlotIndices ?? playerParty.map((_, i) => i);
 
   const combatants: Combatant[] = [
-    ...playerParty.map((p, i) => createCombatant(p, 'player', i, pPositions[i])),
+    ...playerParty.map((p, i) => createCombatant(p, 'player', pSlotIndices[i], pPositions[i])),
     ...enemyParty.map((e, i) => createCombatant(e, 'enemy', i, ePositions[i])),
   ];
 
@@ -258,10 +263,21 @@ export function getCombatant(state: CombatState, id: string): Combatant {
 
 /**
  * Get the combatant whose turn it currently is.
+ * Returns null if turn order is empty (battle should be ending).
  */
 export function getCurrentCombatant(state: CombatState): Combatant {
+  // Safety: clamp index to valid range
+  if (state.turnOrder.length === 0) {
+    throw new Error('No combatants in turn order - battle should have ended');
+  }
+  if (state.currentTurnIndex >= state.turnOrder.length) {
+    state.currentTurnIndex = state.turnOrder.length - 1;
+  }
+  if (state.currentTurnIndex < 0) {
+    state.currentTurnIndex = 0;
+  }
+
   const entry = state.turnOrder[state.currentTurnIndex];
-  if (!entry) throw new Error('No current turn entry');
   return getCombatant(state, entry.combatantId);
 }
 
@@ -284,24 +300,32 @@ export function checkBattleEnd(state: CombatState): void {
  */
 export function removeDeadFromTurnOrder(state: CombatState): void {
   const currentId = state.turnOrder[state.currentTurnIndex]?.combatantId;
+  const oldIndex = state.currentTurnIndex;
 
   state.turnOrder = state.turnOrder.filter(entry => {
     const c = getCombatant(state, entry.combatantId);
     return c.alive;
   });
 
-  // Adjust currentTurnIndex if entries before it were removed
+  // Handle empty turn order (battle should end, but be safe)
+  if (state.turnOrder.length === 0) {
+    state.currentTurnIndex = 0;
+    return;
+  }
+
+  // Try to find the current combatant in the new order
   if (currentId) {
     const newIndex = state.turnOrder.findIndex(e => e.combatantId === currentId);
     if (newIndex >= 0) {
+      // Current combatant still alive, point to their new position
       state.currentTurnIndex = newIndex;
+      return;
     }
   }
 
-  // Clamp
-  if (state.currentTurnIndex >= state.turnOrder.length) {
-    state.currentTurnIndex = Math.max(0, state.turnOrder.length - 1);
-  }
+  // Current combatant was removed (died) - clamp to valid range
+  state.currentTurnIndex = Math.min(oldIndex, state.turnOrder.length - 1);
+  state.currentTurnIndex = Math.max(0, state.currentTurnIndex);
 }
 
 /**
@@ -313,6 +337,12 @@ export function advanceRound(state: CombatState): LogEntry[] {
   const oldOrder = state.turnOrder.map(e => e.combatantId);
 
   const logs = processRoundBoundary(state);
+
+  // Check if status effects ended the battle (e.g., Leech killing last enemy)
+  checkBattleEnd(state);
+  if (state.phase !== 'ongoing') {
+    return logs;
+  }
 
   // Reset round-based passive flags
   onRoundEnd(state);
