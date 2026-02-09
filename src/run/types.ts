@@ -19,6 +19,7 @@ export interface RunPokemon {
   level: number;              // 1-4
   exp: number;                // Accumulated experience
   passiveIds: PassiveId[];    // All accumulated passive abilities
+  knockedOut: boolean;        // True if Pokemon was KO'd (kept for future resurrection features)
 }
 
 /**

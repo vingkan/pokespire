@@ -13,12 +13,12 @@ export type PassiveId =
   // Squirtle line
   | 'baby_shell'
   | 'pressure_hull'
+  | 'torrent_shield'
   | 'fortified_cannons'
-  | 'bastion_barrage'
   // Bulbasaur line
   | 'baby_vines'
   | 'spreading_spores'
-  | 'overgrow'
+  | 'overgrow_heal'
   | 'blooming_cycle'
   // Pikachu line
   | 'numbing_strike'
@@ -119,12 +119,12 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
     name: 'Pressure Hull',
     description: 'At the end of your turn, retain 50% of your Block.',
   },
+  torrent_shield: {
+    name: 'Torrent Shield',
+    description: 'Your first Water attack each turn grants Block equal to the damage dealt.',
+  },
   fortified_cannons: {
     name: 'Fortified Cannons',
-    description: 'When you deal damage with a Water attack, gain Block equal to half the damage dealt.',
-  },
-  bastion_barrage: {
-    name: 'Bastion Barrage',
     description: 'Your Water attacks deal bonus damage equal to 25% of your current Block.',
   },
   baby_vines: {
@@ -135,9 +135,9 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
     name: 'Spreading Spores',
     description: 'When applying Leech, also apply 1 Leech to an adjacent enemy.',
   },
-  overgrow: {
-    name: 'Overgrow',
-    description: 'Baby Vines now applies +2 Leech instead of +1.',
+  overgrow_heal: {
+    name: 'Overgrow Heal',
+    description: 'The first Grass attack you play each turn heals you equal to damage dealt.',
   },
   blooming_cycle: {
     name: 'Blooming Cycle',
@@ -276,7 +276,7 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   // thick_hide shared with Tauros (L2)
   protective_toxins: {
     name: 'Protective Toxins',
-    description: 'When attacking poisoned enemies, all allies gain Block equal to total damage dealt.',
+    description: 'When attacking poisoned enemies, all allies gain Block equal to half the damage dealt.',
   },
   // Rhyhorn/Rhydon line
   rock_head: {
@@ -358,9 +358,9 @@ export const BULBASAUR_PROGRESSION: ProgressionTree = {
     {
       level: 3,
       name: 'Venusaur',
-      description: 'Evolve to Venusaur (+10 HP). Add Solar Beam. Gain Overgrow.',
+      description: 'Evolve to Venusaur (+10 HP). Add Solar Beam. Gain Overgrow Heal.',
       evolvesTo: 'venusaur',
-      passiveId: 'overgrow',
+      passiveId: 'overgrow_heal',
       hpBoost: 0,  // HP increase comes from Venusaur's base stats
       cardsToAdd: ['solar-beam'],
     },
@@ -399,17 +399,17 @@ export const SQUIRTLE_PROGRESSION: ProgressionTree = {
     {
       level: 3,
       name: 'Blastoise',
-      description: 'Evolve to Blastoise (+10 HP). Add Hydro Pump. Gain Fortified Cannons.',
+      description: 'Evolve to Blastoise (+10 HP). Add Hydro Pump. Gain Torrent Shield.',
       evolvesTo: 'blastoise',
-      passiveId: 'fortified_cannons',
+      passiveId: 'torrent_shield',
       hpBoost: 0,  // HP increase comes from Blastoise's base stats
       cardsToAdd: ['hydro-pump'],
     },
     {
       level: 4,
       name: 'Blastoise (Mastered)',
-      description: 'Gain Bastion Barrage.',
-      passiveId: 'bastion_barrage',
+      description: 'Gain Fortified Cannons.',
+      passiveId: 'fortified_cannons',
       hpBoost: 0,
       cardsToAdd: [],
     },

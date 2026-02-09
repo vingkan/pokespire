@@ -141,6 +141,7 @@ export function onTurnStart(
   combatant.turnFlags.blazeStrikeUsedThisTurn = false;
   combatant.turnFlags.infernoMomentumReducedIndex = null;
   combatant.turnFlags.relentlessUsedThisTurn = false;
+  combatant.turnFlags.overgrowHealUsedThisTurn = false;
 
   // Inferno Momentum: Reduce highest-cost FIRE card's cost by 3
   if (combatant.passiveIds.includes('inferno_momentum')) {
@@ -237,31 +238,46 @@ export function onDamageDealt(
     logs.push(...spreadLogs);
   }
 
-  // Fortified Cannons: Gain Block equal to half damage dealt on Water attacks
-  if (attacker.passiveIds.includes('fortified_cannons') && card.type === 'water' && damageDealt > 0) {
-    const blockGain = Math.floor(damageDealt / 2);
-    if (blockGain > 0) {
-      attacker.block += blockGain;
+  // Torrent Shield: First Water attack each turn grants Block equal to damage dealt
+  if (attacker.passiveIds.includes('torrent_shield') && card.type === 'water' && damageDealt > 0) {
+    if (!attacker.turnFlags.torrentShieldUsedThisTurn) {
+      attacker.turnFlags.torrentShieldUsedThisTurn = true;
+      attacker.block += damageDealt;
       logs.push({
         round: state.round,
         combatantId: attacker.id,
-        message: `Fortified Cannons: Gained ${blockGain} Block!`,
+        message: `Torrent Shield: Gained ${damageDealt} Block!`,
       });
     }
   }
 
-  // Baby Vines: Unblocked Grass attacks apply Leech (+2 with Overgrow)
+  // Overgrow Heal: First Grass attack each turn heals equal to damage dealt
+  if (attacker.passiveIds.includes('overgrow_heal') && card.type === 'grass' && damageDealt > 0) {
+    if (!attacker.turnFlags.overgrowHealUsedThisTurn) {
+      attacker.turnFlags.overgrowHealUsedThisTurn = true;
+      const healAmount = Math.min(damageDealt, attacker.maxHp - attacker.hp);
+      if (healAmount > 0) {
+        attacker.hp += healAmount;
+        logs.push({
+          round: state.round,
+          combatantId: attacker.id,
+          message: `Overgrow Heal: Healed ${healAmount} HP!`,
+        });
+      }
+    }
+  }
+
+  // Baby Vines: Unblocked Grass attacks apply Leech
   if (attacker.passiveIds.includes('baby_vines') && card.type === 'grass' && damageDealt > 0) {
-    const leechAmount = attacker.passiveIds.includes('overgrow') ? 2 : 1;
-    applyStatus(state, target, 'leech', leechAmount, attacker.id);
+    applyStatus(state, target, 'leech', 1, attacker.id);
     logs.push({
       round: state.round,
       combatantId: attacker.id,
-      message: `Baby Vines: +${leechAmount} Leech applied to ${target.name}!`,
+      message: `Baby Vines: +1 Leech applied to ${target.name}!`,
     });
 
     // Trigger Spreading Spores
-    const spreadLogs = onStatusApplied(state, attacker, target, 'leech', leechAmount);
+    const spreadLogs = onStatusApplied(state, attacker, target, 'leech', 1);
     logs.push(...spreadLogs);
   }
 
@@ -656,23 +672,23 @@ export function checkRelentless(combatant: Combatant): number {
 }
 
 /**
- * Check if Bastion Barrage should provide bonus damage.
- * Bastion Barrage: Water attacks deal +25% of current Block as bonus damage.
+ * Check if Fortified Cannons should provide bonus damage.
+ * Fortified Cannons: Water attacks deal +25% of current Block as bonus damage.
  */
-export function checkBastionBarrage(
+export function checkFortifiedCannons(
   state: CombatState,
   attacker: Combatant,
   card: MoveDefinition
 ): { bonusDamage: number; logs: LogEntry[] } {
   const logs: LogEntry[] = [];
 
-  if (attacker.passiveIds.includes('bastion_barrage') && card.type === 'water' && attacker.block > 0) {
+  if (attacker.passiveIds.includes('fortified_cannons') && card.type === 'water' && attacker.block > 0) {
     const bonus = Math.floor(attacker.block * 0.25);
     if (bonus > 0) {
       logs.push({
         round: state.round,
         combatantId: attacker.id,
-        message: `Bastion Barrage: +${bonus} bonus damage from Block!`,
+        message: `Fortified Cannons: +${bonus} bonus damage from Block!`,
       });
       return { bonusDamage: bonus, logs };
     }
@@ -799,7 +815,7 @@ export function processToxicHorn(
 
 /**
  * Process Protective Toxins after attacking poisoned enemies.
- * Protective Toxins: When attacking poisoned enemies, all allies gain Block equal to total damage dealt.
+ * Protective Toxins: When attacking poisoned enemies, all allies gain Block equal to half the damage dealt.
  * This should be called after all damage from a card is dealt.
  */
 export function processProtectiveToxins(
@@ -812,20 +828,24 @@ export function processProtectiveToxins(
   if (!attacker.passiveIds.includes('protective_toxins')) return logs;
   if (totalDamageToPoisoned <= 0) return logs;
 
+  // Calculate block gained (half of damage dealt, rounded down)
+  const blockGained = Math.floor(totalDamageToPoisoned / 2);
+  if (blockGained <= 0) return logs;
+
   // Get all living allies (same side as attacker)
   const allies = state.combatants.filter(c =>
     c.alive && c.side === attacker.side
   );
 
   for (const ally of allies) {
-    ally.block += totalDamageToPoisoned;
+    ally.block += blockGained;
   }
 
   const allyNames = allies.map(a => a.name).join(', ');
   logs.push({
     round: state.round,
     combatantId: attacker.id,
-    message: `Protective Toxins: ${allyNames} ${allies.length === 1 ? 'gains' : 'gain'} ${totalDamageToPoisoned} Block!`,
+    message: `Protective Toxins: ${allyNames} ${allies.length === 1 ? 'gains' : 'gain'} ${blockGained} Block!`,
   });
 
   return logs;

@@ -421,15 +421,44 @@ export function BattleScreen({
 
   const gameOver = phase === 'victory' || phase === 'defeat';
 
+  // Victory celebration stages: 'celebrating' -> 'draft_message' -> 'transitioning'
+  const [victoryStage, setVictoryStage] = useState<'celebrating' | 'draft_message' | 'transitioning' | null>(null);
+
   // Track if we've already called onBattleEnd for this game over state
   const battleEndCalledRef = useRef(false);
 
-  // Call onBattleEnd when battle ends
+  // Handle victory celebration sequence
   useEffect(() => {
-    if (gameOver && onBattleEnd && !battleEndCalledRef.current) {
+    if (phase === 'victory' && victoryStage === null) {
+      setVictoryStage('celebrating');
+    }
+    // Reset when not in victory
+    if (phase !== 'victory') {
+      setVictoryStage(null);
+    }
+  }, [phase, victoryStage]);
+
+  // Progress through victory stages
+  useEffect(() => {
+    if (victoryStage === 'celebrating') {
+      const timer = setTimeout(() => setVictoryStage('draft_message'), 2000);
+      return () => clearTimeout(timer);
+    }
+    if (victoryStage === 'draft_message') {
+      const timer = setTimeout(() => setVictoryStage('transitioning'), 1800);
+      return () => clearTimeout(timer);
+    }
+    if (victoryStage === 'transitioning' && onBattleEnd && !battleEndCalledRef.current) {
       battleEndCalledRef.current = true;
-      const result: BattleResult = phase === 'victory' ? 'victory' : 'defeat';
-      onBattleEnd(result, state.combatants);
+      onBattleEnd('victory', state.combatants);
+    }
+  }, [victoryStage, onBattleEnd, state.combatants]);
+
+  // Handle defeat immediately (no celebration needed)
+  useEffect(() => {
+    if (phase === 'defeat' && onBattleEnd && !battleEndCalledRef.current) {
+      battleEndCalledRef.current = true;
+      onBattleEnd('defeat', state.combatants);
     }
     // Reset ref when game is not over (for next battle)
     if (!gameOver) {
@@ -597,8 +626,78 @@ export function BattleScreen({
           onBannerComplete={battleEffects.clearCardBanner}
         />
 
-        {/* Game over overlay */}
-        {gameOver && (
+        {/* Victory celebration overlay */}
+        {phase === 'victory' && victoryStage && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.75)',
+            gap: 24,
+          }}>
+            {/* Victory text with animation */}
+            <div style={{
+              fontSize: victoryStage === 'celebrating' ? 64 : 48,
+              fontWeight: 'bold',
+              color: '#facc15',
+              textShadow: '0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(250, 204, 21, 0.4)',
+              animation: victoryStage === 'celebrating' ? 'victoryPulse 0.6s ease-in-out infinite alternate' : 'none',
+              transition: 'font-size 0.3s ease',
+            }}>
+              VICTORY!
+            </div>
+
+            {/* Sparkle effects during celebration */}
+            {victoryStage === 'celebrating' && (
+              <div style={{
+                display: 'flex',
+                gap: 16,
+                fontSize: 32,
+                animation: 'sparkle 0.8s ease-in-out infinite',
+              }}>
+                <span style={{ animationDelay: '0s' }}>✦</span>
+                <span style={{ animationDelay: '0.2s' }}>✧</span>
+                <span style={{ animationDelay: '0.4s' }}>✦</span>
+              </div>
+            )}
+
+            {/* Draft message */}
+            {(victoryStage === 'draft_message' || victoryStage === 'transitioning') && (
+              <div style={{
+                fontSize: 24,
+                color: '#a5f3fc',
+                fontWeight: 500,
+                textAlign: 'center',
+                animation: 'fadeSlideIn 0.5s ease-out',
+                textShadow: '0 0 10px rgba(165, 243, 252, 0.4)',
+              }}>
+                Choose a new card for each Pokemon!
+              </div>
+            )}
+
+            {/* CSS animations */}
+            <style>{`
+              @keyframes victoryPulse {
+                from { transform: scale(1); }
+                to { transform: scale(1.08); }
+              }
+              @keyframes sparkle {
+                0%, 100% { opacity: 0.4; transform: scale(0.8); }
+                50% { opacity: 1; transform: scale(1.2); }
+              }
+              @keyframes fadeSlideIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {/* Defeat overlay */}
+        {phase === 'defeat' && (
           <div style={{
             position: 'absolute',
             inset: 0,
@@ -612,9 +711,9 @@ export function BattleScreen({
             <div style={{
               fontSize: 52,
               fontWeight: 'bold',
-              color: phase === 'victory' ? '#facc15' : '#ef4444',
+              color: '#ef4444',
             }}>
-              {phase === 'victory' ? 'VICTORY!' : 'DEFEAT'}
+              DEFEAT
             </div>
             <button
               onClick={onRestart}

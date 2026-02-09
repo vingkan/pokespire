@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { PokemonData, Position, Combatant } from './engine/types';
 import { useBattle } from './ui/hooks/useBattle';
 import { PartySelectScreen } from './ui/screens/PartySelectScreen';
@@ -9,6 +9,7 @@ import { RestScreen } from './ui/screens/RestScreen';
 import { CardDraftScreen } from './ui/screens/CardDraftScreen';
 import { RunVictoryScreen } from './ui/screens/RunVictoryScreen';
 import { CardDexScreen } from './ui/screens/CardDexScreen';
+import { PokeDexScreen } from './ui/screens/PokeDexScreen';
 import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
 import { ActTransitionScreen } from './ui/screens/ActTransitionScreen';
 import { CardRemovalScreen } from './ui/screens/CardRemovalScreen';
@@ -32,7 +33,45 @@ import {
   getCurrentCardRemovalNode,
 } from './run/state';
 
-type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'sandbox_config' | 'act_transition' | 'card_removal';
+type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
+
+// localStorage keys
+const SAVE_KEY = 'pokespire_save';
+
+interface SaveData {
+  screen: Screen;
+  runState: RunState | null;
+  savedAt: number;
+}
+
+function saveGame(screen: Screen, runState: RunState | null) {
+  // Only save during active runs (not menus, not sandbox)
+  const savableScreens: Screen[] = ['map', 'rest', 'card_draft', 'battle', 'act_transition', 'card_removal'];
+  if (runState && savableScreens.includes(screen)) {
+    const saveData: SaveData = { screen, runState, savedAt: Date.now() };
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    } catch (e) {
+      console.warn('Failed to save game:', e);
+    }
+  }
+}
+
+function loadGame(): SaveData | null {
+  try {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (saved) {
+      return JSON.parse(saved) as SaveData;
+    }
+  } catch (e) {
+    console.warn('Failed to load save:', e);
+  }
+  return null;
+}
+
+function clearSave() {
+  localStorage.removeItem(SAVE_KEY);
+}
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('main_menu');
@@ -40,7 +79,33 @@ export default function App() {
   const [isSandboxBattle, setIsSandboxBattle] = useState(false);
   const [sandboxPlayerTeam, setSandboxPlayerTeam] = useState<SandboxPokemon[]>([]);
   const [sandboxEnemyTeam, setSandboxEnemyTeam] = useState<SandboxPokemon[]>([]);
+  const [hasSavedGame, setHasSavedGame] = useState(false);
   const battle = useBattle();
+
+  // Check for saved game on mount
+  useEffect(() => {
+    const saved = loadGame();
+    setHasSavedGame(saved !== null);
+  }, []);
+
+  // Save game whenever screen or runState changes
+  useEffect(() => {
+    saveGame(screen, runState);
+  }, [screen, runState]);
+
+  // Continue saved game
+  const handleContinue = useCallback(() => {
+    const saved = loadGame();
+    if (saved) {
+      setRunState(saved.runState);
+      // If saved during battle, go to map instead (can't restore battle state)
+      if (saved.screen === 'battle') {
+        setScreen('map');
+      } else {
+        setScreen(saved.screen);
+      }
+    }
+  }, []);
 
   // Start a new run after party selection
   const handleStart = useCallback((party: PokemonData[], positions: Position[]) => {
@@ -219,6 +284,8 @@ export default function App() {
 
   // Restart to main menu
   const handleRestart = useCallback(() => {
+    clearSave();
+    setHasSavedGame(false);
     setRunState(null);
     setScreen('main_menu');
   }, []);
@@ -286,21 +353,43 @@ export default function App() {
           gap: 16,
           marginTop: 32,
         }}>
+          {hasSavedGame && (
+            <button
+              onClick={handleContinue}
+              style={{
+                padding: '16px 64px',
+                fontSize: 20,
+                fontWeight: 'bold',
+                borderRadius: 8,
+                border: 'none',
+                background: '#22c55e',
+                color: '#000',
+                cursor: 'pointer',
+                minWidth: 200,
+              }}
+            >
+              Continue Run
+            </button>
+          )}
           <button
-            onClick={() => setScreen('select')}
+            onClick={() => {
+              clearSave();
+              setHasSavedGame(false);
+              setScreen('select');
+            }}
             style={{
               padding: '16px 64px',
               fontSize: 20,
               fontWeight: 'bold',
               borderRadius: 8,
-              border: 'none',
-              background: '#facc15',
-              color: '#000',
+              border: hasSavedGame ? '2px solid #facc15' : 'none',
+              background: hasSavedGame ? 'transparent' : '#facc15',
+              color: hasSavedGame ? '#facc15' : '#000',
               cursor: 'pointer',
               minWidth: 200,
             }}
           >
-            Campaign
+            {hasSavedGame ? 'New Run' : 'Campaign'}
           </button>
           <button
             onClick={handleGoToSandbox}
@@ -317,6 +406,22 @@ export default function App() {
             }}
           >
             Sandbox
+          </button>
+          <button
+            onClick={() => setScreen('pokedex')}
+            style={{
+              padding: '16px 64px',
+              fontSize: 20,
+              fontWeight: 'bold',
+              borderRadius: 8,
+              border: '2px solid #64748b',
+              background: 'transparent',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              minWidth: 200,
+            }}
+          >
+            PokeDex
           </button>
           <button
             onClick={() => setScreen('card_dex')}
@@ -341,7 +446,7 @@ export default function App() {
           marginTop: 16,
           textAlign: 'center',
         }}>
-          Sandbox: Configure custom battles for testing
+          Browse Pokemon stats, decks, and progression trees
         </div>
       </div>
     );
@@ -349,6 +454,10 @@ export default function App() {
 
   if (screen === 'card_dex') {
     return <CardDexScreen onBack={() => setScreen('main_menu')} />;
+  }
+
+  if (screen === 'pokedex') {
+    return <PokeDexScreen onBack={() => setScreen('main_menu')} />;
   }
 
   if (screen === 'sandbox_config') {
@@ -496,5 +605,124 @@ export default function App() {
     );
   }
 
-  return null;
+  // Fallback: Unknown state - show debug info instead of blank screen
+  const debugState = {
+    screen,
+    hasRunState: runState !== null,
+    runState: runState ? {
+      currentAct: runState.currentAct,
+      currentNodeId: runState.currentNodeId,
+      partySize: runState.party.length,
+      party: runState.party.map(p => ({
+        formId: p.formId,
+        currentHp: p.currentHp,
+        maxHp: p.maxHp,
+        knockedOut: p.knockedOut,
+      })),
+    } : null,
+    hasBattleState: battle.state !== null,
+    battlePhase: battle.phase,
+    isSandboxBattle,
+  };
+
+  const copyDebugInfo = () => {
+    const fullDebug = {
+      ...debugState,
+      fullRunState: runState,
+      timestamp: new Date().toISOString(),
+    };
+    navigator.clipboard.writeText(JSON.stringify(fullDebug, null, 2));
+    alert('Debug info copied to clipboard!');
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 24,
+      padding: 32,
+      color: '#e2e8f0',
+      minHeight: '100vh',
+      background: '#0f0f17',
+    }}>
+      <div style={{
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#f59e0b',
+      }}>
+        Unexpected State
+      </div>
+      <div style={{
+        fontSize: 16,
+        color: '#94a3b8',
+        textAlign: 'center',
+        maxWidth: 500,
+      }}>
+        The game reached an unexpected state. This info can help debug the issue:
+      </div>
+      <pre style={{
+        background: '#1e1e2e',
+        padding: 16,
+        borderRadius: 8,
+        fontSize: 12,
+        color: '#a5f3fc',
+        maxWidth: '90vw',
+        overflow: 'auto',
+        maxHeight: 300,
+      }}>
+        {JSON.stringify(debugState, null, 2)}
+      </pre>
+      <div style={{ display: 'flex', gap: 16 }}>
+        <button
+          onClick={copyDebugInfo}
+          style={{
+            padding: '12px 24px',
+            fontSize: 16,
+            fontWeight: 'bold',
+            borderRadius: 8,
+            border: '2px solid #64748b',
+            background: 'transparent',
+            color: '#94a3b8',
+            cursor: 'pointer',
+          }}
+        >
+          Copy Debug Info
+        </button>
+        <button
+          onClick={handleRestart}
+          style={{
+            padding: '12px 24px',
+            fontSize: 16,
+            fontWeight: 'bold',
+            borderRadius: 8,
+            border: 'none',
+            background: '#facc15',
+            color: '#000',
+            cursor: 'pointer',
+          }}
+        >
+          Return to Menu
+        </button>
+      </div>
+      {hasSavedGame && (
+        <button
+          onClick={handleContinue}
+          style={{
+            padding: '12px 24px',
+            fontSize: 16,
+            fontWeight: 'bold',
+            borderRadius: 8,
+            border: '2px solid #22c55e',
+            background: 'transparent',
+            color: '#22c55e',
+            cursor: 'pointer',
+          }}
+        >
+          Try to Recover from Save
+        </button>
+      )}
+    </div>
+  );
 }

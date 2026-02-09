@@ -48,6 +48,7 @@ export function createRunState(
       level: 1,
       exp: 0, // No starting EXP - first EXP comes from first battle
       passiveIds: initialPassives,
+      knockedOut: false,
     };
   });
 
@@ -254,14 +255,19 @@ export function applyPercentHeal(
 }
 
 /**
- * Apply full heal to all party Pokemon.
+ * Apply full heal to all alive party Pokemon.
  * Used after defeating act bosses.
+ * Knocked out Pokemon are NOT healed (they stay dead until resurrection).
  */
 export function applyFullHealAll(run: RunState): RunState {
-  const newParty = run.party.map(pokemon => ({
-    ...pokemon,
-    currentHp: pokemon.maxHp,
-  }));
+  const newParty = run.party.map(pokemon => {
+    // Don't heal knocked out Pokemon
+    if (pokemon.knockedOut) return pokemon;
+    return {
+      ...pokemon,
+      currentHp: pokemon.maxHp,
+    };
+  });
 
   return { ...run, party: newParty };
 }
@@ -344,9 +350,14 @@ export function syncBattleResults(
   const newParty = run.party.map((pokemon, i) => {
     const combatant = playerCombatants.find(c => c.slotIndex === i);
     if (!combatant) return pokemon;
+
+    const newHp = Math.max(0, combatant.hp);
+    const isKnockedOut = newHp <= 0 || !combatant.alive;
+
     return {
       ...pokemon,
-      currentHp: Math.max(0, combatant.hp),
+      currentHp: newHp,
+      knockedOut: pokemon.knockedOut || isKnockedOut, // Once KO'd, stays KO'd
     };
   });
 

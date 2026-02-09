@@ -17,6 +17,7 @@ export function RunVictoryScreen({ run, onNewRun }: Props) {
       padding: 32,
       color: '#e2e8f0',
       minHeight: '100vh',
+      overflowY: 'auto',
       background: '#0f0f17',
     }}>
       <div style={{

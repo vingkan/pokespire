@@ -17,6 +17,7 @@ export function EventScreen({ run, event, onSelectPokemon }: Props) {
       padding: 32,
       color: '#e2e8f0',
       minHeight: '100vh',
+      overflowY: 'auto',
       background: '#0f0f17',
     }}>
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>

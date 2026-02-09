@@ -46,12 +46,12 @@ export function chooseEnemyAction(
 
   if (damageCards.length > 0) {
     const chosen = damageCards[0];
-    // Prioritize low HP targets
-    const sortedTargets = [...chosen.validTargets].sort((a, b) => a.hp - b.hp);
+    // Pick a random valid target
+    const randomTarget = chosen.validTargets[Math.floor(Math.random() * chosen.validTargets.length)];
     return {
       type: 'play_card',
       cardInstanceId: chosen.id,
-      targetId: sortedTargets[0].id,
+      targetId: randomTarget.id,
     };
   }
 
@@ -91,12 +91,12 @@ export function chooseEnemyAction(
         cardInstanceId: chosen.id,
       };
     }
-    // Pick target (prioritize low HP)
-    const sortedTargets = [...chosen.validTargets].sort((a, b) => a.hp - b.hp);
+    // Pick a random valid target
+    const randomTarget = chosen.validTargets[Math.floor(Math.random() * chosen.validTargets.length)];
     return {
       type: 'play_card',
       cardInstanceId: chosen.id,
-      targetId: sortedTargets[0].id,
+      targetId: randomTarget.id,
     };
   }
 

@@ -3,7 +3,7 @@ import { getStatusStacks } from './status';
 import { hasSTAB, STAB_BONUS } from './damage';
 import { getTypeEffectiveness, getEffectivenessLabel } from './typeChart';
 import {
-  checkBlazeStrike, checkBastionBarrage, checkCounterCurrent, checkStaticField,
+  checkBlazeStrike, checkFortifiedCannons, checkCounterCurrent, checkStaticField,
   checkWhippingWinds, checkPredatorsPatience, checkThickHide, checkThickFat,
   checkUnderdog, checkAngerPoint, checkSheerForce, checkScrappy,
   checkHustleDamageBonus, checkRelentless, checkReckless
@@ -73,7 +73,7 @@ export function calculateDamagePreview(
   const stab = hasSTAB(source, card.type) ? STAB_BONUS : 0;
 
   // Passive bonuses
-  const { bonusDamage: bastionBonus } = checkBastionBarrage(state, source, card);
+  const { bonusDamage: fortifiedBonus } = checkFortifiedCannons(state, source, card);
   const { bonusDamage: counterBonus } = checkCounterCurrent(state, source, target);
   const whippingWindsBonus = checkWhippingWinds(source, target);
   const predatorsPatienceBonus = checkPredatorsPatience(source, target);
@@ -101,7 +101,7 @@ export function calculateDamagePreview(
   const thickFatMultiplier = checkThickFat(target, card.type);
 
   // Calculate raw damage (before evasion/block)
-  let rawDamage = baseDamage + strength + stab + bastionBonus + counterBonus +
+  let rawDamage = baseDamage + strength + stab + fortifiedBonus + counterBonus +
     whippingWindsBonus + predatorsPatienceBonus + underdogBonus +
     scrappyBonus + hustleBonus + relentlessBonus - enfeeble;
   rawDamage = Math.max(rawDamage, 1);

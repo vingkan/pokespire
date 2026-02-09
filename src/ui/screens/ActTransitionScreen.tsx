@@ -17,6 +17,7 @@ export function ActTransitionScreen({ run, onContinue }: Props) {
       padding: 32,
       color: '#e2e8f0',
       minHeight: '100vh',
+      overflowY: 'auto',
       background: 'linear-gradient(180deg, #0f0f17 0%, #1a1a2e 50%, #16213e 100%)',
     }}>
       {/* Act Complete Header */}

@@ -81,9 +81,9 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
   const enfeeble = getStatusStacks(combatant, 'enfeeble');
   const stab = hasSTAB(combatant, card.type) ? STAB_BONUS : 0;
 
-  // Check for Bastion Barrage bonus (water attacks gain +25% of current block)
-  const hasBastionBarrage = combatant.passiveIds.includes('bastion_barrage');
-  const bastionBonus = (hasBastionBarrage && card.type === 'water' && combatant.block > 0)
+  // Check for Fortified Cannons bonus (water attacks gain +25% of current block)
+  const hasFortifiedCannons = combatant.passiveIds.includes('fortified_cannons');
+  const fortifiedBonus = (hasFortifiedCannons && card.type === 'water' && combatant.block > 0)
     ? Math.floor(combatant.block * 0.25)
     : 0;
 
@@ -93,7 +93,7 @@ function buildDescription(card: MoveDefinition, combatant: Combatant): React.Rea
   // Check for Hustle bonus (attacks deal +2 damage)
   const hustleBonus = combatant.passiveIds.includes('hustle') ? 2 : 0;
 
-  const additiveMod = strength + stab + bastionBonus + scrappyBonus + hustleBonus - enfeeble;
+  const additiveMod = strength + stab + fortifiedBonus + scrappyBonus + hustleBonus - enfeeble;
 
   // Check for Blaze Strike multiplier (first fire attack of the turn)
   const hasBlazeStrike = combatant.passiveIds.includes('blaze_strike');

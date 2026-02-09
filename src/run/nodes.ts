@@ -246,7 +246,7 @@ export const ACT2_NODES: MapNode[] = [
     id: 'a2-s0-spawn',
     type: 'spawn',
     stage: 0,
-    connectsTo: ['a2-s1-battle-1', 'a2-s1-removal'],
+    connectsTo: ['a2-s1-battle-1', 'a2-s1-rest'],
     completed: false,
   },
 
@@ -303,7 +303,7 @@ export const ACT2_NODES: MapNode[] = [
     id: 'a2-s2-battle-3',
     type: 'battle',
     stage: 2,
-    connectsTo: ['a2-s3-battle-2', 'a2-s3-removal'],
+    connectsTo: ['a2-s3-battle-2', 'a2-s3-rest-2'],
     completed: false,
     enemies: ['kangaskhan'],
     enemyPositions: [{ row: 'front', column: 1 }],

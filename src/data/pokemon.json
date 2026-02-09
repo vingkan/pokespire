@@ -247,7 +247,7 @@
   "snorlax": {
     "name": "Snorlax",
     "types": ["normal"],
-    "maxHp": 130,
+    "maxHp": 110,
     "baseSpeed": 2,
     "energyPerTurn": 3,
     "energyCap": 10,

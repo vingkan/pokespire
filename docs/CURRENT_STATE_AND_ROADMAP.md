@@ -437,3 +437,22 @@ The current single-act prototype will expand to this full structure.
 ## Mini sprites for preview
 https://img.pokemondb.net/sprites/sword-shield/normal/{pokemon}.png
 (Replace `{pokemon}` with lowercase name)
+
+## Sprite Scaling
+
+Sprites are scaled based on Pokemon weight using cube root scaling (since weight ~ volume ~ size³).
+
+**Reference:** Pikachu (6kg) = 80px sprite size
+
+**To add a new Pokemon:**
+1. Look up the weight in `docs/pokemon_height_weight.csv` (Weight in kgs column)
+2. Add the Pokemon to `POKEMON_WEIGHTS` in `src/data/heights.ts`
+3. Large Pokemon may need adjusted weights to prevent sprites from being too big (see Snorlax, Venusaur comments)
+
+**Formula:** `spriteSize = 80 * Math.cbrt(weight / 6)`
+
+Examples:
+- Pikachu (6kg): 80px
+- Rattata (3.5kg): 71px
+- Snorlax (150kg adjusted): 232px
+- Mewtwo (122kg): 219px

@@ -116,6 +116,9 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate, onForget, onResta
 
   const currentOption = OPTIONS[selectedChoice];
 
+  // Use fixed height layout for forget mode (sticky footer), scrollable for others
+  const isForgetMode = selectedChoice === 'forget';
+
   return (
     <div style={{
       display: 'flex',
@@ -124,7 +127,9 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate, onForget, onResta
       gap: 24,
       padding: 32,
       color: '#e2e8f0',
-      minHeight: '100vh',
+      height: isForgetMode ? '100vh' : undefined,
+      minHeight: isForgetMode ? undefined : '100vh',
+      overflowY: isForgetMode ? 'hidden' : 'auto',
       background: '#0f0f17',
       position: 'relative',
     }}>
@@ -237,7 +242,7 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate, onForget, onResta
             {run.party.map((pokemon, i) => {
               const basePokemon = getPokemon(pokemon.formId);
               const hpPercent = (pokemon.currentHp / pokemon.maxHp) * 100;
-              const isDead = pokemon.currentHp <= 0;
+              const isDead = pokemon.knockedOut || pokemon.currentHp <= 0;
 
               // Calculate preview values for each choice
               const healAmount = Math.floor(pokemon.maxHp * HEAL_PERCENT);
@@ -400,18 +405,25 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate, onForget, onResta
         </>
       )}
 
-      {/* Forget mode - Card selection for each Pokemon */}
+      {/* Forget mode - Full screen layout with sticky footer */}
       {selectedChoice === 'forget' && (
-        <>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          maxWidth: 900,
+          flex: 1,
+          minHeight: 0, // Allow flex shrinking
+        }}>
+          {/* Scrollable Pokemon/Card area */}
           <div style={{
+            flex: 1,
+            overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: 20,
-            width: '100%',
-            maxWidth: 900,
-            maxHeight: '50vh',
-            overflowY: 'auto',
             padding: '4px',
+            marginBottom: 16,
           }}>
             {run.party.map((pokemon, pokemonIndex) => {
               const basePokemon = getPokemon(pokemon.formId);
@@ -487,11 +499,15 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate, onForget, onResta
             })}
           </div>
 
-          {/* Confirm/Skip buttons */}
+          {/* Fixed bottom action bar */}
           <div style={{
             display: 'flex',
-            gap: 16,
-            marginTop: 16,
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            padding: '16px 0',
+            borderTop: '1px solid #333',
+            background: '#0f0f17',
           }}>
             <button
               onClick={handleForgetConfirm}
@@ -509,16 +525,11 @@ export function RestScreen({ run, onHeal, onTrain, onMeditate, onForget, onResta
             >
               Forget {forgetSelections.size} Card{forgetSelections.size !== 1 ? 's' : ''}
             </button>
+            <div style={{ color: '#64748b', fontSize: 12 }}>
+              Select one card from each Pokemon (optional)
+            </div>
           </div>
-
-          <div style={{
-            color: '#64748b',
-            fontSize: 13,
-            marginTop: 8,
-          }}>
-            Select one card from each Pokemon to forget (optional per Pokemon)
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

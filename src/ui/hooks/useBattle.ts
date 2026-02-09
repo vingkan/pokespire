@@ -9,7 +9,7 @@ import {
 import { startTurn, processAction, endTurn, skipTurnAndAdvance } from '../../engine/turns';
 import { chooseEnemyAction } from '../../engine/ai';
 import type { RunState, BattleNode as MapBattleNode } from '../../run/types';
-import { getRunPokemonData, getRunPositions } from '../../run/state';
+import { getRunPokemonData } from '../../run/state';
 import { getPokemon } from '../../data/loaders';
 import { onBattleStart } from '../../engine/passives';
 
@@ -106,6 +106,13 @@ export function useBattle(): BattleHook {
           const endLogs = endTurn(s);
           addLogs(endLogs);
           setState({ ...s });
+
+          // Check if battle ended from end-of-turn effects (poison/burn killed last enemy)
+          if (s.phase !== 'ongoing') {
+            setPhase(s.phase === 'victory' ? 'victory' : 'defeat');
+            return;
+          }
+
           // Next combatant (pause before transitioning)
           setTimeout(() => processNextTurnRef.current(s), 800);
           return;
@@ -223,27 +230,46 @@ export function useBattle(): BattleHook {
   }, [initializeBattle]);
 
   const startBattleFromRun = useCallback((run: RunState, node: MapBattleNode) => {
-    // Convert RunPokemon to PokemonData (with modified maxHp/deck)
-    const players = run.party.map(rp => getRunPokemonData(rp));
-    const playerPositions = getRunPositions(run);
-
-    // Get enemy Pokemon data
-    const enemies = node.enemies.map(id => getPokemon(id));
-    const enemyPositions = node.enemyPositions;
-
-    // Create combat state
-    const s = createCombatState(players, enemies, playerPositions, enemyPositions);
-
-    // Build HP overrides from run state
-    const hpOverrides = new Map<number, number>();
+    // Filter out knocked out Pokemon, keeping track of original indices
+    const aliveParty: { pokemon: typeof run.party[0]; originalIndex: number }[] = [];
     run.party.forEach((rp, i) => {
-      hpOverrides.set(i, rp.currentHp);
+      if (!rp.knockedOut) {
+        aliveParty.push({ pokemon: rp, originalIndex: i });
+      }
     });
 
-    // Build passive ability overrides from run state
+    // Convert alive RunPokemon to PokemonData
+    const players = aliveParty.map(({ pokemon }) => getRunPokemonData(pokemon));
+    const playerPositions = aliveParty.map(({ pokemon }) => pokemon.position);
+    const playerSlotIndices = aliveParty.map(({ originalIndex }) => originalIndex);
+
+    // Get enemy Pokemon data, applying HP multiplier if present (for boss fights)
+    const hpMultiplier = node.enemyHpMultiplier ?? 1;
+    const enemies = node.enemies.map(id => {
+      const basePokemon = getPokemon(id);
+      if (hpMultiplier !== 1) {
+        return {
+          ...basePokemon,
+          maxHp: Math.floor(basePokemon.maxHp * hpMultiplier),
+        };
+      }
+      return basePokemon;
+    });
+    const enemyPositions = node.enemyPositions;
+
+    // Create combat state with original slot indices preserved
+    const s = createCombatState(players, enemies, playerPositions, enemyPositions, playerSlotIndices);
+
+    // Build HP overrides from run state (using original indices)
+    const hpOverrides = new Map<number, number>();
+    aliveParty.forEach(({ pokemon, originalIndex }) => {
+      hpOverrides.set(originalIndex, pokemon.currentHp);
+    });
+
+    // Build passive ability overrides from run state (using original indices)
     const passiveOverrides = new Map<number, string[]>();
-    run.party.forEach((rp, i) => {
-      passiveOverrides.set(i, rp.passiveIds);
+    aliveParty.forEach(({ pokemon, originalIndex }) => {
+      passiveOverrides.set(originalIndex, pokemon.passiveIds);
     });
 
     initializeBattle(s, hpOverrides, passiveOverrides);
@@ -308,8 +334,8 @@ export function useBattle(): BattleHook {
       blastoiseCombatant.passiveIds = [
         'baby_shell',        // +3 Block at turn start
         'pressure_hull',     // Retain 50% Block at round end
-        'fortified_cannons', // Water attacks grant Block = 50% damage dealt
-        'bastion_barrage',   // Water attacks deal +25% of current Block as bonus
+        'torrent_shield',    // Water attacks grant Block = 100% damage dealt
+        'fortified_cannons', // Water attacks deal +25% of current Block as bonus
       ];
     }
 
@@ -399,6 +425,13 @@ export function useBattle(): BattleHook {
     setPendingCardIndex(null);
 
     setState({ ...state });
+
+    // Check if battle ended from end-of-turn effects
+    if (state.phase !== 'ongoing') {
+      setPhase(state.phase === 'victory' ? 'victory' : 'defeat');
+      return;
+    }
+
     setTimeout(() => processNextTurnRef.current(state), 500);
   }, [state, phase, addLogs]);
 

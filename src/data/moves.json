@@ -2224,5 +2224,47 @@
     "rarity": "epic",
     "pools": ["water"],
     "description": "Deal 33 damage."
+  },
+
+  "fake-out": {
+    "name": "Fake Out",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": true,
+    "effects": [
+      { "type": "damage", "value": 6 },
+      { "type": "apply_status", "status": "slow", "stacks": 3 }
+    ],
+    "rarity": "common",
+    "pools": ["normal"],
+    "description": "Deal 6 damage. Apply Slow 3. Vanish. (Front row)"
+  },
+  "sludge-bomb": {
+    "name": "Sludge Bomb",
+    "cost": 2,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      { "type": "damage", "value": 15 },
+      { "type": "apply_status", "status": "poison", "stacks": 2 }
+    ],
+    "rarity": "rare",
+    "pools": ["poison"],
+    "description": "Deal 15 damage. Apply Poison 2."
+  },
+  "megahorn": {
+    "name": "Megahorn",
+    "cost": 3,
+    "type": "bug",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      { "type": "damage", "value": 30 }
+    ],
+    "rarity": "epic",
+    "pools": ["bug"],
+    "description": "Deal 30 damage. (Front row)"
   }
 }

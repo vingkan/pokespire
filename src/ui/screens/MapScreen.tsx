@@ -24,12 +24,17 @@ function getMiniSpriteUrl(pokemonId: string): string {
   return `https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemonId}.gif`;
 }
 
-function getNodeIcon(node: MapNode): string {
+function getNodeIcon(node: MapNode, currentAct: number): string {
   if (node.type === 'spawn') return 'S';
   if (node.type === 'rest') return 'R';
+  if (node.type === 'card_removal') return '✂';
+  if (node.type === 'act_transition') return '→';
   if (node.type === 'battle') {
-    // Show skull for boss, crossed swords for regular battle
-    if (node.stage === 8) return '☠';
+    // Show skull for boss battles
+    // Act 1: Giovanni at stage 6, Act 2: Mewtwo at stage 6
+    const isBoss = (currentAct === 1 && node.id === 's6-boss-giovanni') ||
+                   (currentAct === 2 && node.id === 'a2-s6-boss-mewtwo');
+    if (isBoss) return '☠';
     return '⚔';
   }
   return '?';
@@ -127,6 +132,7 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onRestart }: Props) {
       padding: 32,
       color: '#e2e8f0',
       minHeight: '100vh',
+      overflowY: 'auto',
       background: '#0f0f17',
       position: 'relative',
     }}>
@@ -150,7 +156,7 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onRestart }: Props) {
       </button>
 
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15' }}>
-        Act 1 - Map
+        Act {run.currentAct} - {run.currentAct === 1 ? 'Rocket Lab' : 'The Depths'}
       </h1>
 
       {/* Party Status */}
@@ -338,7 +344,7 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onRestart }: Props) {
                 fontWeight: 'bold',
                 color: isCurrent || isVisited ? '#000' : nodeColor,
               }}>
-                {getNodeIcon(node)}
+                {getNodeIcon(node, run.currentAct)}
               </span>
 
               {/* Hover preview for battle nodes */}
@@ -413,7 +419,11 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onRestart }: Props) {
                 fontWeight: 500,
               }}
             >
-              {stageIndex === 0 ? 'Start' : stageIndex === maxStage ? 'Boss' : `Stage ${stageIndex}`}
+              {stageIndex === 0 ? 'Start' :
+               (run.currentAct === 1 && stageIndex === 6) ? 'Giovanni' :
+               (run.currentAct === 2 && stageIndex === 6) ? 'Mewtwo' :
+               (stageIndex === 7 && run.currentAct === 1) ? '' :
+               `Stage ${stageIndex}`}
             </div>
           );
         })}

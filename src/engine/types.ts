@@ -249,6 +249,8 @@ export interface CombatantTurnFlags {
   infernoMomentumReducedIndex: number | null;  // Index of card with cost reduced by Inferno Momentum
   relentlessUsedThisTurn: boolean;  // First attack costs 0 (Rattata line)
   alliesDamagedThisRound: Set<string>;  // IDs of allies who took damage this round (for Family Fury)
+  overgrowHealUsedThisTurn: boolean;  // First Grass attack heals (Venusaur line)
+  torrentShieldUsedThisTurn: boolean;  // First Water attack grants Block (Blastoise line)
 }
 
 export interface Combatant {

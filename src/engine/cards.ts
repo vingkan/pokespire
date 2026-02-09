@@ -6,7 +6,7 @@ import type { DamageModifiers } from './damage';
 import { applyStatus } from './status';
 import { getEffectiveFrontRow } from './position';
 import {
-  checkBlazeStrike, checkBastionBarrage, checkCounterCurrent, checkStaticField,
+  checkBlazeStrike, checkFortifiedCannons, checkCounterCurrent, checkStaticField,
   onDamageDealt, onDamageTaken, onStatusApplied,
   checkGustForce, checkWhippingWinds, checkPredatorsPatience, checkThickHide, checkThickFat,
   checkUnderdog, checkAngerPoint, checkScrappy, checkSheerForce,
@@ -355,9 +355,9 @@ function buildDamageModifiers(
   const { shouldApply: isBlazeStrike, logs: blazeLogs } = checkBlazeStrike(state, source, card);
   logs.push(...blazeLogs);
 
-  // Check for Bastion Barrage
-  const { bonusDamage: bastionBonus, logs: bastionLogs } = checkBastionBarrage(state, source, card);
-  logs.push(...bastionLogs);
+  // Check for Fortified Cannons
+  const { bonusDamage: fortifiedBonus, logs: fortifiedLogs } = checkFortifiedCannons(state, source, card);
+  logs.push(...fortifiedLogs);
 
   // Check for Counter-Current
   const { bonusDamage: counterBonus, logs: counterLogs } = checkCounterCurrent(state, source, target);
@@ -493,7 +493,7 @@ function buildDamageModifiers(
 
   return {
     isBlazeStrike,
-    bastionBarrageBonus: bastionBonus,
+    bastionBarrageBonus: fortifiedBonus,
     bloomingCycleReduction: getBloomingCycleReduction(state, source),
     counterCurrentBonus: counterBonus,
     staticFieldReduction: staticReduction,

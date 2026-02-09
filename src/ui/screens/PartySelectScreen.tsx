@@ -184,6 +184,9 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
         padding: 32,
         color: '#e2e8f0',
         position: 'relative',
+        minHeight: '100vh',
+        overflowY: 'auto',
+        background: '#0f0f17',
       }}>
         {/* Reset button */}
         <button
@@ -345,6 +348,9 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
       padding: 32,
       color: '#e2e8f0',
       position: 'relative',
+      minHeight: '100vh',
+      overflowY: 'auto',
+      background: '#0f0f17',
     }}>
       {/* Reset button */}
       <button
