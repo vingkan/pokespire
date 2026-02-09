@@ -22,7 +22,6 @@ import {
   checkBlazeStrike,
   // Status applied hooks
   onStatusApplied,
-  getAdjacentEnemies,
   // Turn end hooks
   onTurnEnd,
   // Damage taken hooks
