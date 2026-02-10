@@ -16,10 +16,6 @@ export const POKEMON_WEIGHTS: Record<string, number> = {
   wartortle: 9.5, // Real: 22.5, adjusted -25% for sprite scaling
   blastoise: 29.3, // Real: 85.5, adjusted -30% for sprite scaling
 
-  // Prologue Pokemon
-  slowbro: 25,    // Real: 78.5kg, reduced for sprite scaling
-  slowking: 20,   // Real: 79.5kg, reduced for sprite scaling
-
   // Others
   pikachu: 11,  // Real: 6kg, increased 20% for sprite scaling
   raichu: 30,

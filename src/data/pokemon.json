@@ -197,37 +197,6 @@
     ],
     "abilities": []
   },
-  "slowbro": {
-    "name": "Slowbro",
-    "types": ["water", "psychic"],
-    "maxHp": 75,
-    "baseSpeed": 7,
-    "energyPerTurn": 3,
-    "energyCap": 10,
-    "handSize": 5,
-    "deck": [
-      "waterfall", "waterfall",
-      "water-gun", "water-gun",
-      "tackle", "tackle",
-      "withdraw", "withdraw"
-    ],
-    "abilities": []
-  },
-  "slowking": {
-    "name": "Slowking",
-    "types": ["water", "psychic"],
-    "maxHp": 60,
-    "baseSpeed": 2,
-    "energyPerTurn": 3,
-    "energyCap": 10,
-    "handSize": 5,
-    "deck": [
-      "withdraw", "withdraw",
-      "confusion", "confusion",
-      "water-gun", "water-gun"
-    ],
-    "abilities": []
-  },
   "rattata": {
     "name": "Rattata",
     "types": ["normal"],

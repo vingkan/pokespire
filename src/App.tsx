@@ -13,7 +13,6 @@ import { PokeDexScreen } from './ui/screens/PokeDexScreen';
 import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
 import { ActTransitionScreen } from './ui/screens/ActTransitionScreen';
 import { CardRemovalScreen } from './ui/screens/CardRemovalScreen';
-import { PrologueScreen } from './ui/screens/PrologueScreen';
 import { Flourish } from './ui/components/Flourish';
 import { THEME } from './ui/theme';
 import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
@@ -36,7 +35,7 @@ import {
   getCurrentCardRemovalNode,
 } from './run/state';
 
-type Screen = 'main_menu' | 'prologue' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
+type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
 
 // localStorage keys
 const SAVE_KEY = 'pokespire_save';
@@ -415,7 +414,7 @@ export default function App() {
             onClick={() => {
               clearSave();
               setHasSavedGame(false);
-              setScreen('prologue');
+              setScreen('select');
             }}
             onMouseEnter={hoverIn}
             onMouseLeave={(e) => hoverOut(e)}
@@ -480,17 +479,7 @@ export default function App() {
     );
   }
 
-  if (screen === 'prologue') {
-    return (
-      <PrologueScreen
-        onComplete={() => {
-          setScreen('select');
-        }}
-      />
-    );
-  }
-
-  if (screen === 'select') {
+if (screen === 'select') {
     return <PartySelectScreen onStart={handleStart} onRestart={handleRestart} />;
   }
 
