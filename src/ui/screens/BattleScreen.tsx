@@ -1,12 +1,12 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import type { CombatState, LogEntry, Combatant, Column } from '../../engine/types';
+import type { CombatState, LogEntry, Combatant, Column, MoveRange } from '../../engine/types';
 import { getCurrentCombatant } from '../../engine/combat';
-import { getMove } from '../../data/loaders';
-import { getValidTargets, requiresTargetSelection } from '../../engine/position';
+import { getMove, MOVES } from '../../data/loaders';
+import { getValidTargets, requiresTargetSelection, isAoERange } from '../../engine/position';
 import { calculateDamagePreview } from '../../engine/preview';
 import type { DamagePreview } from '../../engine/preview';
 import { PokemonSprite } from '../components/PokemonSprite';
-import { HandDisplay } from '../components/HandDisplay';
+import { HandDisplay, type HandDisplayRef } from '../components/HandDisplay';
 import { TurnOrderBar } from '../components/TurnOrderBar';
 import { BattleLog } from '../components/BattleLog';
 import { PileViewer } from '../components/PileViewer';
@@ -14,6 +14,7 @@ import { PokemonDetailsPanel } from '../components/PokemonDetailsPanel';
 import { useBattleEffects, BattleEffectsLayer } from '../components/BattleEffects';
 import type { BattlePhase } from '../hooks/useBattle';
 import type { RunState } from '../../run/types';
+import { getBattleSpriteScale } from '../../data/heights';
 import battleBackground from '../../../assets/backgrounds/rocket_lab_act_1_v4.png';
 
 export type BattleResult = 'victory' | 'defeat';
@@ -44,8 +45,9 @@ function BattleGrid({
   onDragEnterTarget,
   onDragLeaveTarget,
   onDropOnTarget,
-  hoveredTargetId,
+  hoveredTargetIds,
   damagePreviews,
+  spriteScale,
 }: {
   combatants: Combatant[];
   currentCombatant: Combatant | null;
@@ -56,76 +58,75 @@ function BattleGrid({
   onDragEnterTarget?: (id: string) => void;
   onDragLeaveTarget?: () => void;
   onDropOnTarget?: (id: string) => void;
-  hoveredTargetId?: string | null;
+  hoveredTargetIds?: Set<string>;
   damagePreviews?: Map<string, DamagePreview | null>;
+  spriteScale: number;
 }) {
   const frontRow = combatants.filter(c => c.position.row === 'front');
   const backRow = combatants.filter(c => c.position.row === 'back');
 
-  // Swapped: front row on top, back row on bottom for player
-  // Swapped: back row on top, front row on bottom for enemy
-  const topRow = side === 'player' ? frontRow : backRow;
-  const bottomRow = side === 'player' ? backRow : frontRow;
-  const topLabel = side === 'player' ? 'Front' : 'Back';
-  const bottomLabel = side === 'player' ? 'Back' : 'Front';
+  // Layout: 3×2 CSS grid — 3 position rows, 2 depth columns (front/back).
+  // CSS Grid ensures each row shares height across both columns, so a back-row
+  // Pokemon at column N always aligns vertically with front-row column N.
+  // Player: back row on LEFT, front row on RIGHT (front faces enemy)
+  // Enemy: front row on LEFT (faces player), back row on RIGHT
+  const leftCol = side === 'player' ? backRow : frontRow;
+  const rightCol = side === 'player' ? frontRow : backRow;
 
-  // Back rows are offset: player's back (bottom) shifts left, enemy's back (top) shifts right
-  const topOffset = side === 'enemy' ? 80 : 0;
-  const bottomOffset = side === 'player' ? -80 : 0;
+  // Front row renders on top (z-index) for depth layering
+  const leftZIndex = side === 'player' ? 1 : 2;
+  const rightZIndex = side === 'player' ? 2 : 1;
 
-  // Tilt: both sides tilt down to the right, creating diagonal depth
-  const getTiltOffset = (col: number) => {
-    const tiltAmount = 15; // pixels per column
-    // Column 0 highest, column 2 lowest (both sides tilt same direction)
-    return col * tiltAmount;
-  };
+  // Tilt: horizontal offset per column slot for isometric depth
+  // Both sides tilt the same direction (down-right) so the diagonals match
+  const TILT_PX = 36; // pixels per slot
 
-  const renderRow = (row: Combatant[], _label: string, offsetX: number) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        minHeight: 160,
-        transform: offsetX !== 0 ? `translateX(${offsetX}px)` : undefined,
-      }}>
-        {([0, 1, 2] as Column[]).map(col => {
-          const combatant = row.find(c => c.position.column === col);
-          const tiltY = getTiltOffset(col);
-          return (
-            <div key={col} style={{
-              width: 160,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-end',
-              transform: `translateY(${tiltY}px)`,
-            }}>
-              {combatant && (
-                <PokemonSprite
-                  combatant={combatant}
-                  isCurrentTurn={currentCombatant?.id === combatant.id}
-                  isTargetable={targetableIds.has(combatant.id)}
-                  onSelect={() => onSelectTarget(combatant.id)}
-                  onInspect={onInspect ? () => onInspect(combatant) : undefined}
-                  onDragEnter={onDragEnterTarget ? () => onDragEnterTarget(combatant.id) : undefined}
-                  onDragLeave={onDragLeaveTarget}
-                  onDrop={onDropOnTarget ? () => onDropOnTarget(combatant.id) : undefined}
-                  isDragHovered={hoveredTargetId === combatant.id}
-                  damagePreview={damagePreviews?.get(combatant.id)}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+  const SLOT_GAP = 4; // vertical gap between Pokemon in same position
+  const ROW_GAP = 50; // horizontal gap between front and back columns
+
+  const renderCell = (combatant: Combatant | undefined, zIndex: number, tiltX: number) => (
+    <div style={{
+      transform: `translateX(${tiltX}px)`,
+      position: 'relative',
+      zIndex,
+      display: 'flex',
+      justifyContent: 'center',
+    }}>
+      {combatant && (
+        <PokemonSprite
+          combatant={combatant}
+          isCurrentTurn={currentCombatant?.id === combatant.id}
+          isTargetable={targetableIds.has(combatant.id)}
+          onSelect={() => onSelectTarget(combatant.id)}
+          onInspect={onInspect ? () => onInspect(combatant) : undefined}
+          onDragEnter={onDragEnterTarget ? () => onDragEnterTarget(combatant.id) : undefined}
+          onDragLeave={onDragLeaveTarget}
+          onDrop={onDropOnTarget ? () => onDropOnTarget(combatant.id) : undefined}
+          isDragHovered={hoveredTargetIds?.has(combatant.id) ?? false}
+          damagePreview={damagePreviews?.get(combatant.id)}
+          spriteScale={spriteScale}
+        />
+      )}
     </div>
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {renderRow(topRow, topLabel, topOffset)}
-      {renderRow(bottomRow, bottomLabel, bottomOffset)}
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'auto auto',
+      gridTemplateRows: 'repeat(3, auto)',
+      columnGap: ROW_GAP,
+      rowGap: SLOT_GAP,
+    }}>
+      {([0, 1, 2] as Column[]).flatMap(col => {
+        const leftCombatant = leftCol.find(c => c.position.column === col);
+        const rightCombatant = rightCol.find(c => c.position.column === col);
+        const tiltX = col * TILT_PX;
+        return [
+          <div key={`${col}-l`}>{renderCell(leftCombatant, leftZIndex, tiltX)}</div>,
+          <div key={`${col}-r`}>{renderCell(rightCombatant, rightZIndex, tiltX)}</div>,
+        ];
+      })}
     </div>
   );
 }
@@ -143,12 +144,82 @@ export function BattleScreen({
   const players = state.combatants.filter(c => c.side === 'player');
   const enemies = state.combatants.filter(c => c.side === 'enemy');
 
+  // Compute global sprite scale: if any Pokemon exceeds the cap, ALL scale down proportionally
+  const spriteScale = useMemo(
+    () => getBattleSpriteScale(state.combatants.map(c => c.pokemonId)),
+    [state.combatants],
+  );
+
   // Inspection state - track which combatant is being inspected
   const [inspectedCombatantId, setInspectedCombatantId] = useState<string | null>(null);
 
   // Drag-and-drop state
   const [draggingCardIndex, setDraggingCardIndex] = useState<number | null>(null);
   const [hoveredTargetId, setHoveredTargetId] = useState<string | null>(null);
+
+  // Battlefield scaling: measure the content and scale to fit the available area
+  const PLAYER_OFFSET_Y = 60; // player grid pushed down relative to enemy
+  const battlefieldContentRef = useRef<HTMLDivElement>(null);
+  const battlefieldContainerRef = useRef<HTMLDivElement>(null);
+  const [battlefieldScale, setBattlefieldScale] = useState(1);
+
+  useEffect(() => {
+    const content = battlefieldContentRef.current;
+    const container = battlefieldContainerRef.current;
+    if (!content || !container) return;
+
+    // Reset scale to 1 so we measure natural size
+    content.style.transform = 'none';
+    const contentHeight = content.scrollHeight + PLAYER_OFFSET_Y;
+    const contentWidth = content.scrollWidth;
+    const availableHeight = container.clientHeight;
+    const availableWidth = container.clientWidth;
+    const scale = Math.min(1, availableHeight / contentHeight, availableWidth / contentWidth);
+    setBattlefieldScale(scale);
+    content.style.transform = scale < 1 ? `scale(${scale})` : 'none';
+  });
+
+  // Ref to hand display for capturing card positions
+  const handDisplayRef = useRef<HandDisplayRef>(null);
+
+  // Battle effects for visual feedback (moved up to be available in handlers)
+  const battleEffects = useBattleEffects();
+  const processedLogsRef = useRef<number>(0);
+
+  // Status diff tracking: detect new/increased statuses by comparing snapshots
+  type StatusSnapshot = Map<string, Map<string, number>>; // combatantId → (statusType → stacks)
+  const prevStatusRef = useRef<StatusSnapshot>(new Map());
+
+  // Get screen position for a combatant (for floating numbers and card fly animations)
+  // Uses actual DOM element positions via data-sprite-id attributes for accuracy
+  const getPositionForCombatant = useCallback((combatantId: string): { x: number; y: number } | null => {
+    // Try to get actual DOM position from the sprite element
+    const spriteEl = document.querySelector(`[data-sprite-id="${combatantId}"]`);
+    if (spriteEl) {
+      const rect = spriteEl.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+
+    // Fallback to approximate calculation if DOM element not found
+    const combatant = state.combatants.find(c => c.id === combatantId);
+    if (!combatant) return null;
+
+    const isPlayer = combatant.side === 'player';
+    const col = combatant.position.column;
+    const row = combatant.position.row;
+
+    const centerX = window.innerWidth / 2;
+    const colOffset = (col - 1) * 170;
+    const sideOffset = isPlayer ? -250 : 250;
+
+    const baseY = isPlayer ? 320 : 180;
+    const rowOffset = row === 'back' ? (isPlayer ? 60 : -40) : 0;
+
+    return {
+      x: centerX + sideOffset + colOffset,
+      y: baseY + rowOffset + (col * 15),
+    };
+  }, [state.combatants]);
 
   // Find the RunPokemon for an inspected player combatant
   const getRunPokemonForCombatant = (combatant: Combatant) => {
@@ -206,6 +277,50 @@ export function BattleScreen({
   const handleDropOnTarget = useCallback((targetId: string) => {
     if (draggingCardIndex === null || !currentCombatant) return;
 
+    // Capture card position BEFORE playing
+    const cardPos = handDisplayRef.current?.getCardPosition(draggingCardIndex);
+    const cardId = currentCombatant.hand[draggingCardIndex];
+    const card = getMove(cardId);
+
+    // Determine which targets to animate to based on card range
+    let targetPositions: { x: number; y: number }[] = [];
+    if (isAoERange(card.range)) {
+      // AoE: resolve actual hit targets based on selected target's position
+      const aliveEnemies = state.combatants.filter(c => c.alive && c.side !== currentCombatant.side);
+      const selectedTarget = aliveEnemies.find(e => e.id === targetId);
+      let actualTargets: typeof aliveEnemies;
+
+      if (card.range === 'column' && selectedTarget) {
+        actualTargets = aliveEnemies.filter(c => c.position.column === selectedTarget.position.column);
+      } else if (card.range === 'any_row' && selectedTarget) {
+        actualTargets = aliveEnemies.filter(c => c.position.row === selectedTarget.position.row);
+      } else {
+        actualTargets = getValidTargets(state, currentCombatant, card.range);
+      }
+
+      targetPositions = actualTargets
+        .map(t => getPositionForCombatant(t.id))
+        .filter((p): p is { x: number; y: number } => p !== null);
+    } else {
+      // Single target: animate only to the selected target
+      const pos = getPositionForCombatant(targetId);
+      if (pos) targetPositions = [pos];
+    }
+
+    // Check if this is a block/defend card
+    const isBlockCard = card.effects.some(e => e.type === 'block');
+
+    // Trigger card fly animation if we have positions
+    if (cardPos && targetPositions.length > 0) {
+      battleEffects.triggerCardFly({
+        cardName: card.name,
+        cardType: card.type,
+        startPos: cardPos,
+        targetPositions,
+        isBlockCard,
+      });
+    }
+
     // Directly play the card (bypasses two-step selection to avoid flash of "Select target" message)
     if (onPlayCard) {
       onPlayCard(draggingCardIndex, targetId);
@@ -218,15 +333,15 @@ export function BattleScreen({
     // Reset drag state
     setDraggingCardIndex(null);
     setHoveredTargetId(null);
-  }, [draggingCardIndex, currentCombatant, onPlayCard, onSelectCard, onSelectTarget]);
+  }, [draggingCardIndex, currentCombatant, onPlayCard, onSelectCard, onSelectTarget, state, battleEffects, getPositionForCombatant]);
 
   // Calculate damage previews for all valid targets when dragging OR when a card is selected
-  const { dragTargetableIds, damagePreviews } = useMemo(() => {
+  const { dragTargetableIds, damagePreviews, activeCardRange } = useMemo(() => {
     // Show previews for either dragging or click-selected card
     const activeCardIndex = draggingCardIndex ?? pendingCardIndex;
 
     if (activeCardIndex === null || !isPlayerTurn || !currentCombatant) {
-      return { dragTargetableIds: new Set<string>(), damagePreviews: new Map<string, DamagePreview | null>() };
+      return { dragTargetableIds: new Set<string>(), damagePreviews: new Map<string, DamagePreview | null>(), activeCardRange: undefined as MoveRange | undefined };
     }
 
     const cardId = currentCombatant.hand[activeCardIndex];
@@ -243,19 +358,54 @@ export function BattleScreen({
     return {
       dragTargetableIds: new Set(validTargets.map(t => t.id)),
       damagePreviews: previews,
+      activeCardRange: card.range,
     };
   }, [draggingCardIndex, pendingCardIndex, isPlayerTurn, currentCombatant, state]);
 
-  // Battle effects for visual feedback
-  const battleEffects = useBattleEffects();
-  const processedLogsRef = useRef<number>(0);
+  // For AoE cards, expand hover highlighting to all targets that would be hit
+  const { affectedHoverIds, visibleDamagePreviews } = useMemo(() => {
+    if (!hoveredTargetId) {
+      return { affectedHoverIds: new Set<string>(), visibleDamagePreviews: damagePreviews };
+    }
+
+    const hoveredTarget = state.combatants.find(c => c.id === hoveredTargetId);
+    if (!hoveredTarget) {
+      return { affectedHoverIds: new Set([hoveredTargetId]), visibleDamagePreviews: damagePreviews };
+    }
+
+    const enemies = state.combatants.filter(c => c.alive && c.side === 'enemy');
+    let affectedIds: Set<string>;
+
+    if (activeCardRange === 'column') {
+      affectedIds = new Set(enemies.filter(c => c.position.column === hoveredTarget.position.column).map(c => c.id));
+    } else if (activeCardRange === 'any_row') {
+      affectedIds = new Set(enemies.filter(c => c.position.row === hoveredTarget.position.row).map(c => c.id));
+    } else if (activeCardRange === 'front_row' || activeCardRange === 'back_row' || activeCardRange === 'all_enemies') {
+      // All valid targets are affected
+      affectedIds = dragTargetableIds;
+    } else {
+      affectedIds = new Set([hoveredTargetId]);
+    }
+
+    // Filter damage previews to only affected targets
+    const filtered = new Map<string, DamagePreview | null>();
+    for (const id of affectedIds) {
+      if (damagePreviews.has(id)) {
+        filtered.set(id, damagePreviews.get(id)!);
+      }
+    }
+
+    return { affectedHoverIds: affectedIds, visibleDamagePreviews: filtered };
+  }, [hoveredTargetId, activeCardRange, state.combatants, damagePreviews, dragTargetableIds]);
 
   // Parse new logs to trigger visual effects
   useEffect(() => {
     const newLogs = logs.slice(processedLogsRef.current);
     processedLogsRef.current = logs.length;
 
-    for (const log of newLogs) {
+    for (let i = 0; i < newLogs.length; i++) {
+      const log = newLogs[i];
+
       // Parse damage: "X takes Y damage" (most common pattern)
       const damageMatch = log.message.match(/takes (\d+)(?: \w+)? damage/i);
       // Also match multi-hit: "is hit X times for Y total damage"
@@ -318,38 +468,99 @@ export function BattleScreen({
       }
 
       // Parse card played: "X plays CardName (cost Y)."
-      const cardMatch = log.message.match(/^(\w+) plays (.+?) \(cost/i);
+      const cardMatch = log.message.match(/^(.+?) plays (.+?) \(cost/i);
       if (cardMatch) {
         const sourceName = cardMatch[1];
         const cardName = cardMatch[2];
         battleEffects.showCardPlayed(sourceName, cardName);
+
+        // For enemy cards, trigger card fly animation
+        const source = state.combatants.find(c => c.id === log.combatantId);
+        if (source && source.side === 'enemy') {
+          const sourcePos = getPositionForCombatant(source.id);
+          if (sourcePos) {
+            // Look up card definition by name for type/effects info
+            const cardDef = Object.values(MOVES).find(m => m.name === cardName);
+            const isBlockCard = cardDef?.effects.some(e => e.type === 'block') ?? false;
+            const cardType = cardDef?.type ?? 'normal';
+
+            if (isBlockCard) {
+              // Shield animation at enemy's own position (no beam)
+              battleEffects.triggerCardFly({
+                cardName,
+                cardType,
+                startPos: sourcePos,
+                targetPositions: [sourcePos],
+                isBlockCard: true,
+              });
+            } else {
+              // Attack: scan ahead for damage targets in this batch
+              const targetIds = new Set<string>();
+              for (let j = i + 1; j < newLogs.length; j++) {
+                const futureLog = newLogs[j];
+                // Stop at next card play
+                if (futureLog.message.match(/plays .+? \(cost/i)) break;
+                // Collect damage target combatant IDs
+                if (futureLog.message.match(/takes \d+.*damage/i) && futureLog.combatantId) {
+                  targetIds.add(futureLog.combatantId);
+                }
+              }
+
+              const targetPositions = [...targetIds]
+                .map(id => getPositionForCombatant(id))
+                .filter((p): p is { x: number; y: number } => p !== null);
+
+              if (targetPositions.length > 0) {
+                battleEffects.triggerCardFly({
+                  cardName,
+                  cardType,
+                  startPos: sourcePos,
+                  targetPositions,
+                  isBlockCard: false,
+                });
+              }
+            }
+          }
+        }
+      }
+
+    }
+  }, [logs, state.combatants, battleEffects, getPositionForCombatant]);
+
+  // Detect status changes via state diffing (handles ALL sources: moves, passives, etc.)
+  useEffect(() => {
+    const currentSnapshot: StatusSnapshot = new Map();
+    for (const c of state.combatants) {
+      const statusMap = new Map<string, number>();
+      for (const s of c.statuses) {
+        statusMap.set(s.type, s.stacks);
+      }
+      currentSnapshot.set(c.id, statusMap);
+    }
+
+    const prev = prevStatusRef.current;
+    // Only diff if we have a previous snapshot (skip initial render)
+    if (prev.size > 0) {
+      for (const c of state.combatants) {
+        const prevStatuses = prev.get(c.id);
+        const currStatuses = currentSnapshot.get(c.id)!;
+
+        for (const [statusType, stacks] of currStatuses) {
+          const prevStacks = prevStatuses?.get(statusType) ?? 0;
+          if (stacks > prevStacks) {
+            // New status or stacks increased — fire animation
+            battleEffects.triggerStatusApplied({
+              targetId: c.id,
+              statusType,
+              stacks: stacks - prevStacks,
+            });
+          }
+        }
       }
     }
-  }, [logs, state.combatants, battleEffects]);
 
-  // Get approximate screen position for a combatant (for floating numbers)
-  const getPositionForCombatant = useCallback((combatantId: string): { x: number; y: number } | null => {
-    const combatant = state.combatants.find(c => c.id === combatantId);
-    if (!combatant) return null;
-
-    const isPlayer = combatant.side === 'player';
-    const col = combatant.position.column;
-    const row = combatant.position.row;
-
-    // Approximate positions based on the grid layout
-    // These are rough estimates - in a real app we'd use refs
-    const centerX = window.innerWidth / 2;
-    const colOffset = (col - 1) * 170; // 170px per column
-    const sideOffset = isPlayer ? -250 : 250; // player left, enemy right
-
-    const baseY = isPlayer ? 320 : 180;
-    const rowOffset = row === 'back' ? (isPlayer ? 60 : -40) : 0;
-
-    return {
-      x: centerX + sideOffset + colOffset,
-      y: baseY + rowOffset + (col * 15), // account for tilt
-    };
-  }, [state.combatants]);
+    prevStatusRef.current = currentSnapshot;
+  }, [state.combatants, battleEffects]);
 
   // Calculate targetable combatants based on pending card's range
   const { needsTarget, targetableIds, rangeLabel } = useMemo(() => {
@@ -362,7 +573,7 @@ export function BattleScreen({
     const validTargets = getValidTargets(state, currentCombatant, card.range);
 
     // Check if this range requires manual target selection
-    if (!requiresTargetSelection(card.range)) {
+    if (!requiresTargetSelection(card.range, currentCombatant)) {
       // AoE or self - no target needed, auto-play
       return { needsTarget: false, targetableIds: new Set<string>(), rangeLabel: '' };
     }
@@ -390,6 +601,67 @@ export function BattleScreen({
     };
   }, [pendingCardIndex, isPlayerTurn, currentCombatant, state]);
 
+  // Wrapper to trigger card fly animation before selecting target (click-to-play path)
+  const triggerCardFlyAndSelectTarget = useCallback((targetId: string) => {
+    if (pendingCardIndex === null || !currentCombatant) {
+      onSelectTarget(targetId);
+      return;
+    }
+
+    // Capture card position BEFORE playing
+    const cardPos = handDisplayRef.current?.getCardPosition(pendingCardIndex);
+    const cardId = currentCombatant.hand[pendingCardIndex];
+    const card = getMove(cardId);
+
+    // Determine which targets to animate to based on card range
+    let targetPositions: { x: number; y: number }[] = [];
+    if (isAoERange(card.range)) {
+      // AoE: resolve actual hit targets based on selected target's position
+      const enemies = state.combatants.filter(c => c.alive && c.side !== currentCombatant.side);
+      const selectedTarget = enemies.find(e => e.id === targetId);
+      let actualTargets: typeof enemies;
+
+      if (card.range === 'column' && selectedTarget) {
+        // Column: enemies in same column as selected target
+        actualTargets = enemies.filter(c => c.position.column === selectedTarget.position.column);
+      } else if (card.range === 'any_row' && selectedTarget) {
+        // Row: enemies in same row as selected target
+        actualTargets = enemies.filter(c => c.position.row === selectedTarget.position.row);
+      } else {
+        // front_row, back_row, all_enemies: use getValidTargets directly
+        actualTargets = getValidTargets(state, currentCombatant, card.range);
+      }
+
+      targetPositions = actualTargets
+        .map(t => getPositionForCombatant(t.id))
+        .filter((p): p is { x: number; y: number } => p !== null);
+    } else if (card.range === 'self') {
+      // Self-targeting: animate to self
+      const pos = getPositionForCombatant(currentCombatant.id);
+      if (pos) targetPositions = [pos];
+    } else if (targetId) {
+      // Single target: animate only to the selected target
+      const pos = getPositionForCombatant(targetId);
+      if (pos) targetPositions = [pos];
+    }
+
+    // Check if this is a block/defend card
+    const isBlockCard = card.effects.some(e => e.type === 'block');
+
+    // Trigger card fly animation if we have positions
+    if (cardPos && targetPositions.length > 0) {
+      battleEffects.triggerCardFly({
+        cardName: card.name,
+        cardType: card.type,
+        startPos: cardPos,
+        targetPositions,
+        isBlockCard,
+      });
+    }
+
+    onSelectTarget(targetId);
+  }, [pendingCardIndex, currentCombatant, state, battleEffects, getPositionForCombatant, onSelectTarget]);
+
   // Handle auto-target selection for single valid target or AoE
   useEffect(() => {
     if (pendingCardIndex === null || !isPlayerTurn || !currentCombatant) return;
@@ -399,16 +671,16 @@ export function BattleScreen({
     const validTargets = getValidTargets(state, currentCombatant, card.range);
 
     // AoE or self - auto-play without target
-    if (!requiresTargetSelection(card.range)) {
-      onSelectTarget('');
+    if (!requiresTargetSelection(card.range, currentCombatant)) {
+      triggerCardFlyAndSelectTarget('');
       return;
     }
 
     // Auto-select if only one valid target
     if (validTargets.length === 1) {
-      onSelectTarget(validTargets[0].id);
+      triggerCardFlyAndSelectTarget(validTargets[0].id);
     }
-  }, [pendingCardIndex, isPlayerTurn, currentCombatant, state, onSelectTarget]);
+  }, [pendingCardIndex, isPlayerTurn, currentCombatant, state, triggerCardFlyAndSelectTarget]);
 
   const handleCardClick = (index: number) => {
     if (!isPlayerTurn) return;
@@ -566,27 +838,36 @@ export function BattleScreen({
       )}
 
       {/* Battlefield - Grid Layout */}
-      <div style={{
+      <div ref={battlefieldContainerRef} style={{
         position: 'absolute',
-        top: 60,
-        left: 0,
+        top: 20,
+        left: 260,
         right: 0,
-        bottom: 200,
+        bottom: 150,
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'flex-end',
-        gap: 20,
-        padding: '16px 16px 8px 16px',
+        alignItems: 'center',
+        overflow: 'hidden',
       }}>
-        {/* Player side */}
-        <div style={{ transform: 'translateY(-150px)' }}>
+        {/* Scaling wrapper: scales both grids together to fit the available area */}
+        <div ref={battlefieldContentRef} style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 40,
+          transform: battlefieldScale < 1 ? `scale(${battlefieldScale})` : undefined,
+          transformOrigin: 'center center',
+        }}>
+        {/* Player side - shifted down so top Pokemon sit below enemy's top */}
+        <div style={{ transform: `translateY(${PLAYER_OFFSET_Y}px)` }}>
           <BattleGrid
             combatants={players}
             currentCombatant={currentCombatant}
             targetableIds={new Set()} // Players targeting allies not implemented yet
-            onSelectTarget={onSelectTarget}
+            onSelectTarget={triggerCardFlyAndSelectTarget}
             onInspect={handleInspect}
             side="player"
+            spriteScale={spriteScale}
             // No drag targeting for player side (yet)
           />
         </div>
@@ -601,30 +882,23 @@ export function BattleScreen({
         </div>
 
         {/* Enemy side */}
-        <div style={{ transform: 'translateY(-370px)' }}>
+        <div>
           <BattleGrid
             combatants={enemies}
             currentCombatant={currentCombatant}
             targetableIds={dragTargetableIds.size > 0 ? dragTargetableIds : targetableIds}
-            onSelectTarget={onSelectTarget}
+            onSelectTarget={triggerCardFlyAndSelectTarget}
             onInspect={handleInspect}
             side="enemy"
+            spriteScale={spriteScale}
             onDragEnterTarget={handleDragEnterTarget}
             onDragLeaveTarget={handleDragLeaveTarget}
             onDropOnTarget={handleDropOnTarget}
-            hoveredTargetId={hoveredTargetId}
-            damagePreviews={damagePreviews}
+            hoveredTargetIds={affectedHoverIds}
+            damagePreviews={visibleDamagePreviews}
           />
         </div>
-
-        {/* Battle effects layer (floating numbers, card announcements) */}
-        <BattleEffectsLayer
-          events={battleEffects.events}
-          cardBanner={battleEffects.cardBanner}
-          getPositionForCombatant={getPositionForCombatant}
-          onEventComplete={battleEffects.removeEvent}
-          onBannerComplete={battleEffects.clearCardBanner}
-        />
+        </div>{/* end scaling wrapper */}
 
         {/* Victory celebration overlay */}
         {phase === 'victory' && victoryStage && (
@@ -734,11 +1008,39 @@ export function BattleScreen({
         )}
       </div>
 
-      {/* Bottom panel: hand + controls + log */}
+      {/* Battle effects layer - full screen overlay for correct viewport positioning */}
+      <BattleEffectsLayer
+        events={battleEffects.events}
+        cardBanner={battleEffects.cardBanner}
+        cardFlyEvents={battleEffects.cardFlyEvents}
+        statusAppliedEvents={battleEffects.statusAppliedEvents}
+        getPositionForCombatant={getPositionForCombatant}
+        onEventComplete={battleEffects.removeEvent}
+        onBannerComplete={battleEffects.clearCardBanner}
+        onCardFlyComplete={battleEffects.removeCardFlyEvent}
+        onStatusAppliedComplete={battleEffects.removeStatusAppliedEvent}
+      />
+
+      {/* Battle log - left side column */}
+      <div style={{
+        position: 'absolute',
+        top: 60,
+        left: 0,
+        bottom: 0,
+        width: 260,
+        padding: 8,
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        <BattleLog logs={logs} />
+      </div>
+
+      {/* Bottom panel: hand + controls */}
       <div style={{
         position: 'absolute',
         bottom: 0,
-        left: 0,
+        left: 260,
         right: 0,
         borderTop: '1px solid #222',
         background: 'rgba(18, 18, 26, 0.4)',
@@ -782,6 +1084,7 @@ export function BattleScreen({
               <PileViewer combatant={currentCombatant} />
             </div>
             <HandDisplay
+              ref={handDisplayRef}
               combatant={currentCombatant}
               selectedIndex={pendingCardIndex}
               onSelectCard={handleCardClick}
@@ -808,8 +1111,6 @@ export function BattleScreen({
           </div>
         )}
 
-        {/* Battle log */}
-        <BattleLog logs={logs} />
       </div>
 
       {/* Pokemon inspection panel - works for both player and enemy */}

@@ -46,65 +46,101 @@ const STATUS_INFO: Record<string, { icon: string; color: string; describe: (stac
 
 interface Props {
   statuses: StatusInstance[];
+  /** Max statuses per column before wrapping to a new column (default 3) */
+  maxPerColumn?: number;
+  /** Skew angle applied to the container — text is counter-skewed by the negative (default 11) */
+  skewAngle?: number;
 }
 
-export function StatusIcons({ statuses }: Props) {
+function StatusBadge({ status, index, hoveredIdx, setHoveredIdx, counterSkew }: {
+  status: StatusInstance;
+  index: number;
+  hoveredIdx: number | null;
+  setHoveredIdx: (idx: number | null) => void;
+  counterSkew: number;
+}) {
+  const info = STATUS_INFO[status.type] || { icon: '?', color: '#888', describe: () => 'Unknown effect.' };
+  return (
+    <div
+      onMouseEnter={() => setHoveredIdx(index)}
+      onMouseLeave={() => setHoveredIdx(null)}
+      style={{
+        background: info.color + '33',
+        border: `1px solid ${info.color}`,
+        borderRadius: 2,
+        padding: '1px 6px',
+        fontSize: 14,
+        color: '#fff',
+        whiteSpace: 'nowrap',
+        cursor: 'help',
+        position: 'relative',
+      }}
+    >
+      <span style={{ display: 'inline-block', transform: `skewX(${counterSkew}deg)` }}>
+        {info.icon} {status.stacks}
+      </span>
+      {hoveredIdx === index && (
+        <div style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '50%',
+          transform: `translateX(-50%) skewX(${counterSkew}deg)`,
+          marginBottom: 6,
+          background: '#1e1e2e',
+          border: `1px solid ${info.color}`,
+          borderRadius: 6,
+          padding: '6px 10px',
+          fontSize: 14,
+          lineHeight: '1.4',
+          color: '#e2e8f0',
+          whiteSpace: 'normal',
+          width: 200,
+          textAlign: 'center',
+          zIndex: 100,
+          pointerEvents: 'none',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 2, color: info.color }}>
+            {status.type.charAt(0).toUpperCase() + status.type.slice(1)} {status.stacks}
+          </div>
+          {info.describe(status.stacks, status.duration)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function StatusIcons({ statuses, maxPerColumn = 3, skewAngle = 11 }: Props) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const counterSkew = -skewAngle;
 
   if (statuses.length === 0) return null;
 
+  // Chunk statuses into columns
+  const columns: StatusInstance[][] = [];
+  for (let i = 0; i < statuses.length; i += maxPerColumn) {
+    columns.push(statuses.slice(i, i + maxPerColumn));
+  }
+
   return (
-    <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center', position: 'relative' }}>
-      {statuses.map((s, i) => {
-        const info = STATUS_INFO[s.type] || { icon: '?', color: '#888', describe: () => 'Unknown effect.' };
-        return (
-          <div
-            key={`${s.type}-${i}`}
-            onMouseEnter={() => setHoveredIdx(i)}
-            onMouseLeave={() => setHoveredIdx(null)}
-            style={{
-              background: info.color + '33',
-              border: `1px solid ${info.color}`,
-              borderRadius: 4,
-              padding: '1px 4px',
-              fontSize: 14,
-              color: '#fff',
-              whiteSpace: 'nowrap',
-              cursor: 'help',
-              position: 'relative',
-            }}
-          >
-            {info.icon} {s.stacks}
-            {hoveredIdx === i && (
-              <div style={{
-                position: 'absolute',
-                bottom: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                marginBottom: 6,
-                background: '#1e1e2e',
-                border: `1px solid ${info.color}`,
-                borderRadius: 6,
-                padding: '6px 10px',
-                fontSize: 14,
-                lineHeight: '1.4',
-                color: '#e2e8f0',
-                whiteSpace: 'normal',
-                width: 200,
-                textAlign: 'center',
-                zIndex: 100,
-                pointerEvents: 'none',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-              }}>
-                <div style={{ fontWeight: 'bold', marginBottom: 2, color: info.color }}>
-                  {s.type.charAt(0).toUpperCase() + s.type.slice(1)} {s.stacks}
-                </div>
-                {info.describe(s.stacks, s.duration)}
-              </div>
-            )}
-          </div>
-        );
-      })}
+    <div style={{ display: 'flex', gap: 3 }}>
+      {columns.map((col, colIdx) => (
+        <div key={colIdx} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {col.map((s, i) => {
+            const globalIdx = colIdx * maxPerColumn + i;
+            return (
+              <StatusBadge
+                key={`${s.type}-${globalIdx}`}
+                status={s}
+                index={globalIdx}
+                hoveredIdx={hoveredIdx}
+                setHoveredIdx={setHoveredIdx}
+                counterSkew={counterSkew}
+              />
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

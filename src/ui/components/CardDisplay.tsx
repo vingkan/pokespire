@@ -35,7 +35,7 @@ const EFFECT_COLORS: Record<string, string> = {
   cleanse: '#67e8f9',
 };
 
-const MOVE_TYPE_COLORS: Record<MoveType, string> = {
+export const MOVE_TYPE_COLORS: Record<MoveType, string> = {
   normal: '#a8a878',
   fire: '#f08030',
   water: '#6890f0',
@@ -382,7 +382,16 @@ export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isS
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
       }}>
-        {RANGE_LABELS[card.range] || card.range}
+        {(() => {
+          // Whipping Winds / Hurricane converts row attacks to all-enemy attacks
+          const hasRowToAll = combatant.passiveIds.includes('whipping_winds') ||
+                              combatant.passiveIds.includes('hurricane');
+          const isRowTargeting = card.range === 'front_row' || card.range === 'back_row' || card.range === 'any_row';
+          if (hasRowToAll && isRowTargeting) {
+            return 'All';
+          }
+          return RANGE_LABELS[card.range] || card.range;
+        })()}
       </div>
 
       {/* Description */}

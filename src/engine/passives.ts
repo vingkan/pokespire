@@ -504,16 +504,24 @@ export function checkGustForce(
 }
 
 /**
- * Check Whipping Winds bonus damage.
- * Whipping Winds: Enemies with Slow take +1 damage from your attacks.
+ * Check Keen Eye bonus damage.
+ * Keen Eye: Enemies with Slow take +1 damage from your attacks.
  */
-export function checkWhippingWinds(
+export function checkKeenEye(
   attacker: Combatant,
   target: Combatant
 ): number {
-  if (!attacker.passiveIds.includes('whipping_winds')) return 0;
+  if (!attacker.passiveIds.includes('keen_eye')) return 0;
   const hasSlow = target.statuses.some(s => s.type === 'slow' && s.stacks > 0);
   return hasSlow ? 1 : 0;
+}
+
+/**
+ * Check if attacker has Whipping Winds passive.
+ * Whipping Winds: Your row-targeting attacks hit ALL enemies instead.
+ */
+export function hasWhippingWinds(attacker: Combatant): boolean {
+  return attacker.passiveIds.includes('whipping_winds');
 }
 
 /**

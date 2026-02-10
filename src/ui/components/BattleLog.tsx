@@ -15,7 +15,8 @@ export function BattleLog({ logs }: Props) {
   return (
     <div style={{
       width: '100%',
-      maxHeight: 160,
+      flex: 1,
+      minHeight: 0,
       overflowY: 'auto',
       background: '#0a0a12',
       borderRadius: 8,

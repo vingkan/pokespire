@@ -13,6 +13,7 @@ import { PokeDexScreen } from './ui/screens/PokeDexScreen';
 import { SandboxConfigScreen } from './ui/screens/SandboxConfigScreen';
 import { ActTransitionScreen } from './ui/screens/ActTransitionScreen';
 import { CardRemovalScreen } from './ui/screens/CardRemovalScreen';
+import { PrologueScreen } from './ui/screens/PrologueScreen';
 import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
 import type { RunState, BattleNode } from './run/types';
 import {
@@ -33,7 +34,7 @@ import {
   getCurrentCardRemovalNode,
 } from './run/state';
 
-type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
+type Screen = 'main_menu' | 'prologue' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
 
 // localStorage keys
 const SAVE_KEY = 'pokespire_save';
@@ -82,7 +83,7 @@ export default function App() {
   const [hasSavedGame, setHasSavedGame] = useState(false);
   const battle = useBattle();
 
-  // Check for saved game on mount
+  // Check for saved game and prologue status on mount
   useEffect(() => {
     const saved = loadGame();
     setHasSavedGame(saved !== null);
@@ -375,7 +376,7 @@ export default function App() {
             onClick={() => {
               clearSave();
               setHasSavedGame(false);
-              setScreen('select');
+              setScreen('prologue');
             }}
             style={{
               padding: '16px 64px',
@@ -468,6 +469,16 @@ export default function App() {
         initialPlayerTeam={sandboxPlayerTeam}
         initialEnemyTeam={sandboxEnemyTeam}
         onConfigChange={handleSandboxConfigChange}
+      />
+    );
+  }
+
+  if (screen === 'prologue') {
+    return (
+      <PrologueScreen
+        onComplete={() => {
+          setScreen('select');
+        }}
       />
     );
   }

@@ -8,7 +8,7 @@ import { getEffectiveFrontRow } from './position';
 import {
   checkBlazeStrike, checkFortifiedCannons, checkCounterCurrent, checkStaticField,
   onDamageDealt, onDamageTaken, onStatusApplied,
-  checkGustForce, checkWhippingWinds, checkPredatorsPatience, checkThickHide, checkThickFat,
+  checkGustForce, checkKeenEye, hasWhippingWinds, checkPredatorsPatience, checkThickHide, checkThickFat,
   checkUnderdog, checkAngerPoint, checkScrappy, checkSheerForce,
   checkQuickFeet, checkHustleMultiplier, checkHustleCostIncrease,
   checkRelentless, checkPoisonPoint, isAttackCard,
@@ -233,10 +233,10 @@ function resolveTargets(
     ? getEffectiveFrontRow(state, enemies[0].side)
     : 'front';
 
-  // Hurricane: Row-targeting attacks hit ALL enemies instead
-  const hasHurricane = source.passiveIds.includes('hurricane');
+  // Hurricane / Whipping Winds: Row-targeting attacks hit ALL enemies instead
+  const hasRowToAll = source.passiveIds.includes('hurricane') || hasWhippingWinds(source);
   const isRowTargeting = ['front_row', 'back_row', 'any_row'].includes(range);
-  if (hasHurricane && isRowTargeting) {
+  if (hasRowToAll && isRowTargeting) {
     return enemies; // Hit all enemies
   }
 
@@ -367,13 +367,13 @@ function buildDamageModifiers(
   const { reduction: staticReduction, logs: staticLogs } = checkStaticField(state, source, target);
   logs.push(...staticLogs);
 
-  // Whipping Winds: Enemies with Slow take +1 damage
-  const whippingWindsBonus = checkWhippingWinds(source, target);
-  if (whippingWindsBonus > 0) {
+  // Keen Eye: Enemies with Slow take +1 damage
+  const keenEyeBonus = checkKeenEye(source, target);
+  if (keenEyeBonus > 0) {
     logs.push({
       round: state.round,
       combatantId: source.id,
-      message: `Whipping Winds: +${whippingWindsBonus} damage (target has Slow)!`,
+      message: `Keen Eye: +${keenEyeBonus} damage (target has Slow)!`,
     });
   }
 
@@ -497,7 +497,7 @@ function buildDamageModifiers(
     bloomingCycleReduction: getBloomingCycleReduction(state, source),
     counterCurrentBonus: counterBonus,
     staticFieldReduction: staticReduction,
-    gustForceBonus: whippingWindsBonus + predatorsPatienceBonus,  // Reusing field for +damage bonus
+    gustForceBonus: keenEyeBonus + predatorsPatienceBonus,  // Reusing field for +damage bonus
     thickHideReduction,
     thickFatMultiplier,
     underdogBonus,

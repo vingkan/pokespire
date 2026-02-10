@@ -19,6 +19,7 @@ function createCombatant(
   side: CombatantSide,
   slotIndex: number,
   position: Position,
+  skipShuffle?: boolean,
 ): Combatant {
   const id = `${data.id}-${combatantCounter++}`;
   return {
@@ -38,7 +39,7 @@ function createCombatant(
     energyCap: data.energyCap,
     block: 0,
     statuses: [],
-    drawPile: shuffle([...data.deck]),
+    drawPile: skipShuffle ? [...data.deck].reverse() : shuffle([...data.deck]),
     discardPile: [],
     hand: [],
     vanishedPile: [],
@@ -72,6 +73,7 @@ export function createCombatState(
   playerPositions?: Position[],
   enemyPositions?: Position[],
   playerSlotIndices?: number[],
+  skipShuffle?: boolean,
 ): CombatState {
   combatantCounter = 0;
 
@@ -80,8 +82,8 @@ export function createCombatState(
   const pSlotIndices = playerSlotIndices ?? playerParty.map((_, i) => i);
 
   const combatants: Combatant[] = [
-    ...playerParty.map((p, i) => createCombatant(p, 'player', pSlotIndices[i], pPositions[i])),
-    ...enemyParty.map((e, i) => createCombatant(e, 'enemy', i, ePositions[i])),
+    ...playerParty.map((p, i) => createCombatant(p, 'player', pSlotIndices[i], pPositions[i], skipShuffle)),
+    ...enemyParty.map((e, i) => createCombatant(e, 'enemy', i, ePositions[i], skipShuffle)),
   ];
 
   // Assign level 1 passives to enemies
@@ -227,8 +229,24 @@ export function rebuildTurnOrderMidRound(state: CombatState): LogEntry[] {
     hasActed: false,
   }));
 
-  // Merge: [acted] + [protected in current order] + [sorted unprotected]
-  const newRemaining = [...protectedEntries, ...sortedUnprotected];
+  // Protected allies should stay AFTER the current combatant, not before.
+  // Find where current combatant lands in sorted unprotected, insert protected right after.
+  let newRemaining: TurnQueueEntry[];
+  const currentInSorted = sortedUnprotected.findIndex(e => e.combatantId === currentId);
+  if (currentInSorted >= 0) {
+    // Current is unprotected: insert protected allies right after current
+    newRemaining = [
+      ...sortedUnprotected.slice(0, currentInSorted + 1),
+      ...protectedEntries,
+      ...sortedUnprotected.slice(currentInSorted + 1),
+    ];
+  } else if (protectedIds.has(currentId ?? '')) {
+    // Current is protected: keep protected at front (they include current)
+    newRemaining = [...protectedEntries, ...sortedUnprotected];
+  } else {
+    // Fallback: current not in remaining (already acted?), append protected after sorted
+    newRemaining = [...sortedUnprotected, ...protectedEntries];
+  }
   const oldRemainingIds = remaining.map(e => e.combatantId);
   const newRemainingIds = newRemaining.map(e => e.combatantId);
   const changed = oldRemainingIds.some((id, i) => id !== newRemainingIds[i]);

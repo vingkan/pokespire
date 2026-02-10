@@ -28,7 +28,8 @@ import {
   onDamageTaken,
   // Damage modifiers
   checkGustForce,
-  checkWhippingWinds,
+  checkKeenEye,
+  hasWhippingWinds,
   checkPredatorsPatience,
   checkScrappy,
   checkParentalBond,
@@ -606,20 +607,32 @@ describe('Passive Abilities', () => {
     });
   });
 
-  describe('Whipping Winds', () => {
+  describe('Keen Eye', () => {
     it('returns +1 damage against slowed enemies', () => {
-      const attacker = createTestCombatant({ passiveIds: ['whipping_winds'] });
+      const attacker = createTestCombatant({ passiveIds: ['keen_eye'] });
       const target = createTestCombatant();
       addStatus(target, 'slow', 2);
 
-      expect(checkWhippingWinds(attacker, target)).toBe(1);
+      expect(checkKeenEye(attacker, target)).toBe(1);
     });
 
     it('returns 0 against non-slowed enemies', () => {
-      const attacker = createTestCombatant({ passiveIds: ['whipping_winds'] });
+      const attacker = createTestCombatant({ passiveIds: ['keen_eye'] });
       const target = createTestCombatant();
 
-      expect(checkWhippingWinds(attacker, target)).toBe(0);
+      expect(checkKeenEye(attacker, target)).toBe(0);
+    });
+  });
+
+  describe('Whipping Winds', () => {
+    it('returns true when attacker has whipping_winds passive', () => {
+      const attacker = createTestCombatant({ passiveIds: ['whipping_winds'] });
+      expect(hasWhippingWinds(attacker)).toBe(true);
+    });
+
+    it('returns false when attacker lacks whipping_winds passive', () => {
+      const attacker = createTestCombatant({ passiveIds: [] });
+      expect(hasWhippingWinds(attacker)).toBe(false);
     });
   });
 

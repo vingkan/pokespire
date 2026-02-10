@@ -168,8 +168,18 @@ export function assignPartyPositions(partySize: number): Position[] {
 
 /**
  * Check if a move range requires manual target selection.
+ * If combatant is provided, checks for passives that modify targeting (e.g., Whipping Winds).
  */
-export function requiresTargetSelection(range: MoveRange): boolean {
+export function requiresTargetSelection(range: MoveRange, combatant?: Combatant): boolean {
+  // Whipping Winds / Hurricane: Row attacks hit ALL enemies, no target selection needed
+  const hasRowToAll = combatant?.passiveIds.includes('whipping_winds') ||
+                      combatant?.passiveIds.includes('hurricane');
+  const isRowTargeting = range === 'front_row' || range === 'back_row' || range === 'any_row';
+
+  if (hasRowToAll && isRowTargeting) {
+    return false; // No selection needed - hits all enemies
+  }
+
   switch (range) {
     case 'self':
     case 'all_enemies':

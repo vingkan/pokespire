@@ -31,12 +31,21 @@ export interface BattleHook {
     enemyPassives: Map<number, string[]>,
     hpOverrides?: Map<string, { maxHp?: number; startPercent?: number }>
   ) => void;
+  startTutorialBattle: (
+    players: PokemonData[],
+    enemies: PokemonData[],
+    playerPositions: Position[],
+    enemyPositions: Position[],
+    enemyPassives?: Map<number, string[]>,
+  ) => void;
   playCard: (cardIndex: number, targetId?: string) => void;
   endPlayerTurn: () => void;
   needsTarget: boolean;
   pendingCardIndex: number | null;
   setPendingCardIndex: (index: number | null) => void;
   getCombatants: () => Combatant[];
+  /** Pause/resume battle progression (enemy turns, turn transitions). Used by tutorial overlay. */
+  setTutorialPaused: (paused: boolean) => void;
 }
 
 export function useBattle(): BattleHook {
@@ -45,6 +54,11 @@ export function useBattle(): BattleHook {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [pendingCardIndex, setPendingCardIndex] = useState<number | null>(null);
   const enemyTimerRef = useRef<number | null>(null);
+  const tutorialPausedRef = useRef(false);
+
+  const setTutorialPaused = useCallback((paused: boolean) => {
+    tutorialPausedRef.current = paused;
+  }, []);
 
   // Use refs to break circular dependency between callbacks
   const processNextTurnRef = useRef<(s: CombatState) => void>(() => {});
@@ -55,6 +69,12 @@ export function useBattle(): BattleHook {
   }, []);
 
   const processNextTurn = useCallback((s: CombatState) => {
+    // If tutorial is paused, poll until unpaused
+    if (tutorialPausedRef.current) {
+      setTimeout(() => processNextTurnRef.current(s), 100);
+      return;
+    }
+
     if (s.phase !== 'ongoing') {
       setPhase(s.phase === 'victory' ? 'victory' : 'defeat');
       setState({ ...s });
@@ -92,6 +112,12 @@ export function useBattle(): BattleHook {
     let cardsPlayed = 0;
 
     const playNext = () => {
+      // If tutorial is paused, poll until unpaused
+      if (tutorialPausedRef.current) {
+        enemyTimerRef.current = window.setTimeout(playNext, 100);
+        return;
+      }
+
       try {
         if (s.phase !== 'ongoing') {
           setPhase(s.phase === 'victory' ? 'victory' : 'defeat');
@@ -396,6 +422,27 @@ export function useBattle(): BattleHook {
     initializeBattle(s);
   }, [initializeBattle]);
 
+  // Start a tutorial battle with skipShuffle (cards dealt in deck order)
+  const startTutorialBattle = useCallback((
+    players: PokemonData[],
+    enemies: PokemonData[],
+    playerPositions: Position[],
+    enemyPositions: Position[],
+    enemyPassives?: Map<number, string[]>,
+  ) => {
+    const s = createCombatState(players, enemies, playerPositions, enemyPositions, undefined, true);
+    if (enemyPassives) {
+      const enemyCombatants = s.combatants.filter(c => c.side === 'enemy');
+      enemyPassives.forEach((passiveIds, slotIndex) => {
+        const combatant = enemyCombatants.find(c => c.slotIndex === slotIndex);
+        if (combatant) {
+          combatant.passiveIds = [...combatant.passiveIds, ...passiveIds];
+        }
+      });
+    }
+    initializeBattle(s);
+  }, [initializeBattle]);
+
   const playCard = useCallback((cardIndex: number, targetId?: string) => {
     if (!state || phase !== 'player_turn') return;
 
@@ -456,11 +503,13 @@ export function useBattle(): BattleHook {
     startBattleFromRun,
     startSandboxBattle,
     startConfiguredBattle,
+    startTutorialBattle,
     playCard,
     endPlayerTurn,
     needsTarget,
     pendingCardIndex,
     setPendingCardIndex,
     getCombatants,
+    setTutorialPaused,
   };
 }

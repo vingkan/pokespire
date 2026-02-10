@@ -16,6 +16,10 @@ export const POKEMON_WEIGHTS: Record<string, number> = {
   wartortle: 9.5, // Real: 22.5, adjusted -25% for sprite scaling
   blastoise: 29.3, // Real: 85.5, adjusted -30% for sprite scaling
 
+  // Prologue Pokemon
+  slowbro: 25,    // Real: 78.5kg, reduced for sprite scaling
+  slowking: 20,   // Real: 79.5kg, reduced for sprite scaling
+
   // Others
   pikachu: 11,  // Real: 6kg, increased 20% for sprite scaling
   raichu: 30,
@@ -53,14 +57,32 @@ export const POKEMON_WEIGHTS: Record<string, number> = {
 const REFERENCE_WEIGHT = 6; // Pikachu's weight in kg
 const BASE_SPRITE_SIZE = 80; // Pikachu's sprite size in pixels
 
+/** Maximum sprite size in the battle grid. If any Pokemon exceeds this,
+ *  ALL sprites are scaled down proportionally to preserve size ratios. */
+export const MAX_BATTLE_SPRITE_SIZE = 200;
+
 /**
  * Calculate sprite size for a Pokemon based on its weight.
  * Uses cube root scaling since weight scales with volume (length^3).
  * This gives a more natural size progression.
+ * Returns the NATURAL (uncapped) size — callers in the battle grid
+ * should apply the proportional scale from `getBattleSpriteScale`.
  */
 export function getSpriteSize(pokemonId: string): number {
   const weight = POKEMON_WEIGHTS[pokemonId] ?? REFERENCE_WEIGHT;
   // Cube root scaling: weight ~ volume ~ size^3, so size ~ weight^(1/3)
   const scale = Math.cbrt(weight / REFERENCE_WEIGHT);
   return Math.round(BASE_SPRITE_SIZE * scale);
+}
+
+/**
+ * Compute a global sprite scale factor for a battle.
+ * If the largest Pokemon's natural sprite size exceeds MAX_BATTLE_SPRITE_SIZE,
+ * returns a factor < 1 that all sprites should be multiplied by.
+ * This preserves relative size ratios (Snorlax stays ~2.6x Pikachu).
+ */
+export function getBattleSpriteScale(pokemonIds: string[]): number {
+  if (pokemonIds.length === 0) return 1;
+  const maxNatural = Math.max(...pokemonIds.map(id => getSpriteSize(id)));
+  return Math.min(1, MAX_BATTLE_SPRITE_SIZE / maxNatural);
 }

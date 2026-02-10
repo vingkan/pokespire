@@ -1,7 +1,12 @@
+import { useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import type { Combatant } from '../../engine/types';
 import { getMove } from '../../data/loaders';
 import { getEffectiveCost } from '../../engine/cards';
 import { CardDisplay } from './CardDisplay';
+
+export interface HandDisplayRef {
+  getCardPosition: (index: number) => { x: number; y: number } | null;
+}
 
 interface Props {
   combatant: Combatant;
@@ -12,7 +17,29 @@ interface Props {
   draggingIndex?: number | null;
 }
 
-export function HandDisplay({ combatant, selectedIndex, onSelectCard, onDragStart, onDragEnd, draggingIndex }: Props) {
+export const HandDisplay = forwardRef<HandDisplayRef, Props>(function HandDisplay(
+  { combatant, selectedIndex, onSelectCard, onDragStart, onDragEnd, draggingIndex },
+  ref
+) {
+  // Refs to track card DOM positions
+  const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  const getCardPosition = useCallback((index: number): { x: number; y: number } | null => {
+    const el = cardRefs.current.get(index);
+    if (!el) return null;
+
+    const rect = el.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    };
+  }, []);
+
+  // Expose getCardPosition to parent via ref
+  useImperativeHandle(ref, () => ({
+    getCardPosition,
+  }), [getCardPosition]);
+
   return (
     <div style={{
       display: 'flex',
@@ -27,21 +54,31 @@ export function HandDisplay({ combatant, selectedIndex, onSelectCard, onDragStar
         const canAfford = combatant.energy >= effectiveCost;
 
         return (
-          <CardDisplay
+          <div
             key={`${cardId}-${idx}`}
-            cardId={cardId}
-            handIndex={idx}
-            card={card}
-            combatant={combatant}
-            canAfford={canAfford}
-            isSelected={selectedIndex === idx}
-            onClick={() => onSelectCard(idx)}
-            onDragStart={() => onDragStart?.(idx)}
-            onDragEnd={onDragEnd}
-            isDragging={draggingIndex === idx}
-          />
+            ref={(el) => {
+              if (el) {
+                cardRefs.current.set(idx, el);
+              } else {
+                cardRefs.current.delete(idx);
+              }
+            }}
+          >
+            <CardDisplay
+              cardId={cardId}
+              handIndex={idx}
+              card={card}
+              combatant={combatant}
+              canAfford={canAfford}
+              isSelected={selectedIndex === idx}
+              onClick={() => onSelectCard(idx)}
+              onDragStart={() => onDragStart?.(idx)}
+              onDragEnd={onDragEnd}
+              isDragging={draggingIndex === idx}
+            />
+          </div>
         );
       })}
     </div>
   );
-}
+});
