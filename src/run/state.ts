@@ -1,5 +1,5 @@
 import type { PokemonData, Position, Combatant } from '../engine/types';
-import type { RunState, RunPokemon, MapNode, BattleNode, ActTransitionNode, CardRemovalNode } from './types';
+import type { RunState, RunPokemon, MapNode, BattleNode, ActTransitionNode, CardRemovalNode, EventType } from './types';
 import { getPokemon } from '../data/loaders';
 import { ACT1_NODES, ACT2_NODES, getNodeById } from './nodes';
 import {
@@ -53,7 +53,7 @@ export function createRunState(
   });
 
   // Deep copy nodes to avoid mutating the original
-  const nodes = ACT1_NODES.map(node => ({ ...node }));
+  let nodes: MapNode[] = ACT1_NODES.map(node => ({ ...node }));
 
   // Mark spawn as completed
   const spawnNode = nodes.find(n => n.type === 'spawn');
@@ -61,13 +61,25 @@ export function createRunState(
     spawnNode.completed = true;
   }
 
+  const actualSeed = seed ?? Date.now();
+  const recruitSeed = actualSeed + 12345;
+
+  // Assign random Pokemon to recruit nodes
+  const partyBaseFormIds = party.map(p => p.id);
+  nodes = assignRecruitPokemon(nodes, recruitSeed, partyBaseFormIds);
+
+  // Randomize event types for detour events (e.g., detour-tc-event)
+  nodes = assignRandomEventTypes(nodes, actualSeed);
+
   return {
-    seed: seed ?? Date.now(),
+    seed: actualSeed,
     party: runParty,
+    bench: [],
     currentNodeId: 's0-spawn', // Start at spawn
     visitedNodeIds: ['s0-spawn'],
     nodes,
     currentAct: 1,
+    recruitSeed,
   };
 }
 
@@ -111,11 +123,16 @@ export function moveToNode(run: RunState, nodeId: string): RunState {
     return { ...node, completed: true };
   });
 
-  // Grant EXP for visiting the node
+  // Grant EXP for visiting the node (party AND bench)
   const newParty = run.party.map(pokemon => ({
     ...pokemon,
     exp: pokemon.exp + 1,
   }));
+
+  const newBench = run.bench.map(pokemon => {
+    const withExp = { ...pokemon, exp: pokemon.exp + 1 };
+    return autoLevelBenchPokemon(withExp);
+  });
 
   return {
     ...run,
@@ -123,6 +140,7 @@ export function moveToNode(run: RunState, nodeId: string): RunState {
     visitedNodeIds: [...run.visitedNodeIds, nodeId],
     nodes: newNodes,
     party: newParty,
+    bench: newBench,
   };
 }
 
@@ -158,13 +176,23 @@ export function isAtActTransition(run: RunState): boolean {
  */
 export function transitionToAct2(run: RunState): RunState {
   // Deep copy Act 2 nodes
-  const act2Nodes = ACT2_NODES.map(node => ({ ...node }));
+  let act2Nodes: MapNode[] = ACT2_NODES.map(node => ({ ...node }));
 
   // Mark spawn as completed
   const spawnNode = act2Nodes.find(n => n.type === 'spawn');
   if (spawnNode) {
     spawnNode.completed = true;
   }
+
+  // Assign recruit Pokemon for Act 2 (if any recruit nodes exist)
+  const excludeIds = [
+    ...run.party.map(p => p.baseFormId),
+    ...run.bench.map(p => p.baseFormId),
+  ];
+  act2Nodes = assignRecruitPokemon(act2Nodes, run.recruitSeed + 99999, excludeIds);
+
+  // Randomize event types for detour events (e.g., detour-a2-tc-event)
+  act2Nodes = assignRandomEventTypes(act2Nodes, run.seed);
 
   return {
     ...run,
@@ -231,6 +259,23 @@ export function getCurrentStage(run: RunState): number {
 // ============================================================
 // Pokemon State Modifications
 // ============================================================
+
+/**
+ * Apply percentage heal to ALL alive active party Pokemon.
+ * Used by Chansey rest nodes. Bench excluded. KO'd excluded.
+ */
+export function applyPartyPercentHeal(
+  run: RunState,
+  percent: number
+): RunState {
+  const newParty = run.party.map(pokemon => {
+    if (pokemon.knockedOut || pokemon.currentHp <= 0) return pokemon;
+    const healAmount = Math.floor(pokemon.maxHp * percent);
+    const newCurrentHp = Math.min(pokemon.currentHp + healAmount, pokemon.maxHp);
+    return { ...pokemon, currentHp: newCurrentHp };
+  });
+  return { ...run, party: newParty };
+}
 
 /**
  * Apply percentage heal to a specific Pokemon.
@@ -482,10 +527,298 @@ export function applyLevelUp(run: RunState, pokemonIndex: number): RunState {
 }
 
 /**
+ * Auto-level a bench Pokemon by applying progression rungs while they have enough EXP.
+ * Bench level-ups are automatic (no player interaction needed).
+ */
+function autoLevelBenchPokemon(pokemon: RunPokemon): RunPokemon {
+  let current = pokemon;
+  while (canPokemonLevelUp(current)) {
+    const tree = getProgressionTree(current.baseFormId);
+    if (!tree) break;
+    const nextRung = getRungForLevel(tree, current.level + 1);
+    if (!nextRung) break;
+
+    const newFormId = nextRung.evolvesTo ?? current.formId;
+    const newFormData = getPokemon(newFormId);
+    const newMaxHpModifier = current.maxHpModifier + nextRung.hpBoost;
+    const newMaxHp = newFormData.maxHp + newMaxHpModifier;
+
+    // Preserve damage taken (bench Pokemon keep their HP state)
+    const damageTaken = current.maxHp - current.currentHp;
+    const newCurrentHp = Math.max(0, newMaxHp - damageTaken);
+
+    const newDeck = [...current.deck, ...nextRung.cardsToAdd];
+    const newPassiveIds = [...current.passiveIds];
+    if (nextRung.passiveId !== 'none' && !newPassiveIds.includes(nextRung.passiveId)) {
+      newPassiveIds.push(nextRung.passiveId);
+    }
+
+    current = {
+      ...current,
+      formId: newFormId,
+      level: current.level + 1,
+      exp: current.exp - EXP_PER_LEVEL,
+      maxHp: newMaxHp,
+      maxHpModifier: newMaxHpModifier,
+      currentHp: newCurrentHp,
+      deck: newDeck,
+      passiveIds: newPassiveIds as import('./progression').PassiveId[],
+    };
+  }
+  return current;
+}
+
+/**
  * Check if any party member has a level-up available.
  */
 export function anyPokemonCanLevelUp(run: RunState): boolean {
   return run.party.some(p => canPokemonLevelUp(p));
+}
+
+// ============================================================
+// Bench Operations
+// ============================================================
+
+/**
+ * Swap a party member with a bench member.
+ * Bench Pokemon inherits the departing party member's position.
+ */
+export function swapPartyAndBench(
+  run: RunState,
+  partyIndex: number,
+  benchIndex: number
+): RunState {
+  const partyMember = run.party[partyIndex];
+  const benchMember = run.bench[benchIndex];
+  if (!partyMember || !benchMember) return run;
+
+  // Bench Pokemon takes the position of the departing party member
+  const swappedBenchMember: RunPokemon = {
+    ...benchMember,
+    position: partyMember.position,
+  };
+
+  const newParty = run.party.map((p, i) => i === partyIndex ? swappedBenchMember : p);
+  const newBench = run.bench.map((p, i) => i === benchIndex ? partyMember : p);
+
+  return { ...run, party: newParty, bench: newBench };
+}
+
+/**
+ * Promote a bench Pokemon to the active party (if party < 4).
+ */
+export function promoteFromBench(
+  run: RunState,
+  benchIndex: number,
+  position: Position
+): RunState {
+  if (run.party.length >= 4) return run;
+  const benchMember = run.bench[benchIndex];
+  if (!benchMember) return run;
+
+  const promoted: RunPokemon = { ...benchMember, position };
+  const newParty = [...run.party, promoted];
+  const newBench = run.bench.filter((_, i) => i !== benchIndex);
+
+  return { ...run, party: newParty, bench: newBench };
+}
+
+/**
+ * Demote an active party member to the bench (if party > 1).
+ */
+export function demoteToBench(
+  run: RunState,
+  partyIndex: number
+): RunState {
+  if (run.party.length <= 1) return run;
+  if (run.bench.length >= 4) return run;
+  const member = run.party[partyIndex];
+  if (!member) return run;
+
+  const newParty = run.party.filter((_, i) => i !== partyIndex);
+  const newBench = [...run.bench, member];
+
+  return { ...run, party: newParty, bench: newBench };
+}
+
+// ============================================================
+// Recruit System
+// ============================================================
+
+/** All playable starter base form IDs for the recruit pool. */
+const RECRUIT_POOL_ALL = [
+  'charmander', 'squirtle', 'bulbasaur', 'pikachu', 'pidgey', 'rattata',
+  'ekans', 'tauros', 'snorlax', 'kangaskhan', 'nidoran-m', 'nidoran-f',
+  'rhyhorn', 'drowzee', 'growlithe', 'voltorb', 'caterpie', 'weedle',
+];
+
+/** Simple seeded RNG (Lehmer / Park-Miller). Returns value in [0, 1) and next seed. */
+function seededRandom(seed: number): { value: number; nextSeed: number } {
+  const next = (seed * 16807) % 2147483647;
+  return { value: (next - 1) / 2147483646, nextSeed: next };
+}
+
+/**
+ * Assign pokemonIds to recruit nodes using seeded RNG.
+ * Excludes any baseFormIds already in the party.
+ */
+export function assignRecruitPokemon(
+  nodes: MapNode[],
+  recruitSeed: number,
+  excludeIds: string[]
+): MapNode[] {
+  const pool = RECRUIT_POOL_ALL.filter(id => !excludeIds.includes(id));
+  if (pool.length === 0) return nodes;
+
+  let currentSeed = Math.max(1, Math.abs(recruitSeed)); // Ensure positive non-zero seed
+  const usedIds = new Set<string>();
+
+  return nodes.map(node => {
+    if (node.type !== 'recruit' || node.pokemonId !== '') return node;
+
+    // Pick a random Pokemon from pool that hasn't been used yet
+    const available = pool.filter(id => !usedIds.has(id));
+    if (available.length === 0) return node;
+
+    const { value, nextSeed } = seededRandom(currentSeed);
+    currentSeed = nextSeed;
+
+    const picked = available[Math.floor(value * available.length)];
+    usedIds.add(picked);
+
+    return { ...node, pokemonId: picked };
+  });
+}
+
+/**
+ * Assign random event types to detour event nodes (IDs starting with 'detour-').
+ * Picks randomly from train, meditate, forget using seeded RNG.
+ */
+function assignRandomEventTypes(nodes: MapNode[], seed: number): MapNode[] {
+  const eventTypes: EventType[] = ['train', 'meditate', 'forget'];
+  let currentSeed = Math.max(1, Math.abs(seed + 77777));
+
+  return nodes.map(node => {
+    if (node.type !== 'event' || !node.id.startsWith('detour-')) return node;
+
+    const { value, nextSeed } = seededRandom(currentSeed);
+    currentSeed = nextSeed;
+
+    const picked = eventTypes[Math.floor(value * eventTypes.length)];
+    return { ...node, eventType: picked };
+  });
+}
+
+/**
+ * Get the recruit level — matches the lowest active party level.
+ */
+export function getRecruitLevel(run: RunState): number {
+  if (run.party.length === 0) return 1;
+  return Math.min(...run.party.map(p => p.level));
+}
+
+/**
+ * Get available Pokemon for recruit encounters.
+ * Excludes any baseFormId already in party or bench.
+ */
+export function getAvailableRecruitPool(run: RunState): string[] {
+  const usedBaseFormIds = new Set([
+    ...run.party.map(p => p.baseFormId),
+    ...run.bench.map(p => p.baseFormId),
+  ]);
+  return RECRUIT_POOL_ALL.filter(id => !usedBaseFormIds.has(id));
+}
+
+/**
+ * Create a RunPokemon at the given level by applying progression tree.
+ * Optionally starts with EXP to match the party's progress.
+ */
+export function createRecruitPokemon(pokemonId: string, level: number, exp: number = 0): RunPokemon {
+  const basePokemon = getPokemon(pokemonId);
+  const tree = getProgressionTree(pokemonId);
+
+  let formId = pokemonId;
+  let maxHpModifier = 0;
+  let deck = [...basePokemon.deck];
+  const passiveIds: string[] = [];
+
+  // Apply all rungs up to the target level
+  if (tree) {
+    for (const rung of tree.rungs) {
+      if (rung.level > level) break;
+
+      if (rung.evolvesTo) {
+        formId = rung.evolvesTo;
+      }
+      maxHpModifier += rung.hpBoost;
+      deck.push(...rung.cardsToAdd);
+      if (rung.passiveId !== 'none' && !passiveIds.includes(rung.passiveId)) {
+        passiveIds.push(rung.passiveId);
+      }
+    }
+  }
+
+  const formData = getPokemon(formId);
+  const maxHp = formData.maxHp + maxHpModifier;
+
+  return {
+    baseFormId: pokemonId,
+    formId,
+    currentHp: maxHp,
+    maxHp,
+    maxHpModifier,
+    deck,
+    position: { row: 'front', column: 1 },  // Default, assigned properly on promote
+    level,
+    exp,
+    passiveIds: passiveIds as import('./progression').PassiveId[],
+    knockedOut: false,
+  };
+}
+
+/**
+ * Add a recruited Pokemon to the bench.
+ */
+export function recruitToRoster(run: RunState, pokemon: RunPokemon): RunState {
+  if (run.bench.length >= 4) return run; // Bench full
+  return { ...run, bench: [...run.bench, pokemon] };
+}
+
+// ============================================================
+// Save/Load Backwards Compatibility
+// ============================================================
+
+/**
+ * Migrate old save data to current RunState format.
+ * Adds default values for fields that didn't exist in older versions.
+ */
+export function migrateRunState(run: RunState): RunState {
+  let migrated = run;
+
+  // Add bench if missing (pre-bench saves)
+  if (!migrated.bench) {
+    migrated = { ...migrated, bench: [] };
+  }
+
+  // Add recruitSeed if missing
+  if (!migrated.recruitSeed) {
+    migrated = { ...migrated, recruitSeed: migrated.seed + 12345 };
+  }
+
+  // Add x,y to nodes if missing (pre-free-form saves)
+  const needsCoords = migrated.nodes.some(n => n.x === undefined || n.y === undefined);
+  if (needsCoords) {
+    migrated = {
+      ...migrated,
+      nodes: migrated.nodes.map(n => ({
+        ...n,
+        x: n.x ?? 0,
+        y: n.y ?? 0,
+      })),
+    };
+  }
+
+  return migrated;
 }
 
 // ============================================================
