@@ -758,7 +758,7 @@ export function BattleScreen({
   return (
     <div style={{
       position: 'relative',
-      height: '100vh',
+      height: '100dvh',
       backgroundImage: `url(${battleBackground})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center 72%',

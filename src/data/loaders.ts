@@ -89,6 +89,7 @@ export const STARTER_POKEMON: Record<string, PokemonData> = {
   growlithe: POKEMON.growlithe,
   voltorb: POKEMON.voltorb,
   caterpie: POKEMON.caterpie,
+  weedle: POKEMON.weedle,
 };
 
 /** Enemy Pokemon */

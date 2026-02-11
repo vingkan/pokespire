@@ -53,8 +53,8 @@ export function getStatusImmunitySource(
   target: Combatant,
   type: StatusType
 ): string | null {
-  // Immunity: You cannot be Poisoned or Burned
-  if ((type === 'poison' || type === 'burn') && target.passiveIds.includes('immunity')) {
+  // Immunity: You cannot be Poisoned
+  if (type === 'poison' && target.passiveIds.includes('immunity')) {
     return 'Immunity';
   }
   // Shield Dust: You cannot be Poisoned

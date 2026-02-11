@@ -88,7 +88,11 @@ export type PassiveId =
   | 'shield_dust'
   | 'compound_eyes'
   | 'powder_spread'
-  | 'tinted_lens';
+  | 'tinted_lens'
+  // Weedle/Beedrill line
+  | 'poison_barb'
+  | 'adaptability'
+  | 'swarm_strike';
 
 // A single rung in the progression ladder
 export interface ProgressionRung {
@@ -248,7 +252,7 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   },
   immunity: {
     name: 'Immunity',
-    description: 'You cannot be Poisoned or Burned. Cleanse on application.',
+    description: 'You cannot be Poisoned.',
   },
   leftovers: {
     name: 'Leftovers',
@@ -368,6 +372,19 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   tinted_lens: {
     name: 'Tinted Lens',
     description: 'Your not-very-effective attacks have no damage penalty.',
+  },
+  // Weedle/Beedrill line
+  poison_barb: {
+    name: 'Poison Barb',
+    description: 'Your Poison-type attacks deal +2 damage.',
+  },
+  adaptability: {
+    name: 'Adaptability',
+    description: 'Your STAB bonus is doubled (+4 instead of +2).',
+  },
+  swarm_strike: {
+    name: 'Swarm Strike',
+    description: 'The first Bug attack you play each turn deals double damage.',
   },
 };
 
@@ -1093,6 +1110,46 @@ export const CATERPIE_PROGRESSION: ProgressionTree = {
   ],
 };
 
+// Weedle progression tree - venom striker, fast glass cannon
+export const WEEDLE_PROGRESSION: ProgressionTree = {
+  baseFormId: 'weedle',
+  rungs: [
+    {
+      level: 1,
+      name: 'Weedle',
+      description: 'Starting form with Poison Barb passive.',
+      passiveId: 'poison_barb',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Beedrill',
+      description: 'Evolve to Beedrill (+18 HP). Add Twineedle. Gain Poison Point.',
+      evolvesTo: 'beedrill',
+      passiveId: 'poison_point',
+      hpBoost: 0,
+      cardsToAdd: ['twineedle'],
+    },
+    {
+      level: 3,
+      name: 'Beedrill',
+      description: 'Gain Adaptability.',
+      passiveId: 'adaptability',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 4,
+      name: 'Beedrill (Mastered)',
+      description: 'Gain Swarm Strike.',
+      passiveId: 'swarm_strike',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+  ],
+};
+
 // All progression trees indexed by base form ID
 export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   charmander: CHARMANDER_PROGRESSION,
@@ -1113,6 +1170,7 @@ export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   growlithe: GROWLITHE_PROGRESSION,
   voltorb: VOLTORB_PROGRESSION,
   caterpie: CATERPIE_PROGRESSION,
+  weedle: WEEDLE_PROGRESSION,
 };
 
 /**
@@ -1164,6 +1222,9 @@ export function getProgressionTree(pokemonId: string): ProgressionTree | null {
   if (pokemonId === 'butterfree') {
     return CATERPIE_PROGRESSION;
   }
+  if (pokemonId === 'beedrill') {
+    return WEEDLE_PROGRESSION;
+  }
   return null;
 }
 
@@ -1209,6 +1270,9 @@ export function getBaseFormId(pokemonId: string): string {
   }
   if (pokemonId === 'butterfree') {
     return 'caterpie';
+  }
+  if (pokemonId === 'beedrill') {
+    return 'weedle';
   }
   return pokemonId;
 }

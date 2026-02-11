@@ -13,7 +13,8 @@ import {
   checkQuickFeet, checkHustleMultiplier, checkHustleCostIncrease, checkHypnoticGazeCostIncrease,
   checkRelentless, checkPoisonPoint, isAttackCard,
   processToxicHorn, processProtectiveToxins, isPoisoned, sheerForceBlocksStatus,
-  hasRockHead, checkReckless, checkLightningRod, checkVolatile, checkTintedLens
+  hasRockHead, checkReckless, checkLightningRod, checkVolatile, checkTintedLens,
+  checkPoisonBarb, checkAdaptability, checkSwarmStrike
 } from './passives';
 import { shuffle, MAX_HAND_SIZE } from './deck';
 import { getTypeEffectiveness, getEffectivenessLabel } from './typeChart';
@@ -357,6 +358,10 @@ function buildDamageModifiers(
   const { shouldApply: isBlazeStrike, logs: blazeLogs } = checkBlazeStrike(state, source, card);
   logs.push(...blazeLogs);
 
+  // Check for Swarm Strike
+  const { shouldApply: isSwarmStrike, logs: swarmLogs } = checkSwarmStrike(state, source, card);
+  logs.push(...swarmLogs);
+
   // Check for Fortified Cannons
   const { bonusDamage: fortifiedBonus, logs: fortifiedLogs } = checkFortifiedCannons(state, source, card);
   logs.push(...fortifiedLogs);
@@ -459,6 +464,26 @@ function buildDamageModifiers(
     });
   }
 
+  // Poison Barb: Your Poison-type attacks deal +2 damage
+  const poisonBarbBonus = checkPoisonBarb(source, card);
+  if (poisonBarbBonus > 0) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Poison Barb: +${poisonBarbBonus} damage (Poison attack)!`,
+    });
+  }
+
+  // Adaptability: STAB bonus doubled (+4 instead of +2)
+  const adaptabilityBonus = checkAdaptability(source, card);
+  if (adaptabilityBonus > 0) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Adaptability: +${adaptabilityBonus} STAB bonus!`,
+    });
+  }
+
   // Hustle: Your attacks deal 30% more damage
   const hustleMultiplier = checkHustleMultiplier(source);
   if (hustleMultiplier > 1) {
@@ -507,6 +532,7 @@ function buildDamageModifiers(
 
   return {
     isBlazeStrike,
+    isSwarmStrike,
     bastionBarrageBonus: fortifiedBonus,
     bloomingCycleReduction: getBloomingCycleReduction(state, source),
     counterCurrentBonus: counterBonus,
@@ -518,6 +544,8 @@ function buildDamageModifiers(
     ragingBullMultiplier: combinedMultiplier,  // Now includes Anger Point + Sheer Force
     hustleMultiplier,  // 1.3x multiplier for attacks
     familyFuryBonus: scrappyBonus + relentlessBonus,  // Combine flat bonuses
+    poisonBarbBonus,
+    adaptabilityBonus,
     typeEffectiveness,
     ignoreEvasion: false,  // No passive currently ignores evasion
   };
@@ -537,6 +565,9 @@ function buildDamageBreakdown(r: ReturnType<typeof applyCardDamage>): string {
   if (r.familyFuryBonus > 0) parts.push(`+${r.familyFuryBonus} Fury`);
   if (r.enfeeble > 0) parts.push(`-${r.enfeeble} Enfeeble`);
   if (r.blazeStrikeMultiplier > 1) parts.push(`x${r.blazeStrikeMultiplier} Blaze`);
+  if (r.swarmStrikeMultiplier > 1) parts.push(`x${r.swarmStrikeMultiplier} Swarm`);
+  if (r.poisonBarbBonus > 0) parts.push(`+${r.poisonBarbBonus} Barb`);
+  if (r.adaptabilityBonus > 0) parts.push(`+${r.adaptabilityBonus} Adapt`);
   if (r.ragingBullMultiplier > 1) parts.push(`x${r.ragingBullMultiplier.toFixed(2)}`);
   if (r.hustleMultiplier > 1) parts.push(`x${r.hustleMultiplier.toFixed(1)} Hustle`);
   if (r.typeEffectiveness !== 1.0) parts.push(`x${r.typeEffectiveness.toFixed(2)} Type`);

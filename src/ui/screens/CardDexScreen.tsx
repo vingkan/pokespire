@@ -76,7 +76,7 @@ export function CardDexScreen({ onBack }: Props) {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '100vh',
+      minHeight: '100dvh',
       background: '#0f0f17',
       color: '#e2e8f0',
     }}>

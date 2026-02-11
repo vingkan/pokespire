@@ -251,6 +251,7 @@ export interface CombatantTurnFlags {
   alliesDamagedThisRound: Set<string>;  // IDs of allies who took damage this round (for Family Fury)
   overgrowHealUsedThisTurn: boolean;  // First Grass attack heals (Venusaur line)
   torrentShieldUsedThisTurn: boolean;  // First Water attack grants Block (Blastoise line)
+  swarmStrikeUsedThisTurn: boolean;   // First Bug attack deals double (Beedrill line)
 }
 
 export interface Combatant {

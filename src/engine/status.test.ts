@@ -71,10 +71,10 @@ describe('Status Effects', () => {
       expect(checkStatusImmunity(combatant, 'poison')).toBe(true);
     });
 
-    it('Immunity passive blocks burn', () => {
+    it('Immunity does not block burn', () => {
       const combatant = createTestCombatant({ passiveIds: ['immunity'] });
 
-      expect(checkStatusImmunity(combatant, 'burn')).toBe(true);
+      expect(checkStatusImmunity(combatant, 'burn')).toBe(false);
     });
 
     it('Immunity does not block paralysis', () => {

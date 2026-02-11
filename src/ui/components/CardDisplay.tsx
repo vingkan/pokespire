@@ -95,11 +95,21 @@ function buildDescription(card: MoveDefinition, combatant: Combatant, isHovered:
   // Check for Hustle bonus (attacks deal +2 damage)
   const hustleBonus = combatant.passiveIds.includes('hustle') ? 2 : 0;
 
-  const additiveMod = strength + stab + fortifiedBonus + scrappyBonus + hustleBonus - enfeeble;
+  // Check for Poison Barb bonus (+2 for Poison attacks)
+  const poisonBarbBonus = (combatant.passiveIds.includes('poison_barb') && card.type === 'poison') ? 2 : 0;
+
+  // Check for Adaptability bonus (+2 extra STAB)
+  const adaptabilityBonus = (combatant.passiveIds.includes('adaptability') && combatant.types.includes(card.type)) ? 2 : 0;
+
+  const additiveMod = strength + stab + fortifiedBonus + scrappyBonus + hustleBonus + poisonBarbBonus + adaptabilityBonus - enfeeble;
 
   // Check for Blaze Strike multiplier (first fire attack of the turn)
   const hasBlazeStrike = combatant.passiveIds.includes('blaze_strike');
   const blazeStrikeActive = hasBlazeStrike && card.type === 'fire' && !combatant.turnFlags.blazeStrikeUsedThisTurn;
+
+  // Check for Swarm Strike multiplier (first bug attack of the turn)
+  const hasSwarmStrike = combatant.passiveIds.includes('swarm_strike');
+  const swarmStrikeActive = hasSwarmStrike && card.type === 'bug' && !combatant.turnFlags.swarmStrikeUsedThisTurn;
 
   // Check for Raging Bull multiplier (all attacks +50% when below 50% HP)
   const ragingBullActive = combatant.passiveIds.includes('raging_bull') &&
@@ -107,6 +117,7 @@ function buildDescription(card: MoveDefinition, combatant: Combatant, isHovered:
 
   let multiplier = 1;
   if (blazeStrikeActive) multiplier *= 2;
+  if (swarmStrikeActive) multiplier *= 2;
   if (ragingBullActive) multiplier *= 1.5;
 
   // Build modifier tags for hover display
@@ -117,7 +128,10 @@ function buildDescription(card: MoveDefinition, combatant: Combatant, isHovered:
   if (fortifiedBonus > 0) tags.push(`+${fortifiedBonus} Fort. Cannons`);
   if (scrappyBonus > 0) tags.push(`+${scrappyBonus} Scrappy`);
   if (hustleBonus > 0) tags.push(`+${hustleBonus} Hustle`);
+  if (poisonBarbBonus > 0) tags.push(`+${poisonBarbBonus} Barb`);
+  if (adaptabilityBonus > 0) tags.push(`+${adaptabilityBonus} Adapt`);
   if (blazeStrikeActive) tags.push('x2 Blaze');
+  if (swarmStrikeActive) tags.push('x2 Swarm');
   if (ragingBullActive) tags.push('x1.5 Rage');
 
   const hasDamageEffect = card.effects.some(e =>

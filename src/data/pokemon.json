@@ -719,5 +719,42 @@
       "bug-bite"
     ],
     "abilities": []
+  },
+
+  "weedle": {
+    "name": "Weedle",
+    "types": ["bug", "poison"],
+    "maxHp": 18,
+    "baseSpeed": 3,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "poison-sting", "poison-sting",
+      "bug-bite", "bug-bite",
+      "tackle", "tackle",
+      "harden", "harden",
+      "string-shot",
+      "fury-attack"
+    ],
+    "abilities": []
+  },
+  "beedrill": {
+    "name": "Beedrill",
+    "types": ["bug", "poison"],
+    "maxHp": 36,
+    "baseSpeed": 8,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "poison-sting", "poison-sting",
+      "bug-bite", "bug-bite",
+      "tackle", "tackle",
+      "harden", "harden",
+      "string-shot",
+      "fury-attack"
+    ],
+    "abilities": []
   }
 }

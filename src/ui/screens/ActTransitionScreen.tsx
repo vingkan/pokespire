@@ -5,9 +5,10 @@ import { THEME } from '../theme';
 interface Props {
   run: RunState;
   onContinue: () => void;
+  onRestart: () => void;
 }
 
-export function ActTransitionScreen({ run, onContinue }: Props) {
+export function ActTransitionScreen({ run, onContinue, onRestart }: Props) {
   return (
     <div style={{
       display: 'flex',
@@ -17,10 +18,29 @@ export function ActTransitionScreen({ run, onContinue }: Props) {
       gap: 32,
       padding: 32,
       color: THEME.text.primary,
-      minHeight: '100vh',
+      minHeight: '100dvh',
       overflowY: 'auto',
       background: 'linear-gradient(180deg, #0f0f17 0%, #1a1a2e 50%, #16213e 100%)',
+      position: 'relative',
     }}>
+      <button
+        onClick={onRestart}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid ' + THEME.border.bright,
+          background: 'transparent',
+          color: THEME.text.secondary,
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       {/* Act Complete Header */}
       <div style={{
         fontSize: 52,

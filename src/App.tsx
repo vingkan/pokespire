@@ -6,6 +6,8 @@ import { BattleScreen } from './ui/screens/BattleScreen';
 import type { BattleResult } from './ui/screens/BattleScreen';
 import { MapScreen } from './ui/screens/MapScreen';
 import { RestScreen } from './ui/screens/RestScreen';
+import { EventScreen } from './ui/screens/EventScreen';
+import { RecruitScreen } from './ui/screens/RecruitScreen';
 import { CardDraftScreen } from './ui/screens/CardDraftScreen';
 import { RunVictoryScreen } from './ui/screens/RunVictoryScreen';
 import { CardDexScreen } from './ui/screens/CardDexScreen';
@@ -16,10 +18,11 @@ import { CardRemovalScreen } from './ui/screens/CardRemovalScreen';
 import { Flourish } from './ui/components/Flourish';
 import { THEME } from './ui/theme';
 import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
-import type { RunState, BattleNode } from './run/types';
+import type { RunState, BattleNode, EventNode, RecruitNode } from './run/types';
+import { getPokemon } from './data/loaders';
 import {
   createRunState,
-  applyPercentHeal,
+  applyPartyPercentHeal,
   applyFullHealAll,
   applyMaxHpBoost,
   applyExpBoost,
@@ -33,9 +36,15 @@ import {
   transitionToAct2,
   removeCardsFromDeck,
   getCurrentCardRemovalNode,
+  migrateRunState,
+  swapPartyAndBench,
+  getRecruitLevel,
+  createRecruitPokemon,
+  recruitToRoster,
+  getRunPokemonData,
 } from './run/state';
 
-type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
+type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'event' | 'recruit' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
 
 // localStorage keys
 const SAVE_KEY = 'pokespire_save';
@@ -48,7 +57,7 @@ interface SaveData {
 
 function saveGame(screen: Screen, runState: RunState | null) {
   // Only save during active runs (not menus, not sandbox)
-  const savableScreens: Screen[] = ['map', 'rest', 'card_draft', 'battle', 'act_transition', 'card_removal'];
+  const savableScreens: Screen[] = ['map', 'rest', 'event', 'recruit', 'card_draft', 'battle', 'act_transition', 'card_removal'];
   if (runState && savableScreens.includes(screen)) {
     const saveData: SaveData = { screen, runState, savedAt: Date.now() };
     try {
@@ -79,6 +88,9 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('main_menu');
   const [runState, setRunState] = useState<RunState | null>(null);
   const [isSandboxBattle, setIsSandboxBattle] = useState(false);
+  const [isRecruitBattle, setIsRecruitBattle] = useState(false);
+  const [recruitFighterIndex, setRecruitFighterIndex] = useState<number | null>(null);
+  const [recruitBattleResult, setRecruitBattleResult] = useState<'pending' | 'victory' | 'defeat' | null>(null);
   const [sandboxPlayerTeam, setSandboxPlayerTeam] = useState<SandboxPokemon[]>([]);
   const [sandboxEnemyTeam, setSandboxEnemyTeam] = useState<SandboxPokemon[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
@@ -99,7 +111,9 @@ export default function App() {
   const handleContinue = useCallback(() => {
     const saved = loadGame();
     if (saved) {
-      setRunState(saved.runState);
+      // Migrate old saves to current format
+      const run = saved.runState ? migrateRunState(saved.runState) : null;
+      setRunState(run);
       // If saved during battle, go to map instead (can't restore battle state)
       if (saved.screen === 'battle') {
         setScreen('map');
@@ -130,6 +144,8 @@ export default function App() {
 
     if (node.type === 'rest') {
       setScreen('rest');
+    } else if (node.type === 'event') {
+      setScreen('event');
     } else if (node.type === 'battle') {
       battle.startBattleFromRun(newRun, node as BattleNode);
       setScreen('battle');
@@ -137,21 +153,26 @@ export default function App() {
       setScreen('act_transition');
     } else if (node.type === 'card_removal') {
       setScreen('card_removal');
+    } else if (node.type === 'recruit') {
+      setRecruitBattleResult(null);
+      setRecruitFighterIndex(null);
+      setIsRecruitBattle(false);
+      setScreen('recruit');
     }
-    // spawn nodes don't do anything special, just stay on map
+    // spawn nodes don't have a screen
   }, [runState, battle]);
 
-  // Handle rest choice: heal 30%
-  const handleRestHeal = useCallback((pokemonIndex: number) => {
+  // Handle rest: Chansey heals whole party 30%
+  const handleRestHeal = useCallback(() => {
     if (!runState) return;
 
-    const newRun = applyPercentHeal(runState, pokemonIndex, 0.3);
+    const newRun = applyPartyPercentHeal(runState, 0.3);
     setRunState(newRun);
     setScreen('map');
   }, [runState]);
 
-  // Handle rest choice: +5 max HP (and current HP)
-  const handleRestTrain = useCallback((pokemonIndex: number) => {
+  // Handle event: train (+5 max HP)
+  const handleEventTrain = useCallback((pokemonIndex: number) => {
     if (!runState) return;
 
     const newRun = applyMaxHpBoost(runState, pokemonIndex, 5);
@@ -159,8 +180,8 @@ export default function App() {
     setScreen('map');
   }, [runState]);
 
-  // Handle rest choice: +1 EXP
-  const handleRestMeditate = useCallback((pokemonIndex: number) => {
+  // Handle event: meditate (+1 EXP)
+  const handleEventMeditate = useCallback((pokemonIndex: number) => {
     if (!runState) return;
 
     const newRun = applyExpBoost(runState, pokemonIndex, 1);
@@ -168,8 +189,8 @@ export default function App() {
     setScreen('map');
   }, [runState]);
 
-  // Handle rest choice: forget cards (remove from deck)
-  const handleRestForget = useCallback((removals: Map<number, number[]>) => {
+  // Handle event: forget cards (remove from deck)
+  const handleEventForget = useCallback((removals: Map<number, number[]>) => {
     if (!runState) return;
 
     let newRun = runState;
@@ -206,6 +227,24 @@ export default function App() {
   const handleBattleEnd = useCallback((result: BattleResult, combatants: Combatant[]) => {
     if (!runState) return;
 
+    // Recruit battles: sync HP back to fighter, return to recruit screen
+    if (isRecruitBattle && recruitFighterIndex !== null) {
+      const playerCombatant = combatants.find(c => c.side === 'player');
+      if (playerCombatant) {
+        const newHp = Math.max(0, playerCombatant.hp);
+        const isKO = newHp <= 0 || !playerCombatant.alive;
+        const newParty = runState.party.map((p, i) => {
+          if (i !== recruitFighterIndex) return p;
+          return { ...p, currentHp: newHp, knockedOut: p.knockedOut || isKO };
+        });
+        setRunState({ ...runState, party: newParty });
+      }
+      setRecruitBattleResult(result === 'victory' ? 'victory' : 'defeat');
+      setIsRecruitBattle(false);
+      setScreen('recruit');
+      return;
+    }
+
     if (result === 'defeat') {
       setScreen('run_defeat');
       return;
@@ -228,7 +267,7 @@ export default function App() {
       // Go to card draft after battle
       setScreen('card_draft');
     }
-  }, [runState]);
+  }, [runState, isRecruitBattle, recruitFighterIndex]);
 
   // Handle card selection during battle
   const handleSelectCard = useCallback((cardIndex: number | null) => {
@@ -281,6 +320,87 @@ export default function App() {
 
   // Handle card removal skip
   const handleCardRemovalSkip = useCallback(() => {
+    setScreen('map');
+  }, []);
+
+  // Handle swap between party and bench
+  const handleSwap = useCallback((partyIndex: number, benchIndex: number) => {
+    if (!runState) return;
+    const newRun = swapPartyAndBench(runState, partyIndex, benchIndex);
+    setRunState(newRun);
+  }, [runState]);
+
+  // Handle starting a 1v1 recruit fight
+  const handleRecruitFight = useCallback((partyIndex: number) => {
+    if (!runState) return;
+
+    const currentNode = getCurrentNode(runState);
+    if (!currentNode || currentNode.type !== 'recruit') return;
+    const recruitNode = currentNode as RecruitNode;
+
+    const fighter = runState.party[partyIndex];
+    const recruitLevel = getRecruitLevel(runState);
+    const recruitMon = createRecruitPokemon(recruitNode.pokemonId, recruitLevel);
+
+    // Build enemy data at recruit level with proper HP and deck
+    const enemyData = getPokemon(recruitMon.formId);
+    const enemyWithHp = {
+      ...enemyData,
+      maxHp: recruitMon.maxHp,
+      deck: [...recruitMon.deck],
+    };
+
+    // Start 1v1 battle: fighter vs wild Pokemon (with passives from progression tree)
+    const fighterData = getRunPokemonData(fighter);
+    battle.startConfiguredBattle(
+      [fighterData],
+      [enemyWithHp],
+      [fighter.position],
+      [{ row: 'front', column: 1 }],
+      new Map([[0, fighter.passiveIds]]),
+      new Map([[0, recruitMon.passiveIds]]),
+      new Map([['player-0', { maxHp: fighter.maxHp, startPercent: fighter.currentHp / fighter.maxHp }]])
+    );
+
+    setIsRecruitBattle(true);
+    setRecruitFighterIndex(partyIndex);
+    setRecruitBattleResult('pending');
+    setScreen('battle');
+  }, [runState, battle]);
+
+  // Handle recruit confirm (add to bench)
+  const handleRecruitConfirm = useCallback(() => {
+    if (!runState) return;
+
+    const currentNode = getCurrentNode(runState);
+    if (!currentNode || currentNode.type !== 'recruit') return;
+    const recruitNode = currentNode as RecruitNode;
+
+    const level = getRecruitLevel(runState);
+    const matchingExp = Math.min(...runState.party.map(p => p.exp));
+    const newPokemon = createRecruitPokemon(recruitNode.pokemonId, level, matchingExp);
+    let newRun = recruitToRoster(runState, newPokemon);
+
+    // Mark the node as recruited
+    newRun = {
+      ...newRun,
+      nodes: newRun.nodes.map(n =>
+        n.id === recruitNode.id && n.type === 'recruit'
+          ? { ...n, recruited: true }
+          : n
+      ),
+    };
+
+    setRunState(newRun);
+    setRecruitBattleResult(null);
+    setRecruitFighterIndex(null);
+    setScreen('map');
+  }, [runState]);
+
+  // Handle recruit decline (skip recruitment, back to map)
+  const handleRecruitDecline = useCallback(() => {
+    setRecruitBattleResult(null);
+    setRecruitFighterIndex(null);
     setScreen('map');
   }, []);
 
@@ -366,7 +486,7 @@ export default function App() {
         gap: 24,
         padding: 32,
         color: THEME.text.primary,
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: THEME.bg.base,
       }}>
         <div style={{
@@ -489,6 +609,7 @@ if (screen === 'select') {
         run={runState}
         onSelectNode={handleSelectNode}
         onLevelUp={handleLevelUp}
+        onSwap={handleSwap}
         onRestart={handleRestart}
       />
     );
@@ -499,12 +620,44 @@ if (screen === 'select') {
       <RestScreen
         run={runState}
         onHeal={handleRestHeal}
-        onTrain={handleRestTrain}
-        onMeditate={handleRestMeditate}
-        onForget={handleRestForget}
         onRestart={handleRestart}
       />
     );
+  }
+
+  if (screen === 'event' && runState) {
+    const currentNode = getCurrentNode(runState);
+    const eventType = currentNode?.type === 'event' ? (currentNode as EventNode).eventType : 'train';
+    return (
+      <EventScreen
+        run={runState}
+        eventType={eventType}
+        onTrain={handleEventTrain}
+        onMeditate={handleEventMeditate}
+        onForget={handleEventForget}
+        onRestart={handleRestart}
+      />
+    );
+  }
+
+  if (screen === 'recruit' && runState) {
+    const currentNode = getCurrentNode(runState);
+    if (currentNode?.type === 'recruit') {
+      return (
+        <RecruitScreen
+          run={runState}
+          node={currentNode as RecruitNode}
+          battleResult={recruitBattleResult}
+          onStartFight={handleRecruitFight}
+          onRecruit={handleRecruitConfirm}
+          onDecline={handleRecruitDecline}
+          onRestart={handleRestart}
+        />
+      );
+    }
+    // Fallback to map if node not found
+    setScreen('map');
+    return null;
   }
 
   if (screen === 'card_draft' && runState) {
@@ -541,6 +694,7 @@ if (screen === 'select') {
       <ActTransitionScreen
         run={runState}
         onContinue={handleActTransitionContinue}
+        onRestart={handleRestart}
       />
     );
   }
@@ -554,6 +708,7 @@ if (screen === 'select') {
           node={cardRemovalNode}
           onComplete={handleCardRemovalComplete}
           onSkip={handleCardRemovalSkip}
+          onRestart={handleRestart}
         />
       );
     }
@@ -576,7 +731,7 @@ if (screen === 'select') {
         gap: 32,
         padding: 32,
         color: THEME.text.primary,
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: THEME.bg.base,
       }}>
         <div style={{
@@ -653,7 +808,7 @@ if (screen === 'select') {
       gap: 24,
       padding: 32,
       color: THEME.text.primary,
-      minHeight: '100vh',
+      minHeight: '100dvh',
       background: THEME.bg.base,
     }}>
       <div style={{

@@ -10,6 +10,8 @@ import {
 } from '../../run/progression';
 import { CardPreview } from '../components/CardPreview';
 import { Flourish } from '../components/Flourish';
+import { PokemonTile, TYPE_COLORS } from '../components/PokemonTile';
+import { ScreenShell } from '../components/ScreenShell';
 import { THEME } from '../theme';
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -26,24 +28,6 @@ const ALL_RARITIES: CardRarity[] = [
   'basic', 'common', 'uncommon', 'rare', 'epic', 'legendary',
 ];
 
-const TYPE_COLORS: Record<MoveType, string> = {
-  normal: '#a8a878',
-  fire: '#f08030',
-  water: '#6890f0',
-  grass: '#78c850',
-  electric: '#f8d030',
-  poison: '#a040a0',
-  flying: '#a890f0',
-  psychic: '#f85888',
-  dark: '#705848',
-  fighting: '#c03028',
-  ice: '#98d8d8',
-  bug: '#a8b820',
-  dragon: '#7038f8',
-  ghost: '#705898',
-  rock: '#b8a038',
-  ground: '#e0c068',
-};
 
 // ── Exported interfaces (preserved for App.tsx compatibility) ──────
 
@@ -686,34 +670,15 @@ function PokemonRosterTile({
   const pokemon = getPokemon(pokemonId);
 
   return (
-    <div
+    <PokemonTile
+      name={pokemon.name}
+      spriteUrl={makeSpriteUrl(pokemonId)}
+      primaryType={pokemon.types[0]}
+      size="small"
       draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      style={{
-        width: 72,
-        height: 80,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: THEME.bg.panel,
-        border: `1px solid ${THEME.border.subtle}`,
-        borderRadius: 8,
-        cursor: 'grab',
-        transition: 'all 0.15s',
-      }}
-    >
-      <img
-        src={makeSpriteUrl(pokemonId)}
-        alt={pokemon.name}
-        style={{ width: 48, height: 48, imageRendering: 'pixelated', objectFit: 'contain' }}
-        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-      />
-      <div style={{ fontSize: 10, color: THEME.text.secondary, textAlign: 'center', marginTop: 2 }}>
-        {pokemon.name}
-      </div>
-    </div>
+    />
   );
 }
 
@@ -914,53 +879,41 @@ export function SandboxConfigScreen({
 
   // ── Render ──
 
-  return (
+  const headerBar = (
     <div style={{
-      height: '100vh',
       display: 'flex',
-      flexDirection: 'column',
-      background: THEME.bg.base,
-      color: THEME.text.primary,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '14px 24px',
+      borderBottom: `1px solid ${THEME.border.subtle}`,
     }}>
-      {/* Header bar — fixed at top */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '14px 24px',
-        borderBottom: `1px solid ${THEME.border.subtle}`,
-        flexShrink: 0,
-      }}>
-        <button
-          onClick={onBack}
-          style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}
-        >
-          &larr; Back
-        </button>
-        <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
-          Sandbox Battle
-        </h1>
-        <button
-          onClick={handleStartBattle}
-          disabled={!canStart}
-          style={{
-            padding: '10px 24px',
-            ...(canStart ? THEME.button.primary : THEME.button.secondary),
-            fontSize: 14,
-            opacity: canStart ? 1 : 0.4,
-            cursor: canStart ? 'pointer' : 'not-allowed',
-          }}
-        >
-          Start Battle &rarr;
-        </button>
-      </div>
+      <button
+        onClick={onBack}
+        style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}
+      >
+        &larr; Back
+      </button>
+      <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
+        Sandbox Battle
+      </h1>
+      <button
+        onClick={handleStartBattle}
+        disabled={!canStart}
+        style={{
+          padding: '10px 24px',
+          ...(canStart ? THEME.button.primary : THEME.button.secondary),
+          fontSize: 14,
+          opacity: canStart ? 1 : 0.4,
+          cursor: canStart ? 'pointer' : 'not-allowed',
+        }}
+      >
+        Start Battle &rarr;
+      </button>
+    </div>
+  );
 
-      {/* Scrollable content */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '20px 16px 48px',
-      }}>
+  return (
+    <ScreenShell header={headerBar} bodyStyle={{ padding: '20px 16px 48px' }}>
         {/* ── Battlefield row: [Player Grid] [Roster] [Enemy Grid] ── */}
         <div style={{
           display: 'flex',
@@ -1062,7 +1015,6 @@ export function SandboxConfigScreen({
             />
           )}
         </div>
-      </div>
 
       {/* Deck Editor Modal */}
       {showDeckEditor && editingPokemon && (
@@ -1073,6 +1025,6 @@ export function SandboxConfigScreen({
           onClose={() => setShowDeckEditor(false)}
         />
       )}
-    </div>
+    </ScreenShell>
   );
 }

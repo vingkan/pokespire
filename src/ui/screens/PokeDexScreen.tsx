@@ -2,108 +2,81 @@ import { useState } from 'react';
 import type { PokemonData, MoveType } from '../../engine/types';
 import { STARTER_POKEMON, getMove } from '../../data/loaders';
 import { CardPreview } from '../components/CardPreview';
+import { PokemonTile, TYPE_COLORS } from '../components/PokemonTile';
+import { ScreenShell } from '../components/ScreenShell';
 import {
   PROGRESSION_TREES,
   PASSIVE_DEFINITIONS,
   type ProgressionTree,
   type ProgressionRung,
 } from '../../run/progression';
+import { THEME } from '../theme';
 
 interface Props {
   onBack: () => void;
 }
 
-const TYPE_COLORS: Record<MoveType, string> = {
-  normal: '#a8a878',
-  fire: '#f08030',
-  water: '#6890f0',
-  grass: '#78c850',
-  electric: '#f8d030',
-  poison: '#a040a0',
-  flying: '#a890f0',
-  psychic: '#f85888',
-  dark: '#705848',
-  fighting: '#c03028',
-  ice: '#98d8d8',
-  bug: '#a8b820',
-  dragon: '#7038f8',
-  ghost: '#705898',
-  rock: '#b8a038',
-  ground: '#e0c068',
-};
-
 const allPokemon = Object.values(STARTER_POKEMON);
+
+function makeSpriteUrl(id: string): string {
+  return `https://img.pokemondb.net/sprites/black-white/anim/normal/${id}.gif`;
+}
 
 export function PokeDexScreen({ onBack }: Props) {
   const [selectedPokemon, setSelectedPokemon] = useState<PokemonData | null>(null);
 
-  return (
+  const header = (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      background: '#0f0f17',
-      color: '#e2e8f0',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '14px 24px',
+      borderBottom: `1px solid ${THEME.border.subtle}`,
     }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 24px',
-        borderBottom: '1px solid #333',
-        background: '#1a1a24',
-      }}>
-        <button
-          onClick={onBack}
-          style={{
-            padding: '8px 16px',
-            fontSize: 14,
-            fontWeight: 'bold',
-            borderRadius: 6,
-            border: '1px solid #555',
-            background: 'transparent',
-            color: '#94a3b8',
-            cursor: 'pointer',
-          }}
-        >
-          Back
-        </button>
-        <h1 style={{ fontSize: 28, margin: 0, color: '#facc15' }}>
-          PokeDex
-        </h1>
-        <div style={{ width: 80 }} />
-      </div>
+      <button onClick={onBack} style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}>
+        &larr; Back
+      </button>
+      <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
+        PokeDex
+      </h1>
+      <div style={{ width: 80 }} />
+    </div>
+  );
 
-      {/* Main Content */}
+  return (
+    <ScreenShell header={header}>
       <div style={{
-        flex: 1,
         display: 'flex',
-        overflow: 'hidden',
+        flex: 1,
+        minHeight: 0,
       }}>
         {/* Pokemon Grid */}
         <div style={{
-          width: selectedPokemon ? '300px' : '100%',
+          width: selectedPokemon ? '340px' : '100%',
           padding: 24,
           overflowY: 'auto',
-          borderRight: selectedPokemon ? '1px solid #333' : 'none',
+          borderRight: selectedPokemon ? `1px solid ${THEME.border.subtle}` : 'none',
           transition: 'width 0.3s',
         }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: selectedPokemon
               ? 'repeat(2, 1fr)'
-              : 'repeat(auto-fill, minmax(140px, 1fr))',
+              : 'repeat(auto-fill, minmax(160px, 1fr))',
             gap: 16,
             justifyItems: 'center',
           }}>
             {allPokemon.map(pokemon => (
-              <PokemonCard
+              <PokemonTile
                 key={pokemon.id}
-                pokemon={pokemon}
+                name={pokemon.name}
+                spriteUrl={makeSpriteUrl(pokemon.id)}
+                primaryType={pokemon.types[0]}
+                secondaryType={pokemon.types[1]}
+                size={selectedPokemon ? 'medium' : 'large'}
                 isSelected={selectedPokemon?.id === pokemon.id}
                 onClick={() => setSelectedPokemon(pokemon)}
-                compact={!!selectedPokemon}
+                stats={`HP: ${pokemon.maxHp} | SPD: ${pokemon.baseSpeed}`}
               />
             ))}
           </div>
@@ -123,76 +96,7 @@ export function PokeDexScreen({ onBack }: Props) {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-interface PokemonCardProps {
-  pokemon: PokemonData;
-  isSelected: boolean;
-  onClick: () => void;
-  compact: boolean;
-}
-
-function PokemonCard({ pokemon, isSelected, onClick, compact }: PokemonCardProps) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        width: compact ? 120 : 140,
-        padding: compact ? 12 : 16,
-        borderRadius: 12,
-        border: isSelected ? '3px solid #facc15' : '3px solid #333',
-        background: isSelected ? '#2d2d3f' : '#1e1e2e',
-        cursor: 'pointer',
-        textAlign: 'center',
-        transition: 'all 0.2s',
-      }}
-    >
-      <img
-        src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
-        alt={pokemon.name}
-        style={{
-          width: compact ? 56 : 72,
-          height: compact ? 56 : 72,
-          imageRendering: 'pixelated',
-          objectFit: 'contain',
-        }}
-        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-      />
-      <div style={{
-        fontSize: compact ? 13 : 15,
-        fontWeight: 'bold',
-        marginTop: 6,
-      }}>
-        {pokemon.name}
-      </div>
-      {!compact && (
-        <div style={{
-          display: 'flex',
-          gap: 4,
-          justifyContent: 'center',
-          marginTop: 6,
-        }}>
-          {pokemon.types.map(type => (
-            <span
-              key={type}
-              style={{
-                fontSize: 10,
-                padding: '2px 6px',
-                borderRadius: 4,
-                background: TYPE_COLORS[type] + '33',
-                color: TYPE_COLORS[type],
-                textTransform: 'uppercase',
-                fontWeight: 'bold',
-              }}
-            >
-              {type}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
+    </ScreenShell>
   );
 }
 
@@ -228,21 +132,12 @@ function PokemonDetail({ pokemon, onClose }: PokemonDetailProps) {
             alignItems: 'center',
             gap: 12,
           }}>
-            <h2 style={{ fontSize: 28, margin: 0, color: '#facc15' }}>
+            <h2 style={{ fontSize: 28, margin: 0, color: THEME.accent }}>
               {pokemon.name}
             </h2>
             <button
               onClick={onClose}
-              style={{
-                marginLeft: 'auto',
-                padding: '4px 12px',
-                fontSize: 12,
-                borderRadius: 4,
-                border: '1px solid #555',
-                background: 'transparent',
-                color: '#94a3b8',
-                cursor: 'pointer',
-              }}
+              style={{ marginLeft: 'auto', padding: '4px 12px', ...THEME.button.secondary, fontSize: 12 }}
             >
               Close
             </button>
@@ -279,11 +174,11 @@ function PokemonDetail({ pokemon, onClose }: PokemonDetailProps) {
             gap: 12,
             marginTop: 16,
           }}>
-            <StatBox label="HP" value={pokemon.maxHp} color="#4ade80" />
-            <StatBox label="Speed" value={pokemon.baseSpeed} color="#facc15" />
-            <StatBox label="Energy" value={pokemon.energyPerTurn} color="#60a5fa" />
+            <StatBox label="HP" value={pokemon.maxHp} color={THEME.status.heal} />
+            <StatBox label="Speed" value={pokemon.baseSpeed} color={THEME.accent} />
+            <StatBox label="Energy" value={pokemon.energyPerTurn} color={THEME.status.energy} />
             <StatBox label="Cap" value={pokemon.energyCap} color="#a855f7" />
-            <StatBox label="Hand" value={pokemon.handSize} color="#f97316" />
+            <StatBox label="Hand" value={pokemon.handSize} color={THEME.status.warning} />
           </div>
         </div>
       </div>
@@ -294,8 +189,8 @@ function PokemonDetail({ pokemon, onClose }: PokemonDetailProps) {
           <h3 style={{
             fontSize: 18,
             margin: '0 0 16px 0',
-            color: '#94a3b8',
-            borderBottom: '1px solid #333',
+            color: THEME.text.secondary,
+            borderBottom: `1px solid ${THEME.border.subtle}`,
             paddingBottom: 8,
           }}>
             Progression Tree
@@ -322,8 +217,8 @@ function PokemonDetail({ pokemon, onClose }: PokemonDetailProps) {
         <h3 style={{
           fontSize: 18,
           margin: '0 0 16px 0',
-          color: '#94a3b8',
-          borderBottom: '1px solid #333',
+          color: THEME.text.secondary,
+          borderBottom: `1px solid ${THEME.border.subtle}`,
           paddingBottom: 8,
         }}>
           Starting Deck ({pokemon.deck.length} cards)
@@ -343,13 +238,13 @@ function PokemonDetail({ pokemon, onClose }: PokemonDetailProps) {
                 <div key={`${cardId}-${index}`} style={{
                   width: 140,
                   height: 180,
-                  background: '#1e1e2e',
-                  border: '2px solid #ef4444',
+                  background: THEME.bg.panel,
+                  border: `2px solid ${THEME.status.damage}`,
                   borderRadius: 8,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ef4444',
+                  color: THEME.status.damage,
                   fontSize: 12,
                   textAlign: 'center',
                   padding: 8,
@@ -374,15 +269,15 @@ interface StatBoxProps {
 function StatBox({ label, value, color }: StatBoxProps) {
   return (
     <div style={{
-      background: '#1e1e2e',
-      border: '1px solid #333',
+      background: THEME.bg.panel,
+      border: `1px solid ${THEME.border.subtle}`,
       borderRadius: 6,
       padding: 8,
       textAlign: 'center',
     }}>
       <div style={{
         fontSize: 11,
-        color: '#64748b',
+        color: THEME.text.tertiary,
         textTransform: 'uppercase',
         marginBottom: 4,
       }}>
@@ -414,8 +309,8 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
       display: 'flex',
       alignItems: 'flex-start',
       gap: 16,
-      background: '#1a1a24',
-      border: '1px solid #333',
+      background: THEME.bg.panelDark,
+      border: `1px solid ${THEME.border.subtle}`,
       borderRadius: 8,
       padding: 12,
     }}>
@@ -439,7 +334,7 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
       {/* Evolution sprite (if any) */}
       {evolutionSprite && (
         <img
-          src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${evolutionSprite}.gif`}
+          src={makeSpriteUrl(evolutionSprite)}
           alt={rung.name}
           style={{
             width: 48,
@@ -457,7 +352,7 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
         <div style={{
           fontSize: 16,
           fontWeight: 'bold',
-          color: '#e2e8f0',
+          color: THEME.text.primary,
           marginBottom: 4,
         }}>
           {rung.name}
@@ -467,8 +362,8 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
               fontSize: 11,
               padding: '2px 6px',
               borderRadius: 4,
-              background: '#4ade8033',
-              color: '#4ade80',
+              background: `${THEME.status.heal}33`,
+              color: THEME.status.heal,
             }}>
               EVOLVES
             </span>
@@ -481,10 +376,10 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
             fontSize: 13,
             marginBottom: 4,
           }}>
-            <span style={{ color: '#facc15', fontWeight: 'bold' }}>
+            <span style={{ color: THEME.accent, fontWeight: 'bold' }}>
               {passive.name}:
             </span>{' '}
-            <span style={{ color: '#94a3b8' }}>
+            <span style={{ color: THEME.text.secondary }}>
               {passive.description}
             </span>
           </div>
@@ -494,7 +389,7 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
         {rung.hpBoost > 0 && (
           <div style={{
             fontSize: 13,
-            color: '#4ade80',
+            color: THEME.status.heal,
           }}>
             +{rung.hpBoost} Max HP
           </div>
@@ -504,7 +399,7 @@ function ProgressionRungDisplay({ rung, isFirst, tree }: ProgressionRungDisplayP
         {rung.cardsToAdd.length > 0 && (
           <div style={{
             fontSize: 13,
-            color: '#60a5fa',
+            color: THEME.status.energy,
           }}>
             +Cards: {rung.cardsToAdd.map(id => {
               try {

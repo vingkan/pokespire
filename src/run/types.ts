@@ -28,21 +28,28 @@ export interface RunPokemon {
 export interface RunState {
   seed: number;               // RNG seed for deterministic drafting
   party: RunPokemon[];        // Party with run-specific state
+  bench: RunPokemon[];        // Bench Pokemon (not in active party, no EXP, no healing)
   currentNodeId: string;      // Current node ID
   visitedNodeIds: string[];   // All visited node IDs (for path tracking)
   nodes: MapNode[];           // All nodes in the map
   currentAct: number;         // 1 = Act 1, 2 = Act 2
+  recruitSeed: number;        // Separate seed for recruit encounter RNG
 }
 
 // --- Node Types ---
 
-export type MapNode = SpawnNode | RestNode | BattleNode | CardRemovalNode | ActTransitionNode;
+export type MapNode = SpawnNode | RestNode | BattleNode | CardRemovalNode | ActTransitionNode | EventNode | RecruitNode;
+
+export type NodeType = MapNode['type'];
 
 export interface BaseNode {
   id: string;                 // Unique node ID
   stage: number;              // Column in map (0 = spawn, 8 = boss)
   connectsTo: string[];       // Node IDs this connects to
   completed: boolean;
+  x: number;                  // Normalized 0-1 horizontal position on map
+  y: number;                  // Normalized 0-1 vertical position on map
+  size?: 'small' | 'normal' | 'large'; // Visual size on map (default: 'normal')
 }
 
 export interface SpawnNode extends BaseNode {
@@ -71,10 +78,23 @@ export interface ActTransitionNode extends BaseNode {
   nextAct: number;            // Act number to transition to
 }
 
-// Legacy types for backwards compatibility
-export type NodeDefinition = EventNode | LegacyBattleNode;
+export type EventType = 'train' | 'meditate' | 'forget';
 
-export interface EventNode {
+export interface EventNode extends BaseNode {
+  type: 'event';
+  eventType: EventType;       // Which event: train (+5 HP), meditate (+1 EXP), forget (remove cards)
+}
+
+export interface RecruitNode extends BaseNode {
+  type: 'recruit';
+  pokemonId: string;          // Wild Pokemon available to recruit
+  recruited: boolean;         // Whether the player already recruited this Pokemon
+}
+
+// Legacy types for backwards compatibility
+export type NodeDefinition = LegacyEventNode | LegacyBattleNode;
+
+export interface LegacyEventNode {
   type: 'event';
   hpBoost: number;
   completed: boolean;

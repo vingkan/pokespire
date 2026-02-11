@@ -82,7 +82,7 @@ export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
       gap: 24,
       padding: 32,
       color: THEME.text.primary,
-      minHeight: '100vh',
+      minHeight: '100dvh',
       overflowY: 'auto',
       background: '#0f0f17',
       position: 'relative',

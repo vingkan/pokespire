@@ -63,6 +63,10 @@ export const POKEMON_WEIGHTS: Record<string, number> = {
   // Caterpie line
   caterpie: 1,
   butterfree: 8,  // Real: 32kg, increased for sprite scaling
+
+  // Weedle line
+  weedle: 3,
+  beedrill: 14,   // Real: 29.5kg, reduced for sprite scaling
 };
 
 // Reference Pokemon and base sprite size

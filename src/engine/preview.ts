@@ -6,7 +6,8 @@ import {
   checkBlazeStrike, checkFortifiedCannons, checkCounterCurrent, checkStaticField,
   checkKeenEye, checkPredatorsPatience, checkThickHide, checkThickFat,
   checkUnderdog, checkAngerPoint, checkSheerForce, checkScrappy,
-  checkHustleMultiplier, checkRelentless, checkReckless, checkTintedLens
+  checkHustleMultiplier, checkRelentless, checkReckless, checkTintedLens,
+  checkPoisonBarb, checkAdaptability, checkSwarmStrike
 } from './passives';
 import { getBloomingCycleReduction } from './damage';
 
@@ -79,12 +80,15 @@ export function calculateDamagePreview(
   const predatorsPatienceBonus = checkPredatorsPatience(source, target);
   const underdogBonus = checkUnderdog(source, card);
   const scrappyBonus = checkScrappy(source, card);
+  const poisonBarbBonus = checkPoisonBarb(source, card);
+  const adaptabilityBonus = checkAdaptability(source, card);
   const hustleMultiplier = checkHustleMultiplier(source);
   const relentlessBonus = checkRelentless(source);
 
   // Multipliers (dryRun=true to avoid side effects during preview)
   const { shouldApply: isBlazeStrike } = checkBlazeStrike(state, source, card, true);
-  const blazeStrikeMultiplier = isBlazeStrike ? 2 : 1;
+  const { shouldApply: isSwarmStrike } = checkSwarmStrike(state, source, card, true);
+  const blazeStrikeMultiplier = isBlazeStrike ? 2 : isSwarmStrike ? 2 : 1;
   const angerPointMultiplier = checkAngerPoint(source);
   const sheerForceMultiplier = checkSheerForce(source);
   const recklessMultiplier = checkReckless(source, card);
@@ -104,7 +108,7 @@ export function calculateDamagePreview(
   // Calculate raw damage (before evasion/block)
   let rawDamage = baseDamage + strength + stab + fortifiedBonus + counterBonus +
     keenEyeBonus + predatorsPatienceBonus + underdogBonus +
-    scrappyBonus + relentlessBonus - enfeeble;
+    scrappyBonus + poisonBarbBonus + adaptabilityBonus + relentlessBonus - enfeeble;
   rawDamage = Math.max(rawDamage, 1);
 
   // Apply multipliers

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import type { PokemonData, Position, Row, Column } from '../../engine/types';
 import { STARTER_POKEMON } from '../../data/loaders';
+import { ScreenShell } from '../components/ScreenShell';
+import { Flourish } from '../components/Flourish';
+import { PokemonTile } from '../components/PokemonTile';
 import { THEME } from '../theme';
 
 interface Props {
@@ -10,563 +13,49 @@ interface Props {
 
 const allPokemon = Object.values(STARTER_POKEMON);
 
-// Split into recommended (classic starters) and others
 const RECOMMENDED_IDS = ['charmander', 'squirtle', 'bulbasaur', 'pikachu'];
 const recommendedPokemon = allPokemon.filter(p => RECOMMENDED_IDS.includes(p.id));
 const otherPokemon = allPokemon.filter(p => !RECOMMENDED_IDS.includes(p.id));
 
 type Phase = 'select' | 'position';
-
-// Grid slot: row + column
 type SlotKey = `${Row}-${Column}`;
 
-export function PartySelectScreen({ onStart, onRestart }: Props) {
-  const [phase, setPhase] = useState<Phase>('select');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  // Map from slot key to pokemon id
-  const [formation, setFormation] = useState<Map<SlotKey, string>>(new Map());
-  // Pokemon waiting to be placed
-  const [unplacedPokemon, setUnplacedPokemon] = useState<string[]>([]);
-  // Drag state
-  const [draggedPokemonId, setDraggedPokemonId] = useState<string | null>(null);
-  const [dragSource, setDragSource] = useState<SlotKey | 'unplaced' | null>(null);
-  const [dragOverTarget, setDragOverTarget] = useState<SlotKey | 'unplaced' | null>(null);
+function makeSpriteUrl(id: string): string {
+  return `https://img.pokemondb.net/sprites/black-white/anim/normal/${id}.gif`;
+}
 
-  const toggle = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else if (next.size < 4) {
-        next.add(id);
-      }
-      return next;
-    });
-  };
+// ── Pokemon Card (selection phase) ─────────────────────────────────
 
-  const party = allPokemon.filter(s => selected.has(s.id));
-
-  const goToPositioning = () => {
-    // Initialize with selected Pokemon as unplaced
-    setUnplacedPokemon([...selected]);
-    setFormation(new Map());
-    setPhase('position');
-  };
-
-  const goBackToSelect = () => {
-    setPhase('select');
-    setFormation(new Map());
-    setUnplacedPokemon([]);
-  };
-
-  // Drag handlers
-  const handleDragStart = (e: React.DragEvent, pokemonId: string, source: SlotKey | 'unplaced') => {
-    setDraggedPokemonId(pokemonId);
-    setDragSource(source);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('pokemonId', pokemonId);
-    e.dataTransfer.setData('source', source);
-    // Reduce opacity of dragged element
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5';
-    }
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    // Restore opacity
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '1';
-    }
-    setDraggedPokemonId(null);
-    setDragSource(null);
-    setDragOverTarget(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent, target: SlotKey | 'unplaced') => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverTarget(target);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverTarget(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, target: SlotKey | 'unplaced') => {
-    e.preventDefault();
-    setDragOverTarget(null);
-
-    const pokemonId = e.dataTransfer.getData('pokemonId');
-    const source = e.dataTransfer.getData('source') as SlotKey | 'unplaced';
-
-    if (!pokemonId || !source) return;
-    if (source === target) return; // Dropping on same location
-
-    // Handle drop logic
-    if (target === 'unplaced') {
-      // Moving to unplaced area
-      setUnplacedPokemon(prev => [...prev, pokemonId]);
-      if (source !== 'unplaced') {
-        // Remove from slot
-        setFormation(prev => {
-          const next = new Map(prev);
-          next.delete(source);
-          return next;
-        });
-      } else {
-        // Remove from unplaced array (shouldn't happen, but handle it)
-        setUnplacedPokemon(prev => prev.filter(id => id !== pokemonId));
-      }
-    } else {
-      // Moving to a slot
-      const currentPokemonInSlot = formation.get(target);
-      
-      setFormation(prev => {
-        const next = new Map(prev);
-        // Place dragged Pokemon in target slot
-        next.set(target, pokemonId);
-        // Remove from source if it was a slot
-        if (source !== 'unplaced') {
-          next.delete(source);
-        }
-        return next;
-      });
-
-      // If slot was occupied, move that Pokemon to unplaced
-      if (currentPokemonInSlot) {
-        setUnplacedPokemon(prev => [...prev, currentPokemonInSlot]);
-      }
-
-      // Remove from unplaced if source was unplaced
-      if (source === 'unplaced') {
-        setUnplacedPokemon(prev => prev.filter(id => id !== pokemonId));
-      }
-    }
-
-    setDraggedPokemonId(null);
-    setDragSource(null);
-  };
-
-  const startBattle = () => {
-    // Build party array and positions array in matching order
-    const partyList: PokemonData[] = [];
-    const positions: Position[] = [];
-
-    formation.forEach((pokemonId, slotKey) => {
-      const [row, colStr] = slotKey.split('-') as [Row, string];
-      const col = parseInt(colStr) as Column;
-      const pokemon = allPokemon.find(p => p.id === pokemonId);
-      if (pokemon) {
-        partyList.push(pokemon);
-        positions.push({ row, column: col });
-      }
-    });
-
-    onStart(partyList, positions);
-  };
-
-  const allPlaced = unplacedPokemon.length === 0 && formation.size > 0;
-
-  const getPokemonInSlot = (row: Row, col: Column): PokemonData | null => {
-    const key: SlotKey = `${row}-${col}`;
-    const id = formation.get(key);
-    if (!id) return null;
-    return allPokemon.find(p => p.id === id) || null;
-  };
-
-  // Selection phase
-  if (phase === 'select') {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 24,
-        padding: 32,
-        color: THEME.text.primary,
-        position: 'relative',
-        minHeight: '100vh',
-        overflowY: 'auto',
-        background: '#0f0f17',
-      }}>
-        {/* Reset button */}
-        <button
-          onClick={onRestart}
-          style={{
-            position: 'absolute',
-            top: 16,
-            left: 16,
-            padding: '8px 16px',
-            fontSize: 13,
-            borderRadius: 6,
-            border: '1px solid ' + THEME.border.bright,
-            background: 'transparent',
-            color: THEME.text.secondary,
-            cursor: 'pointer',
-          }}
-        >
-          Main Menu
-        </button>
-
-        <h1 style={{ fontSize: 30, margin: 0, color: '#facc15', letterSpacing: THEME.heading.letterSpacing }}>
-          Choose Your Party
-        </h1>
-        <p style={{ color: THEME.text.secondary, margin: 0 }}>
-          Select 1-4 Pokemon for battle
-        </p>
-
-        {/* Recommended Section */}
-        <div style={{ width: '100%', maxWidth: 800 }}>
-          <div style={{
-            fontSize: 14,
-            color: '#facc15',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            marginBottom: 12,
-            textAlign: 'center',
-          }}>
-            Recommended
-          </div>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {recommendedPokemon.map(pokemon => {
-              const isSelected = selected.has(pokemon.id);
-              return (
-                <div
-                  key={pokemon.id}
-                  onClick={() => toggle(pokemon.id)}
-                  style={{
-                    width: 160,
-                    padding: 16,
-                    borderRadius: 12,
-                    border: isSelected ? '3px solid #facc15' : '3px solid ' + THEME.border.subtle,
-                    background: isSelected ? '#2d2d3f' : '#1e1e2e',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <img
-                    src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
-                    alt={pokemon.name}
-                    style={{ width: 80, height: 80, imageRendering: 'pixelated', objectFit: 'contain' }}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                  <div style={{ fontSize: 17, fontWeight: 'bold', marginTop: 8 }}>
-                    {pokemon.name}
-                  </div>
-                  <div style={{ fontSize: 12, color: THEME.text.secondary, marginTop: 4 }}>
-                    HP: {pokemon.maxHp} | SPD: {pokemon.baseSpeed}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Others Section */}
-        <div style={{
-          width: '100%',
-          maxWidth: 800,
-          marginTop: 24,
-          padding: 20,
-          background: '#1a1a24',
-          borderRadius: 12,
-          border: '1px solid ' + THEME.border.subtle,
-        }}>
-          <div style={{
-            fontSize: 14,
-            color: THEME.text.secondary,
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            marginBottom: 12,
-            textAlign: 'center',
-          }}>
-            Others
-          </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {otherPokemon.map(pokemon => {
-              const isSelected = selected.has(pokemon.id);
-              return (
-                <div
-                  key={pokemon.id}
-                  onClick={() => toggle(pokemon.id)}
-                  style={{
-                    width: 140,
-                    padding: 12,
-                    borderRadius: 10,
-                    border: isSelected ? '3px solid #facc15' : '2px solid ' + THEME.border.subtle,
-                    background: isSelected ? '#2d2d3f' : '#1e1e2e',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <img
-                    src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
-                    alt={pokemon.name}
-                    style={{ width: 64, height: 64, imageRendering: 'pixelated', objectFit: 'contain' }}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                  <div style={{ fontSize: 15, fontWeight: 'bold', marginTop: 6 }}>
-                    {pokemon.name}
-                  </div>
-                  <div style={{ fontSize: 11, color: THEME.text.secondary, marginTop: 2 }}>
-                    HP: {pokemon.maxHp} | SPD: {pokemon.baseSpeed}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <button
-          onClick={goToPositioning}
-          disabled={party.length === 0}
-          style={{
-            padding: '12px 32px',
-            fontSize: 17,
-            fontWeight: 'bold',
-            borderRadius: 8,
-            border: 'none',
-            background: party.length > 0 ? '#facc15' : '#333',
-            color: party.length > 0 ? '#000' : '#666',
-            cursor: party.length > 0 ? 'pointer' : 'not-allowed',
-          }}
-        >
-          Set Formation ({party.length} selected)
-        </button>
-      </div>
-    );
-  }
-
-  // Positioning phase
+function PokemonCard({
+  pokemon,
+  isSelected,
+  onClick,
+  size,
+}: {
+  pokemon: PokemonData;
+  isSelected: boolean;
+  onClick: () => void;
+  size: 'large' | 'small';
+}) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 24,
-      padding: 32,
-      color: THEME.text.primary,
-      position: 'relative',
-      minHeight: '100vh',
-      overflowY: 'auto',
-      background: '#0f0f17',
-    }}>
-      {/* Reset button */}
-      <button
-        onClick={onRestart}
-        style={{
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          padding: '8px 16px',
-          fontSize: 13,
-          borderRadius: 6,
-          border: '1px solid ' + THEME.border.bright,
-          background: 'transparent',
-          color: THEME.text.secondary,
-          cursor: 'pointer',
-        }}
-      >
-        Main Menu
-      </button>
-
-      <h1 style={{ fontSize: 30, margin: 0, color: '#facc15', letterSpacing: THEME.heading.letterSpacing }}>
-        Set Formation
-      </h1>
-      <p style={{ color: THEME.text.secondary, margin: 0 }}>
-        Drag and drop Pokemon to set your formation (Back row is protected by Front row)
-      </p>
-
-      {/* Formation Grid */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* Back row label */}
-        <div style={{ textAlign: 'center', fontSize: 13, color: THEME.text.tertiary, textTransform: 'uppercase' }}>
-          Back Row (Protected)
-        </div>
-        {/* Back row */}
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          {([0, 1, 2] as Column[]).map(col => {
-            const pokemon = getPokemonInSlot('back', col);
-            const slotKey: SlotKey = `back-${col}`;
-            return (
-              <FormationSlot
-                key={`back-${col}`}
-                pokemon={pokemon}
-                slotKey={slotKey}
-                isEmpty={!pokemon}
-                draggedPokemonId={draggedPokemonId}
-                dragSource={dragSource}
-                dragOverTarget={dragOverTarget}
-                onDragStart={(e) => pokemon && handleDragStart(e, pokemon.id, slotKey)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, slotKey)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, slotKey)}
-              />
-            );
-          })}
-        </div>
-
-        {/* Front row label */}
-        <div style={{ textAlign: 'center', fontSize: 13, color: THEME.text.tertiary, textTransform: 'uppercase', marginTop: 8 }}>
-          Front Row (Exposed)
-        </div>
-        {/* Front row */}
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          {([0, 1, 2] as Column[]).map(col => {
-            const pokemon = getPokemonInSlot('front', col);
-            const slotKey: SlotKey = `front-${col}`;
-            return (
-              <FormationSlot
-                key={`front-${col}`}
-                pokemon={pokemon}
-                slotKey={slotKey}
-                isEmpty={!pokemon}
-                draggedPokemonId={draggedPokemonId}
-                dragSource={dragSource}
-                dragOverTarget={dragOverTarget}
-                onDragStart={(e) => pokemon && handleDragStart(e, pokemon.id, slotKey)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, slotKey)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, slotKey)}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Unplaced Pokemon - Always visible */}
-      <div style={{ marginTop: 16 }}>
-        <div style={{ fontSize: 15, color: THEME.text.secondary, marginBottom: 8, textAlign: 'center' }}>
-          {unplacedPokemon.length > 0 ? 'Drag to place:' : 'Drop Pokemon here to unplace:'}
-        </div>
-        <div
-          onDragOver={(e) => handleDragOver(e, 'unplaced')}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, 'unplaced')}
-          style={{
-            minHeight: 100,
-            padding: 16,
-            background: dragOverTarget === 'unplaced' ? '#2d2d3f' : '#1a1a24',
-            border: dragOverTarget === 'unplaced' 
-              ? '2px dashed #facc15'
-              : unplacedPokemon.length > 0
-                ? '2px solid ' + THEME.border.medium
-                : '2px dashed ' + THEME.border.medium,
-            borderRadius: 8,
-            display: 'flex',
-            gap: 8,
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            transition: 'all 0.2s',
-          }}
-        >
-          {unplacedPokemon.length > 0 ? (
-            unplacedPokemon.map(id => {
-              const pokemon = allPokemon.find(p => p.id === id);
-              if (!pokemon) return null;
-              return (
-                <div
-                  key={id}
-                  draggable={true}
-                  onDragStart={(e) => handleDragStart(e, id, 'unplaced')}
-                  onDragEnd={handleDragEnd}
-                  style={{
-                    width: 100,
-                    padding: 8,
-                    background: '#2d2d3f',
-                    border: '2px solid #facc15',
-                    borderRadius: 8,
-                    cursor: 'grab',
-                    textAlign: 'center',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseDown={(e) => {
-                    if (e.currentTarget instanceof HTMLElement) {
-                      e.currentTarget.style.cursor = 'grabbing';
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    if (e.currentTarget instanceof HTMLElement) {
-                      e.currentTarget.style.cursor = 'grab';
-                    }
-                  }}
-                >
-                  <img
-                    src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
-                    alt={pokemon.name}
-                    style={{ width: 50, height: 50, imageRendering: 'pixelated', objectFit: 'contain' }}
-                    draggable={false}
-                  />
-                  <div style={{ fontSize: 13, fontWeight: 'bold' }}>{pokemon.name}</div>
-                </div>
-              );
-            })
-          ) : (
-            <div style={{
-              color: THEME.text.tertiary,
-              fontSize: 14,
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              height: '100%',
-              minHeight: 60,
-            }}>
-              Drop Pokemon here
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: 16, marginTop: 16 }}>
-        <button
-          onClick={goBackToSelect}
-          style={{
-            padding: '12px 24px',
-            fontSize: 15,
-            fontWeight: 'bold',
-            borderRadius: 8,
-            border: '2px solid ' + THEME.border.bright,
-            background: 'transparent',
-            color: THEME.text.secondary,
-            cursor: 'pointer',
-          }}
-        >
-          Back
-        </button>
-        <button
-          onClick={startBattle}
-          disabled={!allPlaced}
-          style={{
-            padding: '12px 32px',
-            fontSize: 17,
-            fontWeight: 'bold',
-            borderRadius: 8,
-            border: 'none',
-            background: allPlaced ? '#facc15' : '#333',
-            color: allPlaced ? '#000' : '#666',
-            cursor: allPlaced ? 'pointer' : 'not-allowed',
-          }}
-        >
-          Start Battle
-        </button>
-      </div>
-    </div>
+    <PokemonTile
+      name={pokemon.name}
+      spriteUrl={makeSpriteUrl(pokemon.id)}
+      primaryType={pokemon.types[0]}
+      secondaryType={pokemon.types[1]}
+      size={size === 'large' ? 'large' : 'medium'}
+      isSelected={isSelected}
+      onClick={onClick}
+      stats={`HP: ${pokemon.maxHp} | SPD: ${pokemon.baseSpeed}`}
+    />
   );
 }
+
+// ── Formation Slot (positioning phase) ─────────────────────────────
 
 function FormationSlot({
   pokemon,
   slotKey,
-  isEmpty,
   draggedPokemonId,
   dragSource,
   dragOverTarget,
@@ -578,7 +67,6 @@ function FormationSlot({
 }: {
   pokemon: PokemonData | null;
   slotKey: SlotKey;
-  isEmpty: boolean;
   draggedPokemonId: string | null;
   dragSource: SlotKey | 'unplaced' | null;
   dragOverTarget: SlotKey | 'unplaced' | null;
@@ -604,16 +92,16 @@ function FormationSlot({
         width: 100,
         height: 120,
         border: isDragOver && canDrop
-          ? '2px solid #facc15'
-          : isEmpty
-            ? '2px dashed ' + THEME.border.medium
-            : '2px solid #facc15',
+          ? `2px solid ${THEME.accent}`
+          : pokemon
+            ? `2px solid ${THEME.border.medium}`
+            : `2px dashed ${THEME.border.subtle}`,
         borderRadius: 8,
         background: isDragOver && canDrop
-          ? '#3d3d4f'
-          : isEmpty
-            ? '#1a1a24'
-            : '#2d2d3f',
+          ? THEME.bg.elevated
+          : pokemon
+            ? THEME.bg.panel
+            : THEME.bg.base,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -621,23 +109,13 @@ function FormationSlot({
         cursor: pokemon ? 'grab' : canDrop ? 'pointer' : 'default',
         transition: 'all 0.2s',
         opacity: isDragging ? 0.5 : 1,
-        boxShadow: isDragOver && canDrop ? '0 0 8px rgba(250, 204, 21, 0.5)' : 'none',
-      }}
-      onMouseDown={(e) => {
-        if (pokemon && e.currentTarget instanceof HTMLElement) {
-          e.currentTarget.style.cursor = 'grabbing';
-        }
-      }}
-      onMouseUp={(e) => {
-        if (pokemon && e.currentTarget instanceof HTMLElement) {
-          e.currentTarget.style.cursor = 'grab';
-        }
+        boxShadow: isDragOver && canDrop ? `0 0 8px ${THEME.accent}55` : 'none',
       }}
     >
       {pokemon ? (
         <>
           <img
-            src={`https://img.pokemondb.net/sprites/black-white/anim/normal/${pokemon.id}.gif`}
+            src={makeSpriteUrl(pokemon.id)}
             alt={pokemon.name}
             style={{ width: 60, height: 60, imageRendering: 'pixelated', objectFit: 'contain' }}
             draggable={false}
@@ -647,8 +125,361 @@ function FormationSlot({
           </div>
         </>
       ) : (
-        <div style={{ fontSize: 26, color: isDragOver && canDrop ? '#facc15' : THEME.border.medium }}>+</div>
+        <div style={{ fontSize: 26, color: isDragOver && canDrop ? THEME.accent : THEME.border.medium }}>+</div>
       )}
     </div>
+  );
+}
+
+// ── Root Component ─────────────────────────────────────────────────
+
+export function PartySelectScreen({ onStart, onRestart }: Props) {
+  const [phase, setPhase] = useState<Phase>('select');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [formation, setFormation] = useState<Map<SlotKey, string>>(new Map());
+  const [unplacedPokemon, setUnplacedPokemon] = useState<string[]>([]);
+  const [draggedPokemonId, setDraggedPokemonId] = useState<string | null>(null);
+  const [dragSource, setDragSource] = useState<SlotKey | 'unplaced' | null>(null);
+  const [dragOverTarget, setDragOverTarget] = useState<SlotKey | 'unplaced' | null>(null);
+
+  const toggle = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 4) next.add(id);
+      return next;
+    });
+  };
+
+  const party = allPokemon.filter(s => selected.has(s.id));
+
+  const goToPositioning = () => {
+    setUnplacedPokemon([...selected]);
+    setFormation(new Map());
+    setPhase('position');
+  };
+
+  const goBackToSelect = () => {
+    setPhase('select');
+    setFormation(new Map());
+    setUnplacedPokemon([]);
+  };
+
+  // ── Drag handlers ──
+
+  const handleDragStart = (e: React.DragEvent, pokemonId: string, source: SlotKey | 'unplaced') => {
+    setDraggedPokemonId(pokemonId);
+    setDragSource(source);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('pokemonId', pokemonId);
+    e.dataTransfer.setData('source', source);
+    if (e.currentTarget instanceof HTMLElement) e.currentTarget.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (e.currentTarget instanceof HTMLElement) e.currentTarget.style.opacity = '1';
+    setDraggedPokemonId(null);
+    setDragSource(null);
+    setDragOverTarget(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, target: SlotKey | 'unplaced') => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverTarget(target);
+  };
+
+  const handleDragLeave = () => setDragOverTarget(null);
+
+  const handleDrop = (e: React.DragEvent, target: SlotKey | 'unplaced') => {
+    e.preventDefault();
+    setDragOverTarget(null);
+
+    const pokemonId = e.dataTransfer.getData('pokemonId');
+    const source = e.dataTransfer.getData('source') as SlotKey | 'unplaced';
+    if (!pokemonId || !source || source === target) return;
+
+    if (target === 'unplaced') {
+      setUnplacedPokemon(prev => [...prev, pokemonId]);
+      if (source !== 'unplaced') {
+        setFormation(prev => { const next = new Map(prev); next.delete(source); return next; });
+      }
+    } else {
+      const currentPokemonInSlot = formation.get(target);
+      setFormation(prev => {
+        const next = new Map(prev);
+        next.set(target, pokemonId);
+        if (source !== 'unplaced') next.delete(source);
+        return next;
+      });
+      if (currentPokemonInSlot) setUnplacedPokemon(prev => [...prev, currentPokemonInSlot]);
+      if (source === 'unplaced') setUnplacedPokemon(prev => prev.filter(id => id !== pokemonId));
+    }
+
+    setDraggedPokemonId(null);
+    setDragSource(null);
+  };
+
+  const startBattle = () => {
+    const partyList: PokemonData[] = [];
+    const positions: Position[] = [];
+    formation.forEach((pokemonId, slotKey) => {
+      const [row, colStr] = slotKey.split('-') as [Row, string];
+      const col = parseInt(colStr) as Column;
+      const pokemon = allPokemon.find(p => p.id === pokemonId);
+      if (pokemon) {
+        partyList.push(pokemon);
+        positions.push({ row, column: col });
+      }
+    });
+    onStart(partyList, positions);
+  };
+
+  const allPlaced = unplacedPokemon.length === 0 && formation.size > 0;
+
+  const getPokemonInSlot = (row: Row, col: Column): PokemonData | null => {
+    const id = formation.get(`${row}-${col}`);
+    return id ? allPokemon.find(p => p.id === id) || null : null;
+  };
+
+  // ════════════════════════════════════════════════════════════════
+  // SELECT PHASE
+  // ════════════════════════════════════════════════════════════════
+
+  if (phase === 'select') {
+    const selectHeader = (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '14px 24px',
+        borderBottom: `1px solid ${THEME.border.subtle}`,
+      }}>
+        <button
+          onClick={onRestart}
+          style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}
+        >
+          Main Menu
+        </button>
+        <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
+          Choose Your Party
+        </h1>
+        <button
+          onClick={goToPositioning}
+          disabled={party.length === 0}
+          style={{
+            padding: '10px 24px',
+            ...(party.length > 0 ? THEME.button.primary : THEME.button.secondary),
+            fontSize: 14,
+            opacity: party.length > 0 ? 1 : 0.4,
+            cursor: party.length > 0 ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Set Formation ({party.length}) &rarr;
+        </button>
+      </div>
+    );
+
+    return (
+      <ScreenShell header={selectHeader} bodyStyle={{ padding: '24px 16px 48px' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+          <p style={{ color: THEME.text.secondary, margin: 0, textAlign: 'center' }}>
+            Select 1-4 Pokemon for battle
+          </p>
+
+          {/* Recommended Section */}
+          <div style={{ width: '100%' }}>
+            <div style={{
+              fontSize: 13, color: THEME.accent, fontWeight: 'bold',
+              ...THEME.heading, marginBottom: 12, textAlign: 'center',
+            }}>
+              Recommended
+            </div>
+            <Flourish variant="heading" color={THEME.accent} />
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
+              {recommendedPokemon.map(pokemon => (
+                <PokemonCard
+                  key={pokemon.id}
+                  pokemon={pokemon}
+                  isSelected={selected.has(pokemon.id)}
+                  onClick={() => toggle(pokemon.id)}
+                  size="large"
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Others Section */}
+          <div style={{
+            width: '100%',
+            padding: 20,
+            background: THEME.bg.panelDark,
+            borderRadius: 12,
+            border: `1px solid ${THEME.border.subtle}`,
+          }}>
+            <div style={{
+              fontSize: 13, color: THEME.text.secondary, fontWeight: 'bold',
+              ...THEME.heading, marginBottom: 12, textAlign: 'center',
+            }}>
+              Others
+            </div>
+            <Flourish variant="heading" color={THEME.text.tertiary} />
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
+              {otherPokemon.map(pokemon => (
+                <PokemonCard
+                  key={pokemon.id}
+                  pokemon={pokemon}
+                  isSelected={selected.has(pokemon.id)}
+                  onClick={() => toggle(pokemon.id)}
+                  size="small"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </ScreenShell>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // POSITION PHASE
+  // ════════════════════════════════════════════════════════════════
+
+  const positionHeader = (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '14px 24px',
+      borderBottom: `1px solid ${THEME.border.subtle}`,
+    }}>
+      <button
+        onClick={goBackToSelect}
+        style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}
+      >
+        &larr; Back
+      </button>
+      <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
+        Set Formation
+      </h1>
+      <button
+        onClick={startBattle}
+        disabled={!allPlaced}
+        style={{
+          padding: '10px 24px',
+          ...(allPlaced ? THEME.button.primary : THEME.button.secondary),
+          fontSize: 14,
+          opacity: allPlaced ? 1 : 0.4,
+          cursor: allPlaced ? 'pointer' : 'not-allowed',
+        }}
+      >
+        Start Battle &rarr;
+      </button>
+    </div>
+  );
+
+  // Render the 2-column x 3-row grid (Back | Front), matching battle layout
+  const renderFormationGrid = () => {
+    const positions: Column[] = [0, 1, 2];
+    const cols: Row[] = ['back', 'front'];
+    const labels = ['Back', 'Front'];
+
+    return (
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+        {cols.map((row, ci) => (
+          <div key={row} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 10, color: THEME.text.tertiary, ...THEME.heading }}>{labels[ci]}</div>
+            {positions.map(col => {
+              const pokemon = getPokemonInSlot(row, col);
+              const slotKey: SlotKey = `${row}-${col}`;
+              return (
+                <FormationSlot
+                  key={slotKey}
+                  pokemon={pokemon}
+                  slotKey={slotKey}
+                  draggedPokemonId={draggedPokemonId}
+                  dragSource={dragSource}
+                  dragOverTarget={dragOverTarget}
+                  onDragStart={(e) => pokemon && handleDragStart(e, pokemon.id, slotKey)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, slotKey)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, slotKey)}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <ScreenShell header={positionHeader} bodyStyle={{ padding: '24px 16px 48px' }}>
+      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <p style={{ color: THEME.text.secondary, margin: 0, textAlign: 'center' }}>
+          Drag Pokemon into formation — Back row is protected by Front row
+        </p>
+
+        {/* Formation Grid */}
+        {renderFormationGrid()}
+
+        {/* Unplaced Pokemon */}
+        <div style={{ width: '100%' }}>
+          <div style={{ fontSize: 12, color: THEME.text.secondary, marginBottom: 8, textAlign: 'center' }}>
+            {unplacedPokemon.length > 0 ? 'Drag to place:' : 'Drop here to unplace:'}
+          </div>
+          <div
+            onDragOver={(e) => handleDragOver(e, 'unplaced')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'unplaced')}
+            style={{
+              minHeight: 90,
+              padding: 16,
+              background: dragOverTarget === 'unplaced' ? THEME.bg.elevated : THEME.bg.panelDark,
+              border: dragOverTarget === 'unplaced'
+                ? `2px dashed ${THEME.accent}`
+                : unplacedPokemon.length > 0
+                  ? `2px solid ${THEME.border.medium}`
+                  : `2px dashed ${THEME.border.subtle}`,
+              borderRadius: 8,
+              display: 'flex',
+              gap: 8,
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              transition: 'all 0.2s',
+            }}
+          >
+            {unplacedPokemon.length > 0 ? (
+              unplacedPokemon.map(id => {
+                const pokemon = allPokemon.find(p => p.id === id);
+                if (!pokemon) return null;
+                return (
+                  <PokemonTile
+                    key={id}
+                    name={pokemon.name}
+                    spriteUrl={makeSpriteUrl(pokemon.id)}
+                    primaryType={pokemon.types[0]}
+                    size="small"
+                    isSelected
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, id, 'unplaced')}
+                    onDragEnd={handleDragEnd}
+                  />
+                );
+              })
+            ) : (
+              <div style={{
+                color: THEME.text.tertiary, fontSize: 13,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                minHeight: 50,
+              }}>
+                Drop Pokemon here
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </ScreenShell>
   );
 }

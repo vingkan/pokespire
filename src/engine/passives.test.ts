@@ -48,6 +48,9 @@ import {
   checkHypnoticGazeCostIncrease,
   checkVolatile,
   checkTintedLens,
+  checkPoisonBarb,
+  checkAdaptability,
+  checkSwarmStrike,
 } from './passives';
 import { applyStatus, checkStatusImmunity, getStatusStacks } from './status';
 import { getMove } from '../data/loaders';
@@ -1508,6 +1511,113 @@ describe('Passive Abilities', () => {
       const attacker = createTestCombatant({ passiveIds: [] });
 
       expect(checkTintedLens(attacker, 0.75)).toBe(0.75);
+    });
+  });
+
+  // ============================================================
+  // Weedle/Beedrill Line
+  // ============================================================
+
+  describe('Poison Barb', () => {
+    it('adds +2 damage to Poison-type attacks', () => {
+      const attacker = createTestCombatant({ passiveIds: ['poison_barb'] });
+      const poisonCard = getMove('poison-sting');
+      expect(checkPoisonBarb(attacker, poisonCard)).toBe(2);
+    });
+
+    it('does not apply to non-Poison attacks', () => {
+      const attacker = createTestCombatant({ passiveIds: ['poison_barb'] });
+      const normalCard = getMove('tackle');
+      const bugCard = getMove('bug-bite');
+      expect(checkPoisonBarb(attacker, normalCard)).toBe(0);
+      expect(checkPoisonBarb(attacker, bugCard)).toBe(0);
+    });
+
+    it('does not apply without the passive', () => {
+      const attacker = createTestCombatant({ passiveIds: [] });
+      const poisonCard = getMove('poison-sting');
+      expect(checkPoisonBarb(attacker, poisonCard)).toBe(0);
+    });
+  });
+
+  describe('Adaptability', () => {
+    it('gives +2 extra STAB for matching types', () => {
+      const attacker = createTestCombatant({
+        passiveIds: ['adaptability'],
+        types: ['bug', 'poison'],
+      });
+      const bugCard = getMove('bug-bite');
+      const poisonCard = getMove('poison-sting');
+      expect(checkAdaptability(attacker, bugCard)).toBe(2);
+      expect(checkAdaptability(attacker, poisonCard)).toBe(2);
+    });
+
+    it('does not apply for non-STAB moves', () => {
+      const attacker = createTestCombatant({
+        passiveIds: ['adaptability'],
+        types: ['bug', 'poison'],
+      });
+      const normalCard = getMove('tackle');
+      expect(checkAdaptability(attacker, normalCard)).toBe(0);
+    });
+
+    it('does not apply without the passive', () => {
+      const attacker = createTestCombatant({
+        passiveIds: [],
+        types: ['bug', 'poison'],
+      });
+      const bugCard = getMove('bug-bite');
+      expect(checkAdaptability(attacker, bugCard)).toBe(0);
+    });
+  });
+
+  describe('Swarm Strike', () => {
+    it('doubles first Bug attack each turn', () => {
+      const attacker = createTestCombatant({ passiveIds: ['swarm_strike'] });
+      const state = createTestCombatState([attacker]);
+      const bugCard = getMove('bug-bite');
+
+      const result1 = checkSwarmStrike(state, attacker, bugCard);
+      expect(result1.shouldApply).toBe(true);
+      expect(attacker.turnFlags.swarmStrikeUsedThisTurn).toBe(true);
+    });
+
+    it('does not trigger on second Bug attack', () => {
+      const attacker = createTestCombatant({ passiveIds: ['swarm_strike'] });
+      const state = createTestCombatState([attacker]);
+      const bugCard = getMove('bug-bite');
+
+      checkSwarmStrike(state, attacker, bugCard); // First
+      const result2 = checkSwarmStrike(state, attacker, bugCard); // Second
+      expect(result2.shouldApply).toBe(false);
+    });
+
+    it('does not trigger on non-Bug attacks', () => {
+      const attacker = createTestCombatant({ passiveIds: ['swarm_strike'] });
+      const state = createTestCombatState([attacker]);
+      const normalCard = getMove('tackle');
+
+      const result = checkSwarmStrike(state, attacker, normalCard);
+      expect(result.shouldApply).toBe(false);
+    });
+
+    it('does not trigger without the passive', () => {
+      const attacker = createTestCombatant({ passiveIds: [] });
+      const state = createTestCombatState([attacker]);
+      const bugCard = getMove('bug-bite');
+
+      const result = checkSwarmStrike(state, attacker, bugCard);
+      expect(result.shouldApply).toBe(false);
+    });
+
+    it('dryRun does not set the flag', () => {
+      const attacker = createTestCombatant({ passiveIds: ['swarm_strike'] });
+      const state = createTestCombatState([attacker]);
+      const bugCard = getMove('bug-bite');
+
+      const result = checkSwarmStrike(state, attacker, bugCard, true);
+      expect(result.shouldApply).toBe(true);
+      expect(attacker.turnFlags.swarmStrikeUsedThisTurn).toBe(false);
     });
   });
 });

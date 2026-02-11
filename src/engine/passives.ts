@@ -142,6 +142,7 @@ export function onTurnStart(
   combatant.turnFlags.infernoMomentumReducedIndex = null;
   combatant.turnFlags.relentlessUsedThisTurn = false;
   combatant.turnFlags.overgrowHealUsedThisTurn = false;
+  combatant.turnFlags.swarmStrikeUsedThisTurn = false;
 
   // Inferno Momentum: Reduce highest-cost FIRE card's cost by 3
   if (combatant.passiveIds.includes('inferno_momentum')) {
@@ -1014,6 +1015,67 @@ export function checkVolatile(attacker: Combatant): number {
     return 1.5;
   }
   return 1.0;
+}
+
+/**
+ * Check Poison Barb bonus damage.
+ * Poison Barb: Your Poison-type attacks deal +2 damage.
+ */
+export function checkPoisonBarb(
+  attacker: Combatant,
+  card: MoveDefinition
+): number {
+  if (attacker.passiveIds.includes('poison_barb') && card.type === 'poison') {
+    return 2;
+  }
+  return 0;
+}
+
+/**
+ * Check Adaptability STAB bonus.
+ * Adaptability: STAB bonus is doubled (+4 instead of +2).
+ * Returns the extra STAB bonus (0 or +2 on top of the normal +2).
+ */
+export function checkAdaptability(
+  attacker: Combatant,
+  card: MoveDefinition
+): number {
+  if (!attacker.passiveIds.includes('adaptability')) return 0;
+  // Only applies when the attacker has STAB for this move type
+  if (!attacker.types.includes(card.type)) return 0;
+  return 2; // Extra +2 on top of the normal +2 STAB
+}
+
+/**
+ * Check Swarm Strike effect.
+ * Swarm Strike: First Bug attack each turn deals double damage.
+ * Mirrors Blaze Strike pattern.
+ */
+export function checkSwarmStrike(
+  state: CombatState,
+  attacker: Combatant,
+  card: MoveDefinition,
+  dryRun: boolean = false
+): { shouldApply: boolean; logs: LogEntry[] } {
+  const logs: LogEntry[] = [];
+
+  const hasSwarm = attacker.passiveIds.includes('swarm_strike');
+  const isBug = card.type === 'bug';
+  const notUsed = !attacker.turnFlags.swarmStrikeUsedThisTurn;
+
+  if (hasSwarm && isBug && notUsed) {
+    if (!dryRun) {
+      attacker.turnFlags.swarmStrikeUsedThisTurn = true;
+      logs.push({
+        round: state.round,
+        combatantId: attacker.id,
+        message: `Swarm Strike: ${card.name} deals double damage!`,
+      });
+    }
+    return { shouldApply: true, logs };
+  }
+
+  return { shouldApply: false, logs };
 }
 
 /**

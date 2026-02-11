@@ -8,9 +8,10 @@ interface Props {
   node: CardRemovalNode;
   onComplete: (removals: Map<number, number[]>) => void;
   onSkip: () => void;
+  onRestart: () => void;
 }
 
-export function CardRemovalScreen({ run, node, onComplete, onSkip }: Props) {
+export function CardRemovalScreen({ run, node, onComplete, onSkip, onRestart }: Props) {
   // Track selected cards per Pokemon: Map<pokemonIndex, cardIndices[]>
   const [selectedCards, setSelectedCards] = useState<Map<number, Set<number>>>(new Map());
 
@@ -55,10 +56,29 @@ export function CardRemovalScreen({ run, node, onComplete, onSkip }: Props) {
       gap: 24,
       padding: 32,
       color: THEME.text.primary,
-      minHeight: '100vh',
+      minHeight: '100dvh',
       overflowY: 'auto',
       background: '#0f0f17',
+      position: 'relative',
     }}>
+      <button
+        onClick={onRestart}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid ' + THEME.border.bright,
+          background: 'transparent',
+          color: THEME.text.secondary,
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       {/* Header */}
       <div style={{
         fontSize: 36,

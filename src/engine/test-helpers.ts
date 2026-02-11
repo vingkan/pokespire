@@ -56,6 +56,7 @@ export function createTestCombatant(options: TestCombatantOptions = {}): Combata
       alliesDamagedThisRound: new Set(),
       overgrowHealUsedThisTurn: false,
       torrentShieldUsedThisTurn: false,
+      swarmStrikeUsedThisTurn: false,
     },
     costModifiers: {},
   };

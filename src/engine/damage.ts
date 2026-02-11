@@ -15,6 +15,7 @@ export interface DamageResult {
   enfeeble: number;
   stab: number;
   blazeStrikeMultiplier: number;  // 2 if Blaze Strike triggered, 1 otherwise
+  swarmStrikeMultiplier: number;  // 2 if Swarm Strike triggered, 1 otherwise
   bastionBarrageBonus: number;    // Bonus damage from Bastion Barrage
   bloomingCycleReduction: number; // Damage reduction from Blooming Cycle
   counterCurrentBonus: number;    // Bonus from Counter-Current
@@ -26,6 +27,8 @@ export interface DamageResult {
   ragingBullMultiplier: number;   // Multiplier from Raging Bull (1.5x Normal below 50% HP)
   hustleMultiplier: number;       // Multiplier from Hustle (1.3x for attacks)
   familyFuryBonus: number;        // Bonus from Family Fury (+2 per damaged ally)
+  poisonBarbBonus: number;        // Bonus from Poison Barb (+2 for Poison attacks)
+  adaptabilityBonus: number;      // Bonus from Adaptability (+2 extra STAB)
   typeEffectiveness: number;      // Type matchup multiplier (1.25x super effective, 0.75x not effective)
   evasion: number;
   afterEvasion: number;
@@ -42,6 +45,7 @@ export function hasSTAB(combatant: Combatant, moveType: MoveType): boolean {
 
 export interface DamageModifiers {
   isBlazeStrike?: boolean;
+  isSwarmStrike?: boolean;
   bastionBarrageBonus?: number;
   bloomingCycleReduction?: number;
   counterCurrentBonus?: number;
@@ -53,6 +57,8 @@ export interface DamageModifiers {
   ragingBullMultiplier?: number;
   hustleMultiplier?: number;
   familyFuryBonus?: number;
+  poisonBarbBonus?: number;
+  adaptabilityBonus?: number;
   typeEffectiveness?: number;  // Type matchup multiplier
   ignoreEvasion?: boolean;  // For Scrappy
 }
@@ -79,13 +85,16 @@ export function applyCardDamage(
   const gustBonus = mods.gustForceBonus ?? 0;
   const underdogBonus = mods.underdogBonus ?? 0;
   const familyFuryBonus = mods.familyFuryBonus ?? 0;
+  const poisonBarbBonus = mods.poisonBarbBonus ?? 0;
+  const adaptabilityBonus = mods.adaptabilityBonus ?? 0;
 
-  let rawDamage = baseDamage + strength + stab + bastionBonus + counterBonus + gustBonus + underdogBonus + familyFuryBonus - enfeeble;
+  let rawDamage = baseDamage + strength + stab + bastionBonus + counterBonus + gustBonus + underdogBonus + familyFuryBonus + poisonBarbBonus + adaptabilityBonus - enfeeble;
   rawDamage = Math.max(rawDamage, 1); // floor at 1
 
-  // Step 1.5: Apply Blaze Strike multiplier (after STAB, before other multipliers)
+  // Step 1.5: Apply strike multipliers (Blaze Strike / Swarm Strike — mutually exclusive)
   const blazeStrikeMultiplier = mods.isBlazeStrike ? 2 : 1;
-  rawDamage = rawDamage * blazeStrikeMultiplier;
+  const swarmStrikeMultiplier = mods.isSwarmStrike ? 2 : 1;
+  rawDamage = rawDamage * Math.max(blazeStrikeMultiplier, swarmStrikeMultiplier);
 
   // Step 1.6: Apply Raging Bull multiplier (Normal attacks +50% below 50% HP)
   const ragingBullMultiplier = mods.ragingBullMultiplier ?? 1.0;
@@ -140,6 +149,7 @@ export function applyCardDamage(
     enfeeble,
     stab,
     blazeStrikeMultiplier,
+    swarmStrikeMultiplier,
     bastionBarrageBonus: bastionBonus,
     bloomingCycleReduction: bloomingReduction,
     counterCurrentBonus: counterBonus,
@@ -151,6 +161,8 @@ export function applyCardDamage(
     ragingBullMultiplier: ragingBullMultiplier,
     hustleMultiplier: hustleMultiplier,
     familyFuryBonus: familyFuryBonus,
+    poisonBarbBonus: poisonBarbBonus,
+    adaptabilityBonus: adaptabilityBonus,
     typeEffectiveness: typeEffectiveness,
     evasion,
     afterEvasion,

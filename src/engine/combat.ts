@@ -54,6 +54,7 @@ function createCombatant(
       alliesDamagedThisRound: new Set(),
       overgrowHealUsedThisTurn: false,
       torrentShieldUsedThisTurn: false,
+      swarmStrikeUsedThisTurn: false,
     },
     costModifiers: {},
   };

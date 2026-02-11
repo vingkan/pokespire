@@ -17,10 +17,29 @@ export function RunVictoryScreen({ run, onNewRun }: Props) {
       gap: 32,
       padding: 32,
       color: THEME.text.primary,
-      minHeight: '100vh',
+      minHeight: '100dvh',
       overflowY: 'auto',
       background: '#0f0f17',
+      position: 'relative',
     }}>
+      <button
+        onClick={onNewRun}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          padding: '8px 16px',
+          fontSize: 13,
+          borderRadius: 6,
+          border: '1px solid ' + THEME.border.bright,
+          background: 'transparent',
+          color: THEME.text.secondary,
+          cursor: 'pointer',
+        }}
+      >
+        Main Menu
+      </button>
+
       <div style={{
         fontSize: 68,
         fontWeight: 'bold',
