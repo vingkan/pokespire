@@ -151,6 +151,7 @@ const TYPE_CHART: Record<MoveType, Partial<Record<MoveType, number>>> = {
     bug: NOT_EFFECTIVE,
     flying: IMMUNE_REPLACEMENT, // Would be immune in Pokemon
   },
+  item: {}, // Items don't deal damage, no type interactions
 };
 
 /**

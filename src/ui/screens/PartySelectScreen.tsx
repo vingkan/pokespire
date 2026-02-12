@@ -1,21 +1,32 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { PokemonData, Position, Row, Column } from '../../engine/types';
 import { STARTER_POKEMON } from '../../data/loaders';
+import { POKEMON_COSTS, STARTING_GOLD } from '../../data/shop';
 import { ScreenShell } from '../components/ScreenShell';
 import { Flourish } from '../components/Flourish';
 import { PokemonTile } from '../components/PokemonTile';
 import { THEME } from '../theme';
 
 interface Props {
-  onStart: (party: PokemonData[], positions: Position[]) => void;
+  onStart: (party: PokemonData[], positions: Position[], gold: number) => void;
   onRestart: () => void;
 }
 
 const allPokemon = Object.values(STARTER_POKEMON);
 
-const RECOMMENDED_IDS = ['charmander', 'squirtle', 'bulbasaur', 'pikachu'];
-const recommendedPokemon = allPokemon.filter(p => RECOMMENDED_IDS.includes(p.id));
-const otherPokemon = allPokemon.filter(p => !RECOMMENDED_IDS.includes(p.id));
+/** Cost tiers in display order. */
+const COST_TIERS = [
+  { cost: 250, label: 'Starters', color: THEME.accent },
+  { cost: 100, label: 'Budget', color: '#9ca3af' },
+  { cost: 200, label: 'Standard', color: '#4ade80' },
+  { cost: 300, label: 'Premium', color: '#60a5fa' },
+  { cost: 400, label: 'Elite', color: '#a855f7' },
+];
+
+/** Group Pokemon by their cost tier. */
+function getPokemonByTier(cost: number): PokemonData[] {
+  return allPokemon.filter(p => (POKEMON_COSTS[p.id] ?? 200) === cost);
+}
 
 type Phase = 'select' | 'position';
 type SlotKey = `${Row}-${Column}`;
@@ -30,24 +41,76 @@ function PokemonCard({
   pokemon,
   isSelected,
   onClick,
-  size,
+  cost,
+  canAfford,
 }: {
   pokemon: PokemonData;
   isSelected: boolean;
   onClick: () => void;
-  size: 'large' | 'small';
+  cost: number;
+  canAfford: boolean;
 }) {
+  const [hovered, setHovered] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const dimmed = !isSelected && !canAfford;
+
   return (
-    <PokemonTile
-      name={pokemon.name}
-      spriteUrl={makeSpriteUrl(pokemon.id)}
-      primaryType={pokemon.types[0]}
-      secondaryType={pokemon.types[1]}
-      size={size === 'large' ? 'large' : 'medium'}
-      isSelected={isSelected}
-      onClick={onClick}
-      stats={`HP: ${pokemon.maxHp} | SPD: ${pokemon.baseSpeed}`}
-    />
+    <div
+      ref={wrapperRef}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ position: 'relative', opacity: dimmed ? 0.4 : 1, transition: 'opacity 0.2s' }}
+    >
+      <PokemonTile
+        name={pokemon.name}
+        spriteUrl={makeSpriteUrl(pokemon.id)}
+        primaryType={pokemon.types[0]}
+        secondaryType={pokemon.types[1]}
+        size="large"
+        isSelected={isSelected}
+        onClick={dimmed ? undefined : onClick}
+        stats={`HP: ${pokemon.maxHp} | SPD: ${pokemon.baseSpeed}`}
+      />
+      <div style={{
+        position: 'absolute',
+        bottom: 4,
+        right: 4,
+        padding: '2px 6px',
+        borderRadius: 4,
+        background: 'rgba(0,0,0,0.7)',
+        color: '#facc15',
+        fontSize: 11,
+        fontWeight: 'bold',
+      }}>
+        {cost}g
+      </div>
+
+      {/* Playstyle tooltip on hover */}
+      {hovered && pokemon.description && (
+        <div style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginBottom: 8,
+          padding: '8px 14px',
+          borderRadius: 8,
+          background: THEME.bg.panelDark,
+          border: `1px solid ${THEME.border.medium}`,
+          color: THEME.text.secondary,
+          fontSize: 12,
+          lineHeight: 1.4,
+          fontStyle: 'italic',
+          width: 200,
+          textAlign: 'center',
+          pointerEvents: 'none',
+          zIndex: 10,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+        }}>
+          {pokemon.description}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -136,6 +199,7 @@ function FormationSlot({
 export function PartySelectScreen({ onStart, onRestart }: Props) {
   const [phase, setPhase] = useState<Phase>('select');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [gold, setGold] = useState(STARTING_GOLD);
   const [formation, setFormation] = useState<Map<SlotKey, string>>(new Map());
   const [unplacedPokemon, setUnplacedPokemon] = useState<string[]>([]);
   const [draggedPokemonId, setDraggedPokemonId] = useState<string | null>(null);
@@ -143,12 +207,16 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
   const [dragOverTarget, setDragOverTarget] = useState<SlotKey | 'unplaced' | null>(null);
 
   const toggle = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else if (next.size < 4) next.add(id);
-      return next;
-    });
+    const cost = POKEMON_COSTS[id] ?? 200;
+    if (selected.has(id)) {
+      // Deselect: refund gold
+      setSelected(prev => { const next = new Set(prev); next.delete(id); return next; });
+      setGold(g => g + cost);
+    } else if (selected.size < 4 && gold >= cost) {
+      // Select: deduct gold
+      setSelected(prev => { const next = new Set(prev); next.add(id); return next; });
+      setGold(g => g - cost);
+    }
   };
 
   const party = allPokemon.filter(s => selected.has(s.id));
@@ -232,7 +300,7 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
         positions.push({ row, column: col });
       }
     });
-    onStart(partyList, positions);
+    onStart(partyList, positions, gold);
   };
 
   const allPlaced = unplacedPokemon.length === 0 && formation.size > 0;
@@ -255,28 +323,43 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
         padding: '14px 24px',
         borderBottom: `1px solid ${THEME.border.subtle}`,
       }}>
-        <button
-          onClick={onRestart}
-          style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}
-        >
-          Main Menu
-        </button>
-        <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
-          Choose Your Party
-        </h1>
-        <button
-          onClick={goToPositioning}
-          disabled={party.length === 0}
-          style={{
-            padding: '10px 24px',
-            ...(party.length > 0 ? THEME.button.primary : THEME.button.secondary),
-            fontSize: 14,
-            opacity: party.length > 0 ? 1 : 0.4,
-            cursor: party.length > 0 ? 'pointer' : 'not-allowed',
-          }}
-        >
-          Set Formation ({party.length}) &rarr;
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <h1 style={{ margin: 0, color: THEME.accent, fontSize: 22, ...THEME.heading }}>
+            Choose Your Party
+          </h1>
+          <div style={{
+            padding: '4px 12px',
+            borderRadius: 6,
+            background: 'rgba(250, 204, 21, 0.1)',
+            border: '1px solid rgba(250, 204, 21, 0.3)',
+            color: '#facc15',
+            fontSize: 15,
+            fontWeight: 'bold',
+          }}>
+            {gold}g
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={goToPositioning}
+            disabled={party.length === 0}
+            style={{
+              padding: '10px 24px',
+              ...(party.length > 0 ? THEME.button.primary : THEME.button.secondary),
+              fontSize: 14,
+              opacity: party.length > 0 ? 1 : 0.4,
+              cursor: party.length > 0 ? 'pointer' : 'not-allowed',
+            }}
+          >
+            Set Formation ({party.length}) &rarr;
+          </button>
+          <button
+            onClick={onRestart}
+            style={{ padding: '8px 16px', ...THEME.button.secondary, fontSize: 13 }}
+          >
+            Main Menu
+          </button>
+        </div>
       </div>
     );
 
@@ -284,58 +367,75 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
       <ScreenShell header={selectHeader} bodyStyle={{ padding: '24px 16px 48px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
           <p style={{ color: THEME.text.secondary, margin: 0, textAlign: 'center' }}>
-            Select 1-4 Pokemon for battle
+            Select 1-4 Pokemon for battle. Leftover gold carries into the run!
           </p>
 
-          {/* Recommended Section */}
-          <div style={{ width: '100%' }}>
-            <div style={{
-              fontSize: 13, color: THEME.accent, fontWeight: 'bold',
-              ...THEME.heading, marginBottom: 12, textAlign: 'center',
-            }}>
-              Recommended
-            </div>
-            <Flourish variant="heading" color={THEME.accent} />
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
-              {recommendedPokemon.map(pokemon => (
-                <PokemonCard
-                  key={pokemon.id}
-                  pokemon={pokemon}
-                  isSelected={selected.has(pokemon.id)}
-                  onClick={() => toggle(pokemon.id)}
-                  size="large"
-                />
-              ))}
-            </div>
-          </div>
+          {COST_TIERS.map(tier => {
+            const tierPokemon = getPokemonByTier(tier.cost);
+            if (tierPokemon.length === 0) return null;
+            const isStarters = tier.cost === 250;
 
-          {/* Others Section */}
-          <div style={{
-            width: '100%',
-            padding: 20,
-            background: THEME.bg.panelDark,
-            borderRadius: 12,
-            border: `1px solid ${THEME.border.subtle}`,
-          }}>
-            <div style={{
-              fontSize: 13, color: THEME.text.secondary, fontWeight: 'bold',
-              ...THEME.heading, marginBottom: 12, textAlign: 'center',
-            }}>
-              Others
-            </div>
-            <Flourish variant="heading" color={THEME.text.tertiary} />
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
-              {otherPokemon.map(pokemon => (
-                <PokemonCard
-                  key={pokemon.id}
-                  pokemon={pokemon}
-                  isSelected={selected.has(pokemon.id)}
-                  onClick={() => toggle(pokemon.id)}
-                  size="small"
-                />
-              ))}
-            </div>
-          </div>
+            return (
+              <div
+                key={tier.cost}
+                style={{
+                  width: '100%',
+                  padding: isStarters ? 0 : 20,
+                  background: isStarters ? 'transparent' : THEME.bg.panelDark,
+                  borderRadius: 12,
+                  border: isStarters ? 'none' : `1px solid ${THEME.border.subtle}`,
+                }}
+              >
+                {/* Tier header: label + cost badge */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  marginBottom: 12,
+                }}>
+                  <div style={{
+                    fontSize: 13,
+                    color: tier.color,
+                    fontWeight: 'bold',
+                    ...THEME.heading,
+                  }}>
+                    {tier.label}
+                  </div>
+                  <div style={{
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: `${tier.color}18`,
+                    border: `1px solid ${tier.color}44`,
+                    color: tier.color,
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                  }}>
+                    {tier.cost}g each
+                  </div>
+                </div>
+                <Flourish variant="heading" color={isStarters ? tier.color : THEME.text.tertiary} />
+                <div style={{
+                  display: 'flex',
+                  gap: 16,
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  marginTop: 12,
+                }}>
+                  {tierPokemon.map(pokemon => (
+                    <PokemonCard
+                      key={pokemon.id}
+                      pokemon={pokemon}
+                      isSelected={selected.has(pokemon.id)}
+                      onClick={() => toggle(pokemon.id)}
+                      cost={tier.cost}
+                      canAfford={gold >= tier.cost}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </ScreenShell>
     );
@@ -418,8 +518,25 @@ export function PartySelectScreen({ onStart, onRestart }: Props) {
     <ScreenShell header={positionHeader} bodyStyle={{ padding: '24px 16px 48px' }}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <p style={{ color: THEME.text.secondary, margin: 0, textAlign: 'center' }}>
-          Drag Pokemon into formation — Back row is protected by Front row
+          Drag Pokemon into formation
         </p>
+
+        {/* Positioning guide */}
+        <div style={{
+          padding: '10px 16px',
+          borderRadius: 8,
+          background: THEME.bg.panelDark,
+          border: `1px solid ${THEME.border.subtle}`,
+          fontSize: 12,
+          lineHeight: 1.6,
+          color: THEME.text.tertiary,
+          maxWidth: 400,
+        }}>
+          <div style={{ color: THEME.text.secondary, fontWeight: 'bold', marginBottom: 4 }}>How Positioning Works</div>
+          <div><span style={{ color: THEME.text.secondary }}>Front row</span> — shields the back-row Pokemon in its column from most attacks.</div>
+          <div><span style={{ color: THEME.text.secondary }}>Back row</span> — safe while the front holds, but exposed if the front falls.</div>
+          <div><span style={{ color: THEME.text.secondary }}>Switching</span> — costs 2 energy and can be done once per turn to an adjacent slot.</div>
+        </div>
 
         {/* Formation Grid */}
         {renderFormationGrid()}

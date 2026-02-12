@@ -29,11 +29,13 @@ export interface RunState {
   seed: number;               // RNG seed for deterministic drafting
   party: RunPokemon[];        // Party with run-specific state
   bench: RunPokemon[];        // Bench Pokemon (not in active party, no EXP, no healing)
+  graveyard: RunPokemon[];    // KO'd Pokemon (removed from party, kept for future resurrection)
   currentNodeId: string;      // Current node ID
   visitedNodeIds: string[];   // All visited node IDs (for path tracking)
   nodes: MapNode[];           // All nodes in the map
   currentAct: number;         // 1 = Act 1, 2 = Act 2
   recruitSeed: number;        // Separate seed for recruit encounter RNG
+  gold: number;               // PokeGold currency
 }
 
 // --- Node Types ---

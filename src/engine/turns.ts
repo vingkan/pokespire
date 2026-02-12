@@ -1,4 +1,4 @@
-import type { CombatState, BattleAction, LogEntry, Combatant } from './types';
+import type { CombatState, BattleAction, LogEntry, Combatant, Position } from './types';
 import {
   getCurrentCombatant, checkBattleEnd, removeDeadFromTurnOrder, advanceRound,
   getCombatant,
@@ -9,6 +9,7 @@ import { playCard } from './cards';
 import { getStatus } from './status';
 import { onTurnStart, onTurnEnd } from './passives';
 import { getMove } from '../data/loaders';
+import { getValidSwitchTargets } from './position';
 
 // ============================================================
 // Turn Sequence — Section 4 of spec
@@ -66,15 +67,7 @@ export function startTurn(state: CombatState): { logs: LogEntry[]; skipped: bool
     });
   }
 
-  // Step 4: Draw cards
-  const drawn = drawCards(combatant);
-  if (drawn.length > 0) {
-    logs.push({
-      round: state.round,
-      combatantId: combatant.id,
-      message: `${combatant.name} draws ${drawn.length} card(s).`,
-    });
-  }
+  // Step 4: Hand is already pre-drawn from end of previous turn (or initializeBattle)
 
   // Step 4.5: Trigger passive abilities (after drawing)
   const passiveLogs = onTurnStart(state, combatant, getMove);
@@ -100,8 +93,94 @@ export function processAction(
     // Remove dead from turn order
     removeDeadFromTurnOrder(state);
     checkBattleEnd(state);
+  } else if (action.type === 'switch_position') {
+    const switchLogs = executeSwitchPosition(state, combatant, action.targetPosition);
+    logs.push(...switchLogs);
   }
   // end_turn is handled in endTurn()
+
+  return logs;
+}
+
+const SWITCH_COST = 2;
+
+/**
+ * Execute a position switch for a combatant.
+ * Costs 2 energy, once per turn. Swaps with ally if target is occupied.
+ */
+function executeSwitchPosition(
+  state: CombatState,
+  combatant: Combatant,
+  targetPos: Position
+): LogEntry[] {
+  const logs: LogEntry[] = [];
+
+  // Validate: enough energy
+  if (combatant.energy < SWITCH_COST) {
+    logs.push({
+      round: state.round,
+      combatantId: combatant.id,
+      message: `${combatant.name} doesn't have enough energy to switch!`,
+    });
+    return logs;
+  }
+
+  // Validate: hasn't switched this turn
+  if (combatant.turnFlags.hasSwitchedThisTurn) {
+    logs.push({
+      round: state.round,
+      combatantId: combatant.id,
+      message: `${combatant.name} has already switched this turn!`,
+    });
+    return logs;
+  }
+
+  // Validate: target is adjacent
+  const validTargets = getValidSwitchTargets(state, combatant);
+  const isValid = validTargets.some(
+    p => p.row === targetPos.row && p.column === targetPos.column
+  );
+  if (!isValid) {
+    logs.push({
+      round: state.round,
+      combatantId: combatant.id,
+      message: `${combatant.name} can't switch to that position!`,
+    });
+    return logs;
+  }
+
+  // Deduct energy and set flag
+  combatant.energy -= SWITCH_COST;
+  combatant.turnFlags.hasSwitchedThisTurn = true;
+
+  // Check if target position is occupied by an alive ally
+  const occupant = state.combatants.find(
+    c => c.side === combatant.side &&
+         c.alive &&
+         c.position.row === targetPos.row &&
+         c.position.column === targetPos.column
+  );
+
+  const oldPos = { ...combatant.position };
+
+  if (occupant) {
+    // Swap positions
+    occupant.position = oldPos;
+    combatant.position = targetPos;
+    logs.push({
+      round: state.round,
+      combatantId: combatant.id,
+      message: `${combatant.name} and ${occupant.name} swap positions! (Energy: ${combatant.energy})`,
+    });
+  } else {
+    // Move to empty cell
+    combatant.position = targetPos;
+    logs.push({
+      round: state.round,
+      combatantId: combatant.id,
+      message: `${combatant.name} moves to ${targetPos.row} row! (Energy: ${combatant.energy})`,
+    });
+  }
 
   return logs;
 }
@@ -116,6 +195,11 @@ export function endTurn(state: CombatState): LogEntry[] {
   // Step 6: Discard remaining hand
   if (combatant.hand.length > 0) {
     discardHand(combatant);
+  }
+
+  // Step 6.5: Pre-draw next hand (so enemy hands are visible during player turn)
+  if (combatant.alive) {
+    drawCards(combatant);
   }
 
   // Step 7: End-of-turn status ticks

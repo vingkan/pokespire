@@ -58,6 +58,7 @@ function createCombatant(
       surgeMomentumReducedIndex: null,
       dragonsMajestyReducedIndex: null,
       sniperUsedThisTurn: false,
+      hasSwitchedThisTurn: false,
     },
     costModifiers: {},
   };

@@ -34,6 +34,7 @@ const TYPE_COLORS: Record<MoveType, string> = {
   ghost: '#705898',
   rock: '#b8a038',
   ground: '#e0c068',
+  item: '#4ade80',
 };
 
 const RARITY_COLORS: Record<CardRarity, string> = {

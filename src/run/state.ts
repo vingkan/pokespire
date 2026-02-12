@@ -1,6 +1,7 @@
 import type { PokemonData, Position, Column, Row, Combatant } from '../engine/types';
 import type { RunState, RunPokemon, MapNode, BattleNode, ActTransitionNode, CardRemovalNode, EventType } from './types';
-import { getPokemon } from '../data/loaders';
+import { getPokemon, getMove } from '../data/loaders';
+import { STARTING_GOLD } from '../data/shop';
 import { ACT1_NODES, ACT2_NODES, getNodeById } from './nodes';
 import {
   getProgressionTree,
@@ -27,7 +28,8 @@ export const EXP_PER_LEVEL = 4;
 export function createRunState(
   party: PokemonData[],
   positions: Position[],
-  seed?: number
+  seed?: number,
+  startingGold: number = STARTING_GOLD
 ): RunState {
   const runParty: RunPokemon[] = party.map((pokemon, i) => {
     // Get the initial passive from the progression tree (level 1 rung)
@@ -75,11 +77,13 @@ export function createRunState(
     seed: actualSeed,
     party: runParty,
     bench: [],
+    graveyard: [],
     currentNodeId: 's0-spawn', // Start at spawn
     visitedNodeIds: ['s0-spawn'],
     nodes,
     currentAct: 1,
     recruitSeed,
+    gold: startingGold,
   };
 }
 
@@ -123,16 +127,15 @@ export function moveToNode(run: RunState, nodeId: string): RunState {
     return { ...node, completed: true };
   });
 
-  // Grant EXP for visiting the node (party AND bench)
-  const newParty = run.party.map(pokemon => ({
-    ...pokemon,
-    exp: pokemon.exp + 1,
-  }));
+  // Grant EXP only for battle nodes (party AND bench)
+  const isBattle = targetNode.type === 'battle';
+  const newParty = isBattle
+    ? run.party.map(pokemon => ({ ...pokemon, exp: pokemon.exp + 1 }))
+    : run.party;
 
-  const newBench = run.bench.map(pokemon => {
-    const withExp = { ...pokemon, exp: pokemon.exp + 1 };
-    return autoLevelBenchPokemon(withExp);
-  });
+  const newBench = isBattle
+    ? run.bench.map(pokemon => autoLevelBenchPokemon({ ...pokemon, exp: pokemon.exp + 1 }))
+    : run.bench;
 
   return {
     ...run,
@@ -188,6 +191,7 @@ export function transitionToAct2(run: RunState): RunState {
   const excludeIds = [
     ...run.party.map(p => p.baseFormId),
     ...run.bench.map(p => p.baseFormId),
+    ...run.graveyard.map(p => p.baseFormId),
   ];
   act2Nodes = assignRecruitPokemon(act2Nodes, run.recruitSeed + 99999, excludeIds);
 
@@ -246,6 +250,28 @@ export function removeCardsFromDeck(
   });
 
   return { ...run, party: newParty };
+}
+
+/**
+ * Remove cards from a bench Pokemon's deck.
+ */
+export function removeCardFromBench(
+  run: RunState,
+  benchIndex: number,
+  cardIndices: number[]
+): RunState {
+  const newBench = run.bench.map((pokemon, i) => {
+    if (i !== benchIndex) return pokemon;
+    const sortedIndices = [...cardIndices].sort((a, b) => b - a);
+    const newDeck = [...pokemon.deck];
+    for (const idx of sortedIndices) {
+      if (idx >= 0 && idx < newDeck.length) {
+        newDeck.splice(idx, 1);
+      }
+    }
+    return { ...pokemon, deck: newDeck };
+  });
+  return { ...run, bench: newBench };
 }
 
 /**
@@ -382,6 +408,27 @@ export function addCardToDeck(
   return { ...run, party: newParty };
 }
 
+// ============================================================
+// Gold Economy
+// ============================================================
+
+/** Gold earned per battle. 50 base + 15 per act beyond 1 + 25 for bosses. */
+export function getBattleGoldReward(node: BattleNode, act: number): number {
+  const base = 50;
+  const actBonus = (act - 1) * 15;
+  const bossBonus = (node.enemyHpMultiplier ?? 1) > 1 ? 25 : 0;
+  return base + actBonus + bossBonus;
+}
+
+export function addGold(run: RunState, amount: number): RunState {
+  return { ...run, gold: run.gold + amount };
+}
+
+export function spendGold(run: RunState, amount: number): RunState | null {
+  if (run.gold < amount) return null;
+  return { ...run, gold: run.gold - amount };
+}
+
 /**
  * Sync battle results back to run state.
  * Copies HP from combat combatants back to RunPokemon.
@@ -399,14 +446,58 @@ export function syncBattleResults(
     const newHp = Math.max(0, combatant.hp);
     const isKnockedOut = newHp <= 0 || !combatant.alive;
 
+    // Remove single-use cards that were played (now in vanishedPile)
+    let newDeck = pokemon.deck;
+    if (combatant.vanishedPile.length > 0) {
+      const usedSingleUseIds = combatant.vanishedPile.filter(cardId => {
+        try {
+          const move = getMove(cardId);
+          return move.singleUse;
+        } catch {
+          return false;
+        }
+      });
+      if (usedSingleUseIds.length > 0) {
+        // Remove each used single-use card once from the deck
+        newDeck = [...pokemon.deck];
+        for (const cardId of usedSingleUseIds) {
+          const idx = newDeck.indexOf(cardId);
+          if (idx !== -1) newDeck.splice(idx, 1);
+        }
+      }
+    }
+
     return {
       ...pokemon,
       currentHp: newHp,
       knockedOut: pokemon.knockedOut || isKnockedOut, // Once KO'd, stays KO'd
+      position: combatant.position, // Persist position changes from switching
+      deck: newDeck,
     };
   });
 
   return { ...run, party: newParty };
+}
+
+/**
+ * Move all knocked-out Pokemon from party (and bench) to the graveyard.
+ * Called after battle results are synced.
+ */
+export function moveKnockedOutToGraveyard(run: RunState): RunState {
+  const deadParty = run.party.filter(p => p.knockedOut || p.currentHp <= 0);
+  const aliveParty = run.party.filter(p => !p.knockedOut && p.currentHp > 0);
+
+  const deadBench = run.bench.filter(p => p.knockedOut || p.currentHp <= 0);
+  const aliveBench = run.bench.filter(p => !p.knockedOut && p.currentHp > 0);
+
+  if (deadParty.length === 0 && deadBench.length === 0) return run;
+
+  return {
+    ...run,
+    party: aliveParty,
+    bench: aliveBench,
+    graveyard: [...run.graveyard, ...deadParty, ...deadBench],
+  };
 }
 
 // ============================================================
@@ -760,6 +851,7 @@ export function getAvailableRecruitPool(run: RunState): string[] {
   const usedBaseFormIds = new Set([
     ...run.party.map(p => p.baseFormId),
     ...run.bench.map(p => p.baseFormId),
+    ...run.graveyard.map(p => p.baseFormId),
   ]);
   return RECRUIT_POOL_ALL.filter(id => !usedBaseFormIds.has(id));
 }
@@ -835,9 +927,19 @@ export function migrateRunState(run: RunState): RunState {
     migrated = { ...migrated, bench: [] };
   }
 
+  // Add graveyard if missing (pre-graveyard saves)
+  if (!migrated.graveyard) {
+    migrated = { ...migrated, graveyard: [] };
+  }
+
   // Add recruitSeed if missing
   if (!migrated.recruitSeed) {
     migrated = { ...migrated, recruitSeed: migrated.seed + 12345 };
+  }
+
+  // Add gold if missing (pre-shop saves)
+  if ((migrated as Record<string, unknown>).gold === undefined) {
+    migrated = { ...migrated, gold: 500 };
   }
 
   // Add x,y to nodes if missing (pre-free-form saves)

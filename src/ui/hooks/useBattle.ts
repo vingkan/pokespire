@@ -2,11 +2,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type {
   CombatState, LogEntry,
   PokemonData, Position, Combatant,
+  SwitchPositionAction,
 } from '../../engine/types';
 import {
   createCombatState, getCurrentCombatant, buildTurnOrder,
 } from '../../engine/combat';
 import { startTurn, processAction, endTurn, skipTurnAndAdvance } from '../../engine/turns';
+import { drawCards } from '../../engine/deck';
 import { chooseEnemyAction } from '../../engine/ai';
 import type { RunState, BattleNode as MapBattleNode } from '../../run/types';
 import { getRunPokemonData } from '../../run/state';
@@ -39,6 +41,7 @@ export interface BattleHook {
     enemyPassives?: Map<number, string[]>,
   ) => void;
   playCard: (cardIndex: number, targetId?: string) => void;
+  switchPosition: (targetPosition: Position) => void;
   endPlayerTurn: () => void;
   needsTarget: boolean;
   pendingCardIndex: number | null;
@@ -218,6 +221,11 @@ export function useBattle(): BattleHook {
     // Rebuild turn order after battle start passives (Haste from Scurry affects speed)
     s.turnOrder = buildTurnOrder(s);
     s.currentTurnIndex = 0;
+
+    // Pre-draw hands for all combatants so enemy hands are visible during player turn
+    for (const c of s.combatants) {
+      if (c.alive) drawCards(c);
+    }
 
     setLogs(initialLogs);
     setPhase('selecting');
@@ -464,6 +472,21 @@ export function useBattle(): BattleHook {
     setState({ ...state });
   }, [state, phase, addLogs]);
 
+  const switchPosition = useCallback((targetPosition: Position) => {
+    if (!state || phase !== 'player_turn') return;
+
+    const actionLogs = processAction(state, {
+      type: 'switch_position',
+      targetPosition,
+    });
+    addLogs(actionLogs);
+
+    if (state.phase !== 'ongoing') {
+      setPhase(state.phase === 'victory' ? 'victory' : 'defeat');
+    }
+    setState({ ...state });
+  }, [state, phase, addLogs]);
+
   const endPlayerTurn = useCallback(() => {
     if (!state || phase !== 'player_turn') return;
 
@@ -505,6 +528,7 @@ export function useBattle(): BattleHook {
     startConfiguredBattle,
     startTutorialBattle,
     playCard,
+    switchPosition,
     endPlayerTurn,
     needsTarget,
     pendingCardIndex,

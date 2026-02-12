@@ -23,6 +23,15 @@ export function RestScreen({ run, onHeal, onRestart }: Props) {
       justifyContent: 'space-between',
       padding: '12px 16px',
     }}>
+      <h1 style={{
+        fontSize: 24,
+        margin: 0,
+        color: '#4ade80',
+        letterSpacing: THEME.heading.letterSpacing,
+        textTransform: THEME.heading.textTransform,
+      }}>
+        Chansey's Rest
+      </h1>
       <button
         onClick={onRestart}
         style={{
@@ -33,16 +42,6 @@ export function RestScreen({ run, onHeal, onRestart }: Props) {
       >
         Main Menu
       </button>
-      <h1 style={{
-        fontSize: 24,
-        margin: 0,
-        color: '#4ade80',
-        letterSpacing: THEME.heading.letterSpacing,
-        textTransform: THEME.heading.textTransform,
-      }}>
-        Chansey's Rest
-      </h1>
-      <div style={{ width: 80 }} />
     </div>
   );
 

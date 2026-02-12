@@ -94,6 +94,15 @@ export function EventScreen({ run, eventType, onTrain, onMeditate, onForget, onR
       justifyContent: 'space-between',
       padding: '12px 16px',
     }}>
+      <h1 style={{
+        fontSize: 24,
+        margin: 0,
+        color: config.color,
+        letterSpacing: THEME.heading.letterSpacing,
+        textTransform: THEME.heading.textTransform,
+      }}>
+        {config.title}
+      </h1>
       <button
         onClick={onRestart}
         style={{
@@ -104,16 +113,6 @@ export function EventScreen({ run, eventType, onTrain, onMeditate, onForget, onR
       >
         Main Menu
       </button>
-      <h1 style={{
-        fontSize: 24,
-        margin: 0,
-        color: config.color,
-        letterSpacing: THEME.heading.letterSpacing,
-        textTransform: THEME.heading.textTransform,
-      }}>
-        {config.title}
-      </h1>
-      <div style={{ width: 80 }} />
     </div>
   );
 

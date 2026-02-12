@@ -4,6 +4,7 @@ import type { Combatant, MoveDefinition } from '../../engine/types';
 import { getPokemon, getMove } from '../../data/loaders';
 import {
   getProgressionTree,
+  getBaseFormId,
   canLevelUp,
   PASSIVE_DEFINITIONS,
   type PassiveId,
@@ -30,6 +31,21 @@ interface Props {
   // Common
   onClose: () => void;
   readOnly?: boolean;
+}
+
+/** Infer a combatant's level by checking which progression rungs match its passives. */
+function inferLevelFromPassives(pokemonId: string, passiveIds: string[]): number {
+  const baseId = getBaseFormId(pokemonId);
+  const tree = getProgressionTree(baseId);
+  if (!tree) return 1;
+  let level = 1;
+  for (const rung of tree.rungs) {
+    if (rung.level <= 1) continue;
+    if (rung.passiveId && rung.passiveId !== 'none' && passiveIds.includes(rung.passiveId)) {
+      level = Math.max(level, rung.level);
+    }
+  }
+  return level;
 }
 
 function getSpriteUrl(pokemonId: string): string {
@@ -60,7 +76,8 @@ export function PokemonDetailsPanel({
   // Stats
   const currentHp = isFromBattle ? combatant!.hp : pokemon!.currentHp;
   const maxHp = isFromBattle ? combatant!.maxHp : pokemon!.maxHp;
-  const level = isFromBattle ? 1 : pokemon!.level; // Combatants don't track level
+  // Infer level from passives when viewing a combatant (combatants don't track level)
+  const level = isFromBattle ? inferLevelFromPassives(baseFormId, combatant!.passiveIds) : pokemon!.level;
   const exp = isFromBattle ? 0 : pokemon!.exp;
   const passiveIds = isFromBattle ? combatant!.passiveIds : pokemon!.passiveIds;
   // For combatants, combine all piles to show full deck; for RunPokemon just use deck
@@ -597,6 +614,7 @@ const TYPE_COLORS: Record<string, string> = {
   ghost: '#705898',
   rock: '#b8a038',
   ground: '#e0c068',
+  item: '#4ade80',
 };
 
 function TypeBadge({ type }: { type: string }) {

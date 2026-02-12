@@ -28,7 +28,7 @@ export function ActTransitionScreen({ run, onContinue, onRestart }: Props) {
         style={{
           position: 'absolute',
           top: 16,
-          left: 16,
+          right: 16,
           padding: '8px 16px',
           fontSize: 13,
           borderRadius: 6,

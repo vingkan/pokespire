@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { MoveDefinition, MoveType, CardRarity } from '../../engine/types';
 import { THEME } from '../theme';
 import { CardTypeMotif } from './CardTypeMotif';
+import { ItemMotif } from './ItemMotif';
 
 interface Props {
   card: MoveDefinition;
@@ -44,6 +45,7 @@ const MOVE_TYPE_COLORS: Record<MoveType, string> = {
   ghost: '#705898',
   rock: '#b8a038',
   ground: '#e0c068',
+  item: '#4ade80',
 };
 
 const RANGE_LABELS: Record<string, string> = {
@@ -274,7 +276,11 @@ export function CardPreview({ card, onClick, isSelected = false, showHoverEffect
         margin: '2px 0 0',
         opacity: 0.9,
       }}>
-        <CardTypeMotif type={card.type} color={moveTypeColor} width={120} height={36} />
+        {card.isItem ? (
+          <ItemMotif itemId={card.id} width={120} height={36} />
+        ) : (
+          <CardTypeMotif type={card.type} color={moveTypeColor} width={120} height={36} />
+        )}
       </div>
 
       {/* Card name */}
@@ -314,8 +320,17 @@ export function CardPreview({ card, onClick, isSelected = false, showHoverEffect
         {buildDescription(card)}
       </div>
 
-      {/* Vanish badge */}
-      {card.vanish && (
+      {/* Vanish / Single Use badge */}
+      {card.singleUse ? (
+        <div style={{
+          fontSize: 11,
+          color: '#4ade80',
+          fontWeight: 'bold',
+          textAlign: 'center',
+        }}>
+          SINGLE USE
+        </div>
+      ) : card.vanish ? (
         <div style={{
           fontSize: 11,
           color: '#f97316',
@@ -324,7 +339,7 @@ export function CardPreview({ card, onClick, isSelected = false, showHoverEffect
         }}>
           VANISH
         </div>
-      )}
+      ) : null}
 
       {/* Type badge with flanking em-dashes */}
       <div style={{

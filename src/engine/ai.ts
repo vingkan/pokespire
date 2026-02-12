@@ -135,8 +135,8 @@ function scorePlay(
     const targetCount = countTargetedEnemies(state, source, card);
     score += baseDmg * targetCount;
 
-    // Lethal bonus: strongly prefer cards that can KO
-    if (target && target.hp <= baseDmg) {
+    // Lethal bonus: strongly prefer cards that can KO (considers block)
+    if (target && target.hp + target.block <= baseDmg) {
       score += 15;
     }
   }
@@ -183,15 +183,15 @@ function chooseBestTarget(
 ): Combatant {
   const dmg = getCardDamage(card);
 
-  // Prefer targets we can KO
-  const lethalTargets = targets.filter(t => t.hp <= dmg);
+  // Prefer targets we can KO (accounting for block)
+  const lethalTargets = targets.filter(t => t.hp + t.block <= dmg);
   if (lethalTargets.length > 0) {
-    // KO the one with highest HP among lethal (maximize value)
-    return lethalTargets.sort((a, b) => b.hp - a.hp)[0];
+    // KO the one with highest effective HP among lethal (maximize value)
+    return lethalTargets.sort((a, b) => (b.hp + b.block) - (a.hp + a.block))[0];
   }
 
-  // Otherwise prefer lowest HP target
-  return targets.sort((a, b) => a.hp - b.hp)[0];
+  // Otherwise prefer lowest effective HP target
+  return targets.sort((a, b) => (a.hp + a.block) - (b.hp + b.block))[0];
 }
 
 /**

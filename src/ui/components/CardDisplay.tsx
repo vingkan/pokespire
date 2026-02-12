@@ -6,6 +6,7 @@ import { isParentalBondCopy } from '../../data/loaders';
 import { getEffectiveCost } from '../../engine/cards';
 import { THEME } from '../theme';
 import { CardTypeMotif } from './CardTypeMotif';
+import { ItemMotif } from './ItemMotif';
 
 interface Props {
   cardId?: string;
@@ -54,6 +55,7 @@ export const MOVE_TYPE_COLORS: Record<MoveType, string> = {
   ghost: '#705898',
   rock: '#b8a038',
   ground: '#e0c068',
+  item: '#4ade80',
 };
 
 const RANGE_LABELS: Record<string, string> = {
@@ -447,7 +449,11 @@ export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isS
         margin: '2px 0 0',
         opacity: 0.85,
       }}>
-        <CardTypeMotif type={card.type} color={moveTypeColor} width={110} height={34} />
+        {card.isItem ? (
+          <ItemMotif itemId={card.id} width={110} height={34} />
+        ) : (
+          <CardTypeMotif type={card.type} color={moveTypeColor} width={110} height={34} />
+        )}
       </div>
 
       {/* Card name */}
@@ -509,8 +515,17 @@ export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isS
         </div>
       )}
 
-      {/* Vanish badge */}
-      {card.vanish && !isEchoCopy && (
+      {/* Vanish / Single Use badge */}
+      {card.singleUse && !isEchoCopy ? (
+        <div style={{
+          fontSize: 11,
+          color: '#4ade80',
+          fontWeight: 'bold',
+          textAlign: 'center',
+        }}>
+          SINGLE USE
+        </div>
+      ) : card.vanish && !isEchoCopy ? (
         <div style={{
           fontSize: 11,
           color: '#f97316',
@@ -519,7 +534,7 @@ export function CardDisplay({ cardId, handIndex, card, combatant, canAfford, isS
         }}>
           VANISH
         </div>
-      )}
+      ) : null}
 
       {/* Type badge with flanking em-dashes */}
       <div style={{

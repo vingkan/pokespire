@@ -356,6 +356,32 @@ function renderMotif(type: MoveType, main: string, faint: string, subtle: string
         </g>
       );
 
+    case 'item':
+      // Potion spray bottle — rounded body with nozzle spraying mist
+      return (
+        <g>
+          {/* Bottle body */}
+          <rect x="58" y="16" width="14" height="18" rx="3" stroke={main} strokeWidth="1.5" fill={subtle} />
+          {/* Bottle neck */}
+          <rect x="61" y="12" width="8" height="5" rx="1" stroke={main} strokeWidth="1" fill={faint} />
+          {/* Nozzle cap */}
+          <rect x="60" y="10" width="10" height="3" rx="1.5" stroke={main} strokeWidth="1.2" fill={main} opacity={0.6} />
+          {/* Spray trigger */}
+          <path d="M72 14 L78 14 L78 18 L74 18" stroke={main} strokeWidth="1" fill={faint} />
+          {/* Spray mist particles */}
+          <circle cx="84" cy="12" r="1.5" fill={main} opacity={0.5} />
+          <circle cx="88" cy="10" r="1" fill={faint} />
+          <circle cx="90" cy="14" r="1.2" fill={faint} />
+          <circle cx="86" cy="16" r="0.8" fill={subtle} />
+          <circle cx="92" cy="12" r="0.8" fill={subtle} />
+          {/* Bottle label line */}
+          <line x1="60" y1="24" x2="70" y2="24" stroke={main} strokeWidth="0.8" opacity={0.5} />
+          {/* Sparkle accents */}
+          <path d="M40 18 L42 16 L44 18 L42 20 Z" stroke={faint} strokeWidth="0.6" fill="none" />
+          <path d="M48 26 L49 25 L50 26 L49 27 Z" stroke={faint} strokeWidth="0.5" fill="none" />
+        </g>
+      );
+
     default:
       // Fallback — simple horizontal line with dot
       return (

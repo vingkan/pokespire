@@ -2444,5 +2444,124 @@
     "rarity": "basic",
     "pools": ["dragon"],
     "description": "Deal 6 damage."
+  },
+
+  "potion": {
+    "name": "Potion",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "heal", "value": 15 }
+    ],
+    "description": "Heal an ally for 15 HP. Single use."
+  },
+  "super-potion": {
+    "name": "Super Potion",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "heal", "value": 30 }
+    ],
+    "description": "Heal an ally for 30 HP. Single use."
+  },
+  "full-heal": {
+    "name": "Full Heal",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "cleanse", "count": 3 }
+    ],
+    "description": "Remove up to 3 debuffs from an ally. Single use."
+  },
+  "x-attack": {
+    "name": "X Attack",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "apply_status_self", "status": "strength", "stacks": 3 }
+    ],
+    "description": "Give an ally 3 Strength. Single use."
+  },
+  "dire-hit": {
+    "name": "Dire Hit",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "apply_status_self", "status": "strength", "stacks": 5 },
+      { "type": "draw_cards", "count": 1 }
+    ],
+    "description": "Give an ally 5 Strength. Draw 1 card. Single use."
+  },
+  "x-defend": {
+    "name": "X Defend",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "block", "value": 10 }
+    ],
+    "description": "Give an ally 10 Block. Single use."
+  },
+  "guard-spec": {
+    "name": "Guard Spec.",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "apply_status_self", "status": "evasion", "stacks": 3 }
+    ],
+    "description": "Give an ally 3 Evasion. Single use."
+  },
+  "ether": {
+    "name": "Ether",
+    "cost": 0,
+    "type": "item",
+    "range": "self",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "gain_energy", "amount": 2 }
+    ],
+    "description": "Gain 2 energy. Single use."
+  },
+  "smoke-ball": {
+    "name": "Smoke Ball",
+    "cost": 0,
+    "type": "item",
+    "range": "self",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      { "type": "draw_cards", "count": 2 }
+    ],
+    "description": "Draw 2 cards. Single use."
   }
 }

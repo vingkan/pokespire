@@ -248,10 +248,24 @@ export function RearrangeModal({ party, bench, onConfirm, onClose }: Props) {
           fontSize: 12,
           color: THEME.text.tertiary,
           textAlign: 'center',
-          margin: '0 0 16px',
+          margin: '0 0 8px',
         }}>
           Click a Pokemon, then click a slot to move it
         </p>
+
+        {/* Positioning guide */}
+        <div style={{
+          padding: '8px 12px',
+          borderRadius: 6,
+          background: THEME.bg.base,
+          border: `1px solid ${THEME.border.subtle}`,
+          fontSize: 11,
+          lineHeight: 1.5,
+          color: THEME.text.tertiary,
+          marginBottom: 12,
+        }}>
+          <div><span style={{ color: THEME.text.secondary }}>Front</span> shields <span style={{ color: THEME.text.secondary }}>Back</span> in the same column. If Front falls, Back is exposed. Switching mid-combat costs 2 energy, once per turn.</div>
+        </div>
 
         {/* Formation Grid */}
         <div style={{

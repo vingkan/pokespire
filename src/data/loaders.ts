@@ -17,6 +17,8 @@ interface RawMoveData {
   description: string;
   rarity?: string;
   pools?: string[];
+  isItem?: boolean;
+  singleUse?: boolean;
 }
 
 // Type for raw pokemon data from JSON (without id)
@@ -30,6 +32,7 @@ interface RawPokemonData {
   handSize: number;
   deck: string[];
   abilities: string[];
+  description?: string;
 }
 
 /** All move definitions, keyed by move ID */
@@ -47,6 +50,8 @@ export const MOVES: Record<string, MoveDefinition> = Object.fromEntries(
       description: move.description,
       rarity: move.rarity as MoveDefinition['rarity'],
       pools: move.pools as MoveType[] | undefined,
+      isItem: move.isItem ?? false,
+      singleUse: move.singleUse ?? false,
     },
   ])
 );
@@ -66,6 +71,7 @@ export const POKEMON: Record<string, PokemonData> = Object.fromEntries(
       handSize: poke.handSize,
       deck: poke.deck,
       abilities: poke.abilities,
+      description: poke.description,
     },
   ])
 );

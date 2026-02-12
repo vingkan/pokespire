@@ -13,6 +13,8 @@ import { MapTooltip } from '../components/map/MapTooltip';
 import { MapLegend } from '../components/map/MapLegend';
 import { MapPartySidebar } from '../components/map/MapPartySidebar';
 import { RearrangeModal } from '../components/map/RearrangeModal';
+import { ShopScreen } from './ShopScreen';
+import { MoveDeleterScreen } from './MoveDeleterScreen';
 
 interface Props {
   run: RunState;
@@ -21,6 +23,8 @@ interface Props {
   onSwap: (partyIndex: number, benchIndex: number) => void;
   onPromote: (benchIndex: number) => void;
   onRearrange: (newParty: RunPokemon[], newBench: RunPokemon[]) => void;
+  onPurchase: (moveId: string, pokemonIndex: number) => void;
+  onForgetCard: (pokemonIndex: number, cardIndex: number, source: 'party' | 'bench') => void;
   onRestart: () => void;
 }
 
@@ -50,11 +54,13 @@ function getPathState(
   return 'locked';
 }
 
-export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onRearrange, onRestart }: Props) {
+export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onRearrange, onPurchase, onForgetCard, onRestart }: Props) {
   const [selectedPokemonIndex, setSelectedPokemonIndex] = useState<number | null>(null);
   const [hoveredNode, setHoveredNode] = useState<MapNode | null>(null);
   const [mapSize, setMapSize] = useState({ width: 900, height: 500 });
   const [showRearrange, setShowRearrange] = useState(false);
+  const [showShop, setShowShop] = useState(false);
+  const [showMoveDeleter, setShowMoveDeleter] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const actConfig = getActMapConfig(run.currentAct);
@@ -87,8 +93,10 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onR
 
   const header = (
     <div style={{
-      textAlign: 'center',
-      padding: '12px 0 8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '12px 16px 8px',
     }}>
       <h1 style={{
         fontSize: 24,
@@ -99,6 +107,16 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onR
       }}>
         {actConfig.title}
       </h1>
+      <button
+        onClick={onRestart}
+        style={{
+          ...THEME.button.secondary,
+          padding: '6px 14px',
+          fontSize: 12,
+        }}
+      >
+        Main Menu
+      </button>
     </div>
   );
 
@@ -109,13 +127,16 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onR
         <MapPartySidebar
           party={run.party}
           bench={run.bench}
+          graveyard={run.graveyard}
+          gold={run.gold}
           onPokemonClick={(i) => {
             if (run.party[i].currentHp > 0) setSelectedPokemonIndex(i);
           }}
           onSwap={onSwap}
           onPromote={onPromote}
           onRearrange={() => setShowRearrange(true)}
-          onRestart={onRestart}
+          onOpenShop={() => setShowShop(true)}
+          onOpenMoveDeleter={() => setShowMoveDeleter(true)}
         />
 
         {/* Map area — fills remaining space */}
@@ -247,6 +268,25 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onR
             setShowRearrange(false);
           }}
           onClose={() => setShowRearrange(false)}
+        />
+      )}
+
+      {/* Shop Modal */}
+      {showShop && (
+        <ShopScreen
+          run={run}
+          onPurchase={onPurchase}
+          onClose={() => setShowShop(false)}
+        />
+      )}
+
+      {/* Move Deleter Modal */}
+      {showMoveDeleter && (
+        <MoveDeleterScreen
+          run={run}
+          onForgetCard={onForgetCard}
+          onClose={() => setShowMoveDeleter(false)}
+          onRestart={onRestart}
         />
       )}
     </ScreenShell>

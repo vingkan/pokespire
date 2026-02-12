@@ -21,9 +21,11 @@ interface Props {
   isDragHovered?: boolean;
   /** Global scale factor for battle sprites (preserves size ratios across all Pokemon) */
   spriteScale?: number;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect, onInspect, onDragEnter, onDragLeave, onDrop, damagePreview, isDragHovered, spriteScale = 1 }: Props) {
+export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect, onInspect, onDragEnter, onDragLeave, onDrop, damagePreview, isDragHovered, spriteScale = 1, onMouseEnter, onMouseLeave }: Props) {
   const [imgError, setImgError] = useState(false);
   const isEnemy = combatant.side === 'enemy';
 
@@ -119,38 +121,45 @@ export function PokemonSprite({ combatant, isCurrentTurn, isTargetable, onSelect
             ? 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.8))'
             : 'none',
       }}>
-        <div style={{ fontSize: 17, fontWeight: 'bold', color: THEME.text.primary, marginBottom: 4 }}>
-          {combatant.name}
-        </div>
-
-        {!imgError ? (
-          <img
-            data-sprite-id={combatant.id}
-            src={spriteUrl}
-            alt={combatant.name}
-            onError={() => setImgError(true)}
-            style={{
-              width: spriteSize,
-              height: spriteSize,
-              imageRendering: 'pixelated',
-              objectFit: 'contain',
-            }}
-          />
-        ) : (
-          <div
-            data-sprite-id={combatant.id}
-            style={{
-              width: spriteSize,
-              height: spriteSize,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 48,
-            }}
-          >
-            {isEnemy ? '👾' : '🔮'}
+        {/* Name + sprite — scoped hover zone for enemy hand preview */}
+        <div
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        >
+          <div style={{ fontSize: 17, fontWeight: 'bold', color: THEME.text.primary, marginBottom: 4 }}>
+            {combatant.name}
           </div>
-        )}
+
+          {!imgError ? (
+            <img
+              data-sprite-id={combatant.id}
+              src={spriteUrl}
+              alt={combatant.name}
+              onError={() => setImgError(true)}
+              style={{
+                width: spriteSize,
+                height: spriteSize,
+                imageRendering: 'pixelated',
+                objectFit: 'contain',
+              }}
+            />
+          ) : (
+            <div
+              data-sprite-id={combatant.id}
+              style={{
+                width: spriteSize,
+                height: spriteSize,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 48,
+              }}
+            >
+              {isEnemy ? '👾' : '🔮'}
+            </div>
+          )}
+        </div>
 
         {/* Status icons - positioned behind the sprite, skewed to match formation tilt */}
         <div style={{

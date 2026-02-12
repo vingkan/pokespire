@@ -1,8 +1,8 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import type { CombatState, LogEntry, Combatant, Column, MoveRange } from '../../engine/types';
+import type { CombatState, LogEntry, Combatant, Column, MoveRange, Position } from '../../engine/types';
 import { getCurrentCombatant } from '../../engine/combat';
 import { getMove, MOVES } from '../../data/loaders';
-import { getValidTargets, getCardValidTargets, requiresTargetSelection, isAoERange } from '../../engine/position';
+import { getValidTargets, getCardValidTargets, requiresTargetSelection, isAoERange, getValidSwitchTargets } from '../../engine/position';
 import { calculateDamagePreview } from '../../engine/preview';
 import type { DamagePreview } from '../../engine/preview';
 import { PokemonSprite } from '../components/PokemonSprite';
@@ -13,6 +13,7 @@ import { PileButton } from '../components/PileButton';
 import { PileModal } from '../components/PileModal';
 import { EnergyPips } from '../components/EnergyPips';
 import { PokemonDetailsPanel } from '../components/PokemonDetailsPanel';
+import { EnemyHandPreview } from '../components/EnemyHandPreview';
 import { useBattleEffects, BattleEffectsLayer } from '../components/BattleEffects';
 import type { BattlePhase } from '../hooks/useBattle';
 import type { RunState } from '../../run/types';
@@ -31,6 +32,7 @@ interface Props {
   onSelectTarget: (targetId: string) => void;
   onPlayCard?: (cardIndex: number, targetId?: string) => void;
   onEndTurn: () => void;
+  onSwitchPosition?: (targetPosition: Position) => void;
   onRestart: () => void;
   onBattleEnd?: (result: BattleResult, combatants: Combatant[]) => void;
   runState?: RunState;
@@ -51,6 +53,10 @@ function BattleGrid({
   hoveredTargetIds,
   damagePreviews,
   spriteScale,
+  onMouseEnterSprite,
+  onMouseLeaveSprite,
+  switchTargetPositions,
+  onSwitchSelect,
 }: {
   combatants: Combatant[];
   currentCombatant: Combatant | null;
@@ -64,6 +70,10 @@ function BattleGrid({
   hoveredTargetIds?: Set<string>;
   damagePreviews?: Map<string, DamagePreview | null>;
   spriteScale: number;
+  onMouseEnterSprite?: (combatant: Combatant) => void;
+  onMouseLeaveSprite?: () => void;
+  switchTargetPositions?: Position[];
+  onSwitchSelect?: (position: Position) => void;
 }) {
   const frontRow = combatants.filter(c => c.position.row === 'front');
   const backRow = combatants.filter(c => c.position.row === 'back');
@@ -87,31 +97,89 @@ function BattleGrid({
   const SLOT_GAP = 4; // vertical gap between Pokemon in same position
   const ROW_GAP = 50; // horizontal gap between front and back columns
 
-  const renderCell = (combatant: Combatant | undefined, zIndex: number, tiltX: number) => (
-    <div style={{
-      transform: `translateX(${tiltX}px)`,
-      position: 'relative',
-      zIndex,
-      display: 'flex',
-      justifyContent: 'center',
-    }}>
-      {combatant && (
-        <PokemonSprite
-          combatant={combatant}
-          isCurrentTurn={currentCombatant?.id === combatant.id}
-          isTargetable={targetableIds.has(combatant.id)}
-          onSelect={() => onSelectTarget(combatant.id)}
-          onInspect={onInspect ? () => onInspect(combatant) : undefined}
-          onDragEnter={onDragEnterTarget ? () => onDragEnterTarget(combatant.id) : undefined}
-          onDragLeave={onDragLeaveTarget}
-          onDrop={onDropOnTarget ? () => onDropOnTarget(combatant.id) : undefined}
-          isDragHovered={hoveredTargetIds?.has(combatant.id) ?? false}
-          damagePreview={damagePreviews?.get(combatant.id)}
-          spriteScale={spriteScale}
-        />
-      )}
-    </div>
-  );
+  // Compute arrow character pointing from source toward target cell
+  // Player grid: back row on LEFT, front row on RIGHT
+  // Enemy grid: front row on LEFT, back row on RIGHT
+  const getSwitchArrow = (from: Position, to: Position): string => {
+    if (from.row !== to.row) {
+      const movingToFront = to.row === 'front';
+      // Player: front is RIGHT, back is LEFT. Enemy: front is LEFT, back is RIGHT.
+      if (side === 'player') return movingToFront ? '\u2192' : '\u2190';
+      return movingToFront ? '\u2190' : '\u2192';
+    }
+    if (to.column < from.column) return '\u2191';
+    return '\u2193';
+  };
+
+  const renderCell = (combatant: Combatant | undefined, zIndex: number, tiltX: number, cellPosition: Position) => {
+    // Check if this cell is a valid switch target
+    const isSwitchTarget = switchTargetPositions?.some(
+      p => p.row === cellPosition.row && p.column === cellPosition.column
+    ) ?? false;
+
+    const arrow = isSwitchTarget && currentCombatant
+      ? getSwitchArrow(currentCombatant.position, cellPosition)
+      : '\u2192';
+
+    return (
+      <div style={{
+        transform: `translateX(${tiltX}px)`,
+        position: 'relative',
+        zIndex,
+        display: 'flex',
+        justifyContent: 'center',
+      }}>
+        {combatant ? (
+          <div
+            onClick={isSwitchTarget && onSwitchSelect ? () => onSwitchSelect(cellPosition) : undefined}
+            style={{
+              cursor: isSwitchTarget ? 'pointer' : undefined,
+              borderRadius: 8,
+              boxShadow: isSwitchTarget ? '0 0 12px 4px rgba(56, 189, 248, 0.6)' : undefined,
+            }}
+          >
+            <PokemonSprite
+              combatant={combatant}
+              isCurrentTurn={currentCombatant?.id === combatant.id}
+              isTargetable={!isSwitchTarget && targetableIds.has(combatant.id)}
+              onSelect={isSwitchTarget ? () => onSwitchSelect?.(cellPosition) : () => onSelectTarget(combatant.id)}
+              onInspect={!isSwitchTarget && onInspect ? () => onInspect(combatant) : undefined}
+              onDragEnter={!isSwitchTarget && onDragEnterTarget ? () => onDragEnterTarget(combatant.id) : undefined}
+              onDragLeave={!isSwitchTarget ? onDragLeaveTarget : undefined}
+              onDrop={!isSwitchTarget && onDropOnTarget ? () => onDropOnTarget(combatant.id) : undefined}
+              isDragHovered={hoveredTargetIds?.has(combatant.id) ?? false}
+              damagePreview={damagePreviews?.get(combatant.id)}
+              spriteScale={spriteScale}
+              onMouseEnter={onMouseEnterSprite ? () => onMouseEnterSprite(combatant) : undefined}
+              onMouseLeave={onMouseLeaveSprite}
+            />
+          </div>
+        ) : isSwitchTarget && onSwitchSelect ? (
+          <div
+            onClick={() => onSwitchSelect(cellPosition)}
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 12,
+              border: '2px dashed rgba(56, 189, 248, 0.6)',
+              background: 'rgba(56, 189, 248, 0.12)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              color: 'rgba(56, 189, 248, 0.7)',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(56, 189, 248, 0.25)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(56, 189, 248, 0.12)'; }}
+          >
+            {arrow}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <div style={{
@@ -125,9 +193,12 @@ function BattleGrid({
         const leftCombatant = leftCol.find(c => c.position.column === col);
         const rightCombatant = rightCol.find(c => c.position.column === col);
         const tiltX = col * TILT_PX;
+        // Left column row depends on side: player left=back, enemy left=front
+        const leftRow = side === 'player' ? 'back' : 'front';
+        const rightRow = side === 'player' ? 'front' : 'back';
         return [
-          <div key={`${col}-l`}>{renderCell(leftCombatant, leftZIndex, tiltX)}</div>,
-          <div key={`${col}-r`}>{renderCell(rightCombatant, rightZIndex, tiltX)}</div>,
+          <div key={`${col}-l`}>{renderCell(leftCombatant, leftZIndex, tiltX, { row: leftRow, column: col })}</div>,
+          <div key={`${col}-r`}>{renderCell(rightCombatant, rightZIndex, tiltX, { row: rightRow, column: col })}</div>,
         ];
       })}
     </div>
@@ -136,7 +207,7 @@ function BattleGrid({
 
 export function BattleScreen({
   state, phase, logs, pendingCardIndex,
-  onSelectCard, onSelectTarget, onPlayCard, onEndTurn, onRestart, onBattleEnd, runState,
+  onSelectCard, onSelectTarget, onPlayCard, onEndTurn, onSwitchPosition, onRestart, onBattleEnd, runState,
   onBackToSandboxConfig,
 }: Props) {
   const isPlayerTurn = phase === 'player_turn';
@@ -167,9 +238,54 @@ export function BattleScreen({
     setOpenPile(null);
   }, [currentCombatant?.id]);
 
-  // Drag-and-drop state
+  // Switch position mode state (declared early — referenced by enemy hover logic)
+  const [switchMode, setSwitchMode] = useState(false);
+
+  // Drag-and-drop state (declared early — referenced by enemy hover logic)
   const [draggingCardIndex, setDraggingCardIndex] = useState<number | null>(null);
   const [hoveredTargetId, setHoveredTargetId] = useState<string | null>(null);
+
+  // Enemy hand preview state
+  const [hoveredEnemyId, setHoveredEnemyId] = useState<string | null>(null);
+
+  const handleEnemySpriteEnter = useCallback((combatant: Combatant) => {
+    if (phase === 'player_turn' && pendingCardIndex === null && draggingCardIndex === null && !switchMode
+        && combatant.side === 'enemy' && combatant.alive && combatant.hand.length > 0) {
+      setHoveredEnemyId(combatant.id);
+    }
+  }, [phase, pendingCardIndex, draggingCardIndex, switchMode]);
+
+  const handleEnemySpriteLeave = useCallback(() => {
+    setHoveredEnemyId(null);
+  }, []);
+
+  // Clear hover when leaving player_turn phase or when targeting/dragging a card
+  useEffect(() => {
+    if (phase !== 'player_turn' || pendingCardIndex !== null || draggingCardIndex !== null || switchMode) {
+      setHoveredEnemyId(null);
+    }
+  }, [phase, pendingCardIndex, draggingCardIndex, switchMode]);
+
+  // Compute valid switch targets when in switch mode
+  const switchTargetPositions = useMemo(() => {
+    if (!switchMode || !isPlayerTurn || !currentCombatant) return [];
+    return getValidSwitchTargets(state, currentCombatant);
+  }, [switchMode, isPlayerTurn, currentCombatant, state]);
+
+  // Cancel switch mode on Escape
+  useEffect(() => {
+    if (!switchMode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSwitchMode(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [switchMode]);
+
+  // Clear switch mode when turn changes
+  useEffect(() => {
+    setSwitchMode(false);
+  }, [currentCombatant?.id]);
 
   // Battlefield scaling: measure the content and scale to fit the available area
   const PLAYER_OFFSET_Y = 60; // player grid pushed down relative to enemy
@@ -589,6 +705,7 @@ export function BattleScreen({
     }
 
     const cardId = currentCombatant.hand[pendingCardIndex];
+    if (!cardId) return { needsTarget: false, targetableIds: new Set<string>(), rangeLabel: '' };
     const card = getMove(cardId);
     const validTargets = getCardValidTargets(state, currentCombatant, card);
 
@@ -631,6 +748,7 @@ export function BattleScreen({
     // Capture card position BEFORE playing
     const cardPos = handDisplayRef.current?.getCardPosition(pendingCardIndex);
     const cardId = currentCombatant.hand[pendingCardIndex];
+    if (!cardId) { onSelectTarget(targetId); return; }
     const card = getMove(cardId);
 
     // Determine which targets to animate to based on card range
@@ -688,6 +806,7 @@ export function BattleScreen({
     if (pendingCardIndex === null || !isPlayerTurn || !currentCombatant) return;
 
     const cardId = currentCombatant.hand[pendingCardIndex];
+    if (!cardId) return; // Hand may have changed since pendingCardIndex was set
     const card = getMove(cardId);
     const validTargets = getCardValidTargets(state, currentCombatant, card);
 
@@ -810,7 +929,7 @@ export function BattleScreen({
             marginRight: 8,
           }}
         >
-          Reset
+          Main Menu
         </button>
       </div>
 
@@ -832,6 +951,36 @@ export function BattleScreen({
           {rangeLabel}
           <button
             onClick={() => onSelectCard(null)}
+            style={{
+              ...THEME.button.secondary,
+              marginLeft: 12,
+              padding: '2px 8px',
+              fontSize: 15,
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Switch mode hint */}
+      {switchMode && (
+        <div style={{
+          position: 'absolute',
+          top: 56,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          padding: 8,
+          background: 'rgba(56, 189, 248, 0.15)',
+          color: '#7dd3fc',
+          fontSize: 15,
+          fontWeight: 'bold',
+          zIndex: 10,
+        }}>
+          Select adjacent position
+          <button
+            onClick={() => setSwitchMode(false)}
             style={{
               ...THEME.button.secondary,
               marginLeft: 12,
@@ -879,16 +1028,12 @@ export function BattleScreen({
             onDragLeaveTarget={handleDragLeaveTarget}
             onDropOnTarget={handleDropOnTarget}
             hoveredTargetIds={affectedHoverIds}
+            switchTargetPositions={switchMode ? switchTargetPositions : undefined}
+            onSwitchSelect={switchMode ? (pos) => {
+              onSwitchPosition?.(pos);
+              setSwitchMode(false);
+            } : undefined}
           />
-        </div>
-
-        {/* VS divider */}
-        <div style={{
-          fontSize: 26,
-          fontWeight: 'bold',
-          color: THEME.accent + '44',
-        }}>
-          VS
         </div>
 
         {/* Enemy side */}
@@ -906,9 +1051,18 @@ export function BattleScreen({
             onDropOnTarget={handleDropOnTarget}
             hoveredTargetIds={affectedHoverIds}
             damagePreviews={visibleDamagePreviews}
+            onMouseEnterSprite={handleEnemySpriteEnter}
+            onMouseLeaveSprite={handleEnemySpriteLeave}
           />
         </div>
         </div>{/* end scaling wrapper */}
+
+        {/* Enemy hand preview on hover */}
+        {hoveredEnemyId && (() => {
+          const hoveredEnemy = enemies.find(c => c.id === hoveredEnemyId);
+          if (!hoveredEnemy || !hoveredEnemy.alive || hoveredEnemy.hand.length === 0) return null;
+          return <EnemyHandPreview combatant={hoveredEnemy} />;
+        })()}
 
         {/* Victory celebration overlay */}
         {phase === 'victory' && victoryStage && (
@@ -1104,20 +1258,192 @@ export function BattleScreen({
               })()}
             />
 
-            {/* Energy vessel + End Turn (right of hand) */}
+            {/* Energy vessel + Switch + End Turn (right of hand) */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
               <EnergyPips energy={currentCombatant.energy} energyCap={currentCombatant.energyCap} variant="vessel" />
-              <button
-                onClick={onEndTurn}
-                style={{
-                  ...THEME.button.primary,
-                  padding: '8px 18px',
-                  fontSize: 14,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                End Turn
-              </button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {/* Switch button — ornate with cost badge */}
+                {onSwitchPosition && (() => {
+                  const canSwitch = !currentCombatant.turnFlags.hasSwitchedThisTurn
+                    && currentCombatant.energy >= 2
+                    && getValidSwitchTargets(state, currentCombatant).length > 0;
+                  const enabled = canSwitch || switchMode;
+                  const teal = '#38bdf8';
+                  const tealDim = '#1e6a9a';
+                  const accent = enabled ? teal : tealDim;
+                  return (
+                    <button
+                      onClick={() => {
+                        if (switchMode) {
+                          setSwitchMode(false);
+                        } else {
+                          setSwitchMode(true);
+                          onSelectCard(null);
+                        }
+                      }}
+                      disabled={!enabled}
+                      title={
+                        currentCombatant.turnFlags.hasSwitchedThisTurn ? 'Already switched this turn'
+                        : currentCombatant.energy < 2 ? 'Need 2 energy'
+                        : 'Switch position (2 energy)'
+                      }
+                      style={{
+                        position: 'relative',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: enabled ? 'pointer' : 'default',
+                        padding: 0,
+                        opacity: enabled ? 1 : 0.45,
+                      }}
+                    >
+                      <svg width="82" height="38" viewBox="0 0 82 38" fill="none">
+                        {/* Button body */}
+                        <path
+                          d="M8 2 L74 2 Q80 2 80 8 L80 30 Q80 36 74 36 L8 36 Q2 36 2 30 L2 8 Q2 2 8 2 Z"
+                          fill={switchMode ? `${teal}20` : THEME.bg.panelDark}
+                          stroke={switchMode ? `${teal}88` : `${accent}55`}
+                          strokeWidth="1.2"
+                        />
+                        {/* Inner border */}
+                        <path
+                          d="M10 5 L72 5 Q76 5 76 9 L76 29 Q76 33 72 33 L10 33 Q6 33 6 29 L6 9 Q6 5 10 5 Z"
+                          fill="none"
+                          stroke={switchMode ? `${teal}33` : `${accent}18`}
+                          strokeWidth="0.6"
+                        />
+                        {/* Inset glow fill when active */}
+                        {switchMode && (
+                          <path
+                            d="M10 5 L72 5 Q76 5 76 9 L76 29 Q76 33 72 33 L10 33 Q6 33 6 29 L6 9 Q6 5 10 5 Z"
+                            fill={`${teal}0a`}
+                          />
+                        )}
+                        {/* Corner notch accents */}
+                        <line x1="4" y1="11" x2="8" y2="11" stroke={`${accent}44`} strokeWidth="0.7" />
+                        <line x1="4" y1="27" x2="8" y2="27" stroke={`${accent}44`} strokeWidth="0.7" />
+                        <line x1="74" y1="11" x2="78" y2="11" stroke={`${accent}44`} strokeWidth="0.7" />
+                        <line x1="74" y1="27" x2="78" y2="27" stroke={`${accent}44`} strokeWidth="0.7" />
+                        {/* Left swap arrow */}
+                        <path d="M16 15 L20 12 L20 18 Z" fill={enabled ? `${teal}88` : `${tealDim}55`} />
+                        <line x1="20" y1="15" x2="26" y2="15" stroke={enabled ? `${teal}44` : `${tealDim}28`} strokeWidth="0.8" />
+                        {/* Right swap arrow */}
+                        <path d="M66 23 L62 20 L62 26 Z" fill={enabled ? `${teal}88` : `${tealDim}55`} />
+                        <line x1="56" y1="23" x2="62" y2="23" stroke={enabled ? `${teal}44` : `${tealDim}28`} strokeWidth="0.8" />
+                        {/* Text */}
+                        <text
+                          x="41" y="20.5"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={enabled ? teal : tealDim}
+                          fontSize="13"
+                          fontWeight="bold"
+                          fontFamily="'Kreon', Georgia, serif"
+                        >
+                          Switch
+                        </text>
+                      </svg>
+                      {/* Cost badge — diamond notch, top-right */}
+                      <div style={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -6,
+                        width: 22,
+                        height: 22,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        <svg width="22" height="22" viewBox="0 0 22 22" style={{ position: 'absolute' }}>
+                          <path
+                            d="M11 1 L20 11 L11 21 L2 11 Z"
+                            fill={THEME.bg.panelDark}
+                            stroke={enabled ? teal : tealDim}
+                            strokeWidth="1"
+                          />
+                          <path
+                            d="M11 4 L17.5 11 L11 18 L4.5 11 Z"
+                            fill={enabled ? `${teal}18` : 'transparent'}
+                            stroke={enabled ? `${teal}33` : 'transparent'}
+                            strokeWidth="0.6"
+                          />
+                        </svg>
+                        <span style={{
+                          position: 'relative',
+                          fontSize: 11,
+                          fontWeight: 'bold',
+                          color: enabled ? '#7dd3fc' : tealDim,
+                          textShadow: enabled ? `0 0 5px ${teal}66` : 'none',
+                          lineHeight: 1,
+                        }}>
+                          2
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })()}
+
+                {/* End Turn button — ornate gold */}
+                <button
+                  onClick={onEndTurn}
+                  style={{
+                    position: 'relative',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  <svg width="96" height="38" viewBox="0 0 96 38" fill="none">
+                    {/* Button body */}
+                    <path
+                      d="M10 2 L86 2 Q94 2 94 10 L94 28 Q94 36 86 36 L10 36 Q2 36 2 28 L2 10 Q2 2 10 2 Z"
+                      fill={THEME.bg.panelDark}
+                      stroke={THEME.accent}
+                      strokeWidth="1.2"
+                    />
+                    {/* Inner border */}
+                    <path
+                      d="M12 5 L84 5 Q90 5 90 11 L90 27 Q90 33 84 33 L12 33 Q6 33 6 27 L6 11 Q6 5 12 5 Z"
+                      fill="none"
+                      stroke={`${THEME.accent}20`}
+                      strokeWidth="0.6"
+                    />
+                    {/* Inset glow fill */}
+                    <path
+                      d="M12 5 L84 5 Q90 5 90 11 L90 27 Q90 33 84 33 L12 33 Q6 33 6 27 L6 11 Q6 5 12 5 Z"
+                      fill={`${THEME.accent}08`}
+                    />
+                    {/* Corner notch accents */}
+                    <line x1="4" y1="12" x2="8" y2="12" stroke={`${THEME.accent}55`} strokeWidth="0.7" />
+                    <line x1="4" y1="26" x2="8" y2="26" stroke={`${THEME.accent}55`} strokeWidth="0.7" />
+                    <line x1="88" y1="12" x2="92" y2="12" stroke={`${THEME.accent}55`} strokeWidth="0.7" />
+                    <line x1="88" y1="26" x2="92" y2="26" stroke={`${THEME.accent}55`} strokeWidth="0.7" />
+                    {/* Left scroll flourish */}
+                    <path d="M16 19 Q16 14 21 14 L28 14" stroke={`${THEME.accent}44`} strokeWidth="0.8" fill="none" />
+                    <path d="M16 19 Q16 24 21 24 L28 24" stroke={`${THEME.accent}44`} strokeWidth="0.8" fill="none" />
+                    <circle cx="16" cy="19" r="1.5" stroke={`${THEME.accent}44`} strokeWidth="0.7" fill="none" />
+                    {/* Right scroll flourish */}
+                    <path d="M80 19 Q80 14 75 14 L68 14" stroke={`${THEME.accent}44`} strokeWidth="0.8" fill="none" />
+                    <path d="M80 19 Q80 24 75 24 L68 24" stroke={`${THEME.accent}44`} strokeWidth="0.8" fill="none" />
+                    <circle cx="80" cy="19" r="1.5" stroke={`${THEME.accent}44`} strokeWidth="0.7" fill="none" />
+                    {/* Center diamond accent */}
+                    <path d="M48 13 L51 19 L48 25 L45 19 Z" stroke={`${THEME.accent}33`} strokeWidth="0.6" fill={`${THEME.accent}11`} />
+                    {/* Text */}
+                    <text
+                      x="48" y="21"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill={THEME.accent}
+                      fontSize="13"
+                      fontWeight="bold"
+                      fontFamily="'Kreon', Georgia, serif"
+                      style={{ textShadow: `0 0 8px ${THEME.accent}44` } as React.CSSProperties}
+                    >
+                      End Turn
+                    </text>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Discard button */}

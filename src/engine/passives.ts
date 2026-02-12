@@ -207,6 +207,7 @@ export function onTurnStart(
   combatant.turnFlags.surgeMomentumReducedIndex = null;
   combatant.turnFlags.dragonsMajestyReducedIndex = null;
   combatant.turnFlags.sniperUsedThisTurn = false;
+  combatant.turnFlags.hasSwitchedThisTurn = false;
 
   // Inferno Momentum: Reduce highest-cost FIRE card's cost by 3
   if (combatant.passiveIds.includes('inferno_momentum')) {

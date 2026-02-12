@@ -1,5 +1,9 @@
 import type { Combatant, CombatState, CombatantSide, Position, Row, Column, MoveRange, MoveDefinition } from './types';
 
+// All valid grid positions
+const ALL_ROWS: Row[] = ['front', 'back'];
+const ALL_COLUMNS: Column[] = [0, 1, 2];
+
 // ============================================================
 // Position Helpers — Grid positioning and targeting
 // ============================================================
@@ -18,8 +22,15 @@ export function getEffectiveFrontRow(state: CombatState, side: CombatantSide): R
  * Check if a combatant is in the effective front row.
  */
 export function isInEffectiveFrontRow(state: CombatState, combatant: Combatant): boolean {
-  const effectiveFront = getEffectiveFrontRow(state, combatant.side);
-  return combatant.position.row === effectiveFront;
+  if (combatant.position.row === 'front') return true;
+  // Back-row combatant is effectively front if no alive front-row ally covers their column
+  const hasCover = state.combatants.some(
+    c => c.side === combatant.side &&
+         c.alive &&
+         c.position.row === 'front' &&
+         c.position.column === combatant.position.column
+  );
+  return !hasCover;
 }
 
 /**
@@ -62,8 +73,8 @@ export function getValidTargets(
 
   switch (range) {
     case 'front_enemy':
-      // Single target in effective front row only
-      return enemies.filter(c => c.position.row === effectiveFrontRow);
+      // Front-row enemies + exposed back-row enemies (no front-row cover in same column)
+      return enemies.filter(c => isInEffectiveFrontRow(state, c));
 
     case 'back_enemy': {
       // Single target in back row only (if back row exists)
@@ -81,8 +92,8 @@ export function getValidTargets(
       return enemies;
 
     case 'front_row':
-      // All enemies in effective front row (need to select one to activate)
-      return enemies.filter(c => c.position.row === effectiveFrontRow);
+      // All enemies in effective front (front row + exposed back row)
+      return enemies.filter(c => isInEffectiveFrontRow(state, c));
 
     case 'back_row': {
       // All enemies in back row
@@ -230,4 +241,52 @@ export function requiresTargetSelection(range: MoveRange, combatant?: Combatant)
 export function isAoERange(range: MoveRange): boolean {
   return range === 'front_row' || range === 'back_row' || range === 'any_row' ||
          range === 'column' || range === 'all_enemies';
+}
+
+/**
+ * Get orthogonally adjacent positions within the 2x3 grid.
+ * Same row ±1 column, or same column ±1 row. No diagonals.
+ */
+export function getAdjacentPositions(position: Position): Position[] {
+  const { row, column } = position;
+  const adjacent: Position[] = [];
+
+  // Same row, adjacent columns
+  for (const c of ALL_COLUMNS) {
+    if (Math.abs(c - column) === 1) {
+      adjacent.push({ row, column: c });
+    }
+  }
+
+  // Same column, other row
+  for (const r of ALL_ROWS) {
+    if (r !== row) {
+      adjacent.push({ row: r, column });
+    }
+  }
+
+  return adjacent;
+}
+
+/**
+ * Get valid positions a combatant can switch to.
+ * Returns adjacent positions that are either empty or occupied by an alive ally.
+ * Dead combatants don't block movement — their position is treated as empty.
+ */
+export function getValidSwitchTargets(
+  state: CombatState,
+  combatant: Combatant
+): Position[] {
+  const adjacent = getAdjacentPositions(combatant.position);
+
+  return adjacent.filter(pos => {
+    const occupant = state.combatants.find(
+      c => c.side === combatant.side &&
+           c.position.row === pos.row &&
+           c.position.column === pos.column &&
+           c.alive
+    );
+    // Valid if empty or occupied by alive ally (swap)
+    return occupant === undefined || occupant.id !== combatant.id;
+  });
 }

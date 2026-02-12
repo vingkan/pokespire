@@ -184,7 +184,8 @@ export type MoveType =
   | 'dragon'
   | 'ghost'
   | 'rock'
-  | 'ground';
+  | 'ground'
+  | 'item';
 
 // --- Cards / Moves ---
 
@@ -215,6 +216,8 @@ export interface MoveDefinition {
   description: string;
   rarity?: CardRarity;
   pools?: MoveType[];  // Which type pools this card belongs to (for drafting)
+  isItem?: boolean;    // true = shop-only item card, never appears in draft
+  singleUse?: boolean; // true = permanently removed from deck after use (not just vanish for battle)
 }
 
 // --- Status Effects ---
@@ -258,6 +261,7 @@ export interface CombatantTurnFlags {
   surgeMomentumReducedIndex: number | null;  // Index of card with cost reduced by Surge Momentum
   dragonsMajestyReducedIndex: number | null;  // Index of card with cost reduced by Dragon's Majesty
   sniperUsedThisTurn: boolean;  // First attack ignores evasion and block (Fearow line)
+  hasSwitchedThisTurn: boolean;  // Can only switch position once per turn
 }
 
 export interface Combatant {
@@ -332,7 +336,12 @@ export interface EndTurnAction {
   type: 'end_turn';
 }
 
-export type BattleAction = PlayCardAction | EndTurnAction;
+export interface SwitchPositionAction {
+  type: 'switch_position';
+  targetPosition: Position;
+}
+
+export type BattleAction = PlayCardAction | EndTurnAction | SwitchPositionAction;
 
 // --- Pokemon Data (config) ---
 
@@ -347,4 +356,5 @@ export interface PokemonData {
   handSize: number;
   deck: string[];  // move definition IDs
   abilities: string[];  // ability IDs (stubbed for future expansion)
+  description?: string;  // playstyle hint shown on hover in party select
 }

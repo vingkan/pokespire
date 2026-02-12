@@ -4,7 +4,7 @@ import { getCombatant, snapshotSpeeds, checkSpeedChangesAndRebuild } from './com
 import { applyCardDamage, applyHeal, applyBypassDamage, getBloomingCycleReduction } from './damage';
 import type { DamageModifiers } from './damage';
 import { applyStatus, getStatusImmunitySource } from './status';
-import { getEffectiveFrontRow } from './position';
+import { getEffectiveFrontRow, isInEffectiveFrontRow } from './position';
 import {
   checkBlazeStrike, checkFortifiedCannons, checkCounterCurrent, checkStaticField,
   onDamageDealt, onDamageTaken, onStatusApplied,
@@ -304,8 +304,8 @@ function resolveTargets(
       return [source];
 
     case 'front_enemy': {
-      // Single target in front row
-      const validTargets = enemies.filter(c => c.position.row === effectiveFrontRow);
+      // Single target in front row or exposed back row (no front-row cover in same column)
+      const validTargets = enemies.filter(c => isInEffectiveFrontRow(state, c));
       if (targetId) {
         const target = getCombatant(state, targetId);
         if (!validTargets.some(t => t.id === target.id)) {
@@ -347,8 +347,8 @@ function resolveTargets(
     }
 
     case 'front_row':
-      // AoE: all enemies in effective front row
-      return enemies.filter(c => c.position.row === effectiveFrontRow);
+      // AoE: all enemies in effective front (front row + exposed back row)
+      return enemies.filter(c => isInEffectiveFrontRow(state, c));
 
     case 'back_row': {
       // AoE: all enemies in back row, falls back to front if no back row exists

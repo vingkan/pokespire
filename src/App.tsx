@@ -20,6 +20,7 @@ import { THEME } from './ui/theme';
 import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
 import type { RunState, RunPokemon, BattleNode, EventNode, RecruitNode } from './run/types';
 import { getPokemon } from './data/loaders';
+import { SHOP_ITEMS, CARD_FORGET_COST } from './data/shop';
 import {
   createRunState,
   applyPartyPercentHeal,
@@ -28,6 +29,7 @@ import {
   applyExpBoost,
   addCardToDeck,
   syncBattleResults,
+  moveKnockedOutToGraveyard,
   moveToNode,
   isRunComplete,
   isAct1Complete,
@@ -35,6 +37,7 @@ import {
   applyLevelUp,
   transitionToAct2,
   removeCardsFromDeck,
+  removeCardFromBench,
   getCurrentCardRemovalNode,
   migrateRunState,
   swapPartyAndBench,
@@ -44,6 +47,9 @@ import {
   createRecruitPokemon,
   recruitToRoster,
   getRunPokemonData,
+  getBattleGoldReward,
+  addGold,
+  spendGold,
 } from './run/state';
 
 type Screen = 'main_menu' | 'select' | 'map' | 'rest' | 'event' | 'recruit' | 'card_draft' | 'battle' | 'run_victory' | 'run_defeat' | 'card_dex' | 'pokedex' | 'sandbox_config' | 'act_transition' | 'card_removal';
@@ -96,6 +102,8 @@ export default function App() {
   const [sandboxPlayerTeam, setSandboxPlayerTeam] = useState<SandboxPokemon[]>([]);
   const [sandboxEnemyTeam, setSandboxEnemyTeam] = useState<SandboxPokemon[]>([]);
   const [hasSavedGame, setHasSavedGame] = useState(false);
+  const [lastGoldEarned, setLastGoldEarned] = useState<number | undefined>(undefined);
+  const [pendingBattleNodeId, setPendingBattleNodeId] = useState<string | null>(null);
   const battle = useBattle();
 
   // Check for saved game and prologue status on mount
@@ -126,8 +134,8 @@ export default function App() {
   }, []);
 
   // Start a new run after party selection
-  const handleStart = useCallback((party: PokemonData[], positions: Position[]) => {
-    const run = createRunState(party, positions, Date.now());
+  const handleStart = useCallback((party: PokemonData[], positions: Position[], gold: number) => {
+    const run = createRunState(party, positions, Date.now(), gold);
     setRunState(run);
     setScreen('map');
   }, []);
@@ -136,11 +144,23 @@ export default function App() {
   const handleSelectNode = useCallback((nodeId: string) => {
     if (!runState) return;
 
-    // Move to the selected node (grants EXP, marks completed)
+    // Check node type before advancing — battle nodes defer moveToNode until victory
+    const targetNode = runState.nodes.find(n => n.id === nodeId);
+    if (!targetNode) return;
+
+    if (targetNode.type === 'battle') {
+      // Don't call moveToNode yet — if the game crashes mid-battle,
+      // the save retains pre-battle state so the player can retry
+      battle.startBattleFromRun(runState, targetNode as BattleNode);
+      setPendingBattleNodeId(nodeId);
+      setScreen('battle');
+      return;
+    }
+
+    // For all other node types, advance immediately (grants EXP, marks completed)
     const newRun = moveToNode(runState, nodeId);
     setRunState(newRun);
 
-    // Get the node type to determine next screen
     const node = getCurrentNode(newRun);
     if (!node) return;
 
@@ -148,9 +168,6 @@ export default function App() {
       setScreen('rest');
     } else if (node.type === 'event') {
       setScreen('event');
-    } else if (node.type === 'battle') {
-      battle.startBattleFromRun(newRun, node as BattleNode);
-      setScreen('battle');
     } else if (node.type === 'act_transition') {
       setScreen('act_transition');
     } else if (node.type === 'card_removal') {
@@ -232,15 +249,27 @@ export default function App() {
     // Recruit battles: sync HP back to fighter, return to recruit screen
     if (isRecruitBattle && recruitFighterIndex !== null) {
       const playerCombatant = combatants.find(c => c.side === 'player');
+      let newParty = runState.party;
       if (playerCombatant) {
         const newHp = Math.max(0, playerCombatant.hp);
         const isKO = newHp <= 0 || !playerCombatant.alive;
-        const newParty = runState.party.map((p, i) => {
+        newParty = runState.party.map((p, i) => {
           if (i !== recruitFighterIndex) return p;
           return { ...p, currentHp: newHp, knockedOut: p.knockedOut || isKO };
         });
-        setRunState({ ...runState, party: newParty });
+        let updatedRun = moveKnockedOutToGraveyard({ ...runState, party: newParty });
+        setRunState(updatedRun);
+        newParty = updatedRun.party;
       }
+
+      // Check for full party wipe
+      const allDead = newParty.every(p => p.currentHp <= 0 || p.knockedOut);
+      if (allDead) {
+        setIsRecruitBattle(false);
+        setScreen('run_defeat');
+        return;
+      }
+
       setRecruitBattleResult(result === 'victory' ? 'victory' : 'defeat');
       setIsRecruitBattle(false);
       setScreen('recruit');
@@ -248,12 +277,28 @@ export default function App() {
     }
 
     if (result === 'defeat') {
+      setPendingBattleNodeId(null);
       setScreen('run_defeat');
       return;
     }
 
-    // Sync HP from battle back to run state
-    let newRun = syncBattleResults(runState, combatants);
+    // Advance the node NOW (deferred from handleSelectNode for battle nodes)
+    let newRun = pendingBattleNodeId
+      ? moveToNode(runState, pendingBattleNodeId)
+      : runState;
+    setPendingBattleNodeId(null);
+
+    // Sync HP from battle back to run state, then move KO'd to graveyard
+    newRun = syncBattleResults(newRun, combatants);
+    newRun = moveKnockedOutToGraveyard(newRun);
+
+    // Award gold for battle
+    const currentNode = getCurrentNode(newRun);
+    let goldEarned = 0;
+    if (currentNode?.type === 'battle') {
+      goldEarned = getBattleGoldReward(currentNode as BattleNode, newRun.currentAct);
+      newRun = addGold(newRun, goldEarned);
+    }
 
     // Check if this was the final boss (Mewtwo in Act 2)
     if (isRunComplete(newRun)) {
@@ -266,10 +311,11 @@ export default function App() {
       setScreen('act_transition');
     } else {
       setRunState(newRun);
+      setLastGoldEarned(goldEarned > 0 ? goldEarned : undefined);
       // Go to card draft after battle
       setScreen('card_draft');
     }
-  }, [runState, isRecruitBattle, recruitFighterIndex]);
+  }, [runState, isRecruitBattle, recruitFighterIndex, pendingBattleNodeId]);
 
   // Handle card selection during battle
   const handleSelectCard = useCallback((cardIndex: number | null) => {
@@ -297,6 +343,28 @@ export default function App() {
     if (!runState) return;
     const newRun = applyLevelUp(runState, pokemonIndex);
     setRunState(newRun);
+  }, [runState]);
+
+  // Handle shop purchase
+  const handlePurchase = useCallback((moveId: string, pokemonIndex: number) => {
+    if (!runState) return;
+    const item = SHOP_ITEMS.find(i => i.moveId === moveId);
+    if (!item) return;
+    const afterSpend = spendGold(runState, item.goldCost);
+    if (!afterSpend) return;
+    const afterAdd = addCardToDeck(afterSpend, pokemonIndex, moveId);
+    setRunState(afterAdd);
+  }, [runState]);
+
+  // Handle card removal from Hypno's Parlor
+  const handleForgetCard = useCallback((pokemonIndex: number, cardIndex: number, source: 'party' | 'bench') => {
+    if (!runState) return;
+    const afterSpend = spendGold(runState, CARD_FORGET_COST);
+    if (!afterSpend) return;
+    const afterRemove = source === 'party'
+      ? removeCardsFromDeck(afterSpend, pokemonIndex, [cardIndex])
+      : removeCardFromBench(afterSpend, pokemonIndex, [cardIndex]);
+    setRunState(afterRemove);
   }, [runState]);
 
   // Handle act transition - continue to Act 2
@@ -629,6 +697,8 @@ if (screen === 'select') {
         onSwap={handleSwap}
         onPromote={handlePromote}
         onRearrange={handleRearrange}
+        onPurchase={handlePurchase}
+        onForgetCard={handleForgetCard}
         onRestart={handleRestart}
       />
     );
@@ -685,6 +755,7 @@ if (screen === 'select') {
         run={runState}
         onDraftComplete={handleDraftComplete}
         onRestart={handleRestart}
+        goldEarned={lastGoldEarned}
       />
     );
   }
@@ -700,6 +771,7 @@ if (screen === 'select') {
         onSelectTarget={handleSelectTarget}
         onPlayCard={handlePlayCard}
         onEndTurn={battle.endPlayerTurn}
+        onSwitchPosition={battle.switchPosition}
         onRestart={handleRestart}
         onBattleEnd={handleBattleEnd}
         runState={runState ?? undefined}

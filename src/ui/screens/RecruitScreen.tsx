@@ -30,6 +30,15 @@ export function RecruitScreen({ run, node, battleResult, onStartFight, onRecruit
       justifyContent: 'space-between',
       padding: '12px 16px',
     }}>
+      <h1 style={{
+        fontSize: 24,
+        margin: 0,
+        color: '#f97316',
+        letterSpacing: THEME.heading.letterSpacing,
+        textTransform: THEME.heading.textTransform,
+      }}>
+        Wild Encounter
+      </h1>
       <button
         onClick={onRestart}
         style={{
@@ -40,16 +49,6 @@ export function RecruitScreen({ run, node, battleResult, onStartFight, onRecruit
       >
         Main Menu
       </button>
-      <h1 style={{
-        fontSize: 24,
-        margin: 0,
-        color: '#f97316',
-        letterSpacing: THEME.heading.letterSpacing,
-        textTransform: THEME.heading.textTransform,
-      }}>
-        Wild Encounter
-      </h1>
-      <div style={{ width: 80 }} />
     </div>
   );
 

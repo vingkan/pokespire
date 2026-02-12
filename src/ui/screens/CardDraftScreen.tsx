@@ -11,11 +11,12 @@ interface Props {
   run: RunState;
   onDraftComplete: (drafts: Map<number, string | null>) => void;
   onRestart: () => void;
+  goldEarned?: number;
 }
 
 const CARDS_PER_DRAFT = 3;
 
-export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
+export function CardDraftScreen({ run, onDraftComplete, onRestart, goldEarned }: Props) {
   // Track which Pokemon we're drafting for (index into party)
   const [currentDraftIndex, setCurrentDraftIndex] = useState(0);
   // Track drafted cards: Map<pokemonIndex, cardId | null (skip)>
@@ -87,13 +88,13 @@ export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
       background: '#0f0f17',
       position: 'relative',
     }}>
-      {/* Reset button */}
+      {/* Main Menu button */}
       <button
         onClick={onRestart}
         style={{
           position: 'absolute',
           top: 16,
-          left: 16,
+          right: 16,
           padding: '8px 16px',
           fontSize: 13,
           borderRadius: 6,
@@ -109,6 +110,21 @@ export function CardDraftScreen({ run, onDraftComplete, onRestart }: Props) {
       <h1 style={{ fontSize: 30, margin: 0, color: '#facc15', letterSpacing: THEME.heading.letterSpacing }}>
         Card Draft
       </h1>
+
+      {/* Gold earned banner */}
+      {goldEarned && goldEarned > 0 && (
+        <div style={{
+          padding: '4px 16px',
+          borderRadius: 6,
+          background: 'rgba(250, 204, 21, 0.1)',
+          border: '1px solid rgba(250, 204, 21, 0.3)',
+          color: '#facc15',
+          fontSize: 14,
+          fontWeight: 'bold',
+        }}>
+          +{goldEarned}g
+        </div>
+      )}
 
       {/* Progress */}
       <div style={{ fontSize: 15, color: THEME.text.secondary }}>

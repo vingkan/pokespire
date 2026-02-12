@@ -15,7 +15,8 @@
       "growth",
       "poison-powder"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Drains life from foes and spreads it to sustain the team."
   },
   "ivysaur": {
     "name": "Ivysaur",
@@ -69,7 +70,8 @@
       "bubble",
       "tail-whip"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Builds an impenetrable shell, then channels its defenses into crushing force."
   },
   "wartortle": {
     "name": "Wartortle",
@@ -123,7 +125,8 @@
       "smokescreen",
       "growl"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Spreads fire across the battlefield. The first strike burns hottest."
   },
   "charmeleon": {
     "name": "Charmeleon",
@@ -177,7 +180,8 @@
       "double-team",
       "tail-whip"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Outruns everything. The slower the enemy, the harder they fall."
   },
   "raichu": {
     "name": "Raichu",
@@ -213,7 +217,8 @@
       "defend",
       "focus-energy"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Cheap shots and quick feet. Gets more out of simple cards than anyone."
   },
   "pidgey": {
     "name": "Pidgey",
@@ -231,7 +236,8 @@
       "quick-attack",
       "defend", "defend"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Commands winds for speed control."
   },
   "ekans": {
     "name": "Ekans",
@@ -250,7 +256,8 @@
       "acid",
       "smog"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Weakens prey with venom, then strikes when they're most vulnerable."
   },
   "snorlax": {
     "name": "Snorlax",
@@ -268,7 +275,8 @@
       "defend", "defend",
       "sing"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Sleeps to heal, eats damage for breakfast. Outlasts everything."
   },
   "raticate": {
     "name": "Raticate",
@@ -360,7 +368,8 @@
       "horn-attack",
       "defend", "defend"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Gets angrier as it bleeds. Hits harder the closer it is to falling."
   },
   "kangaskhan": {
     "name": "Kangaskhan",
@@ -379,7 +388,8 @@
       "rage",
       "defend", "defend"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Every punch lands twice. Protects allies by absorbing hits nearby."
   },
   "mewtwo": {
     "name": "Mewtwo",
@@ -434,7 +444,8 @@
       "leer",
       "acid"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Poisons first, then escalates into devastating raw power."
   },
   "nidorino": {
     "name": "Nidorino",
@@ -492,7 +503,8 @@
       "tail-whip",
       "acid"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Poisons first, then turns it into shields to protect the team."
   },
   "nidorina": {
     "name": "Nidorina",
@@ -550,7 +562,8 @@
       "tackle", "tackle",
       "sand-attack"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Absorbs lightning for the team. Recoil moves hit hard with zero drawback."
   },
   "rhydon": {
     "name": "Rhydon",
@@ -588,7 +601,8 @@
       "teleport",
       "psybeam"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Puts enemies to sleep, then feeds on their helplessness."
   },
   "hypno": {
     "name": "Hypno",
@@ -626,7 +640,8 @@
       "bite",
       "roar"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Absorbs fire, punishes attackers with burns, and intimidates on arrival."
   },
   "arcanine": {
     "name": "Arcanine",
@@ -663,7 +678,8 @@
       "defend", "defend",
       "screech"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "The fastest thing alive. Goes out with a bang that empowers the whole team."
   },
   "electrode": {
     "name": "Electrode",
@@ -700,7 +716,8 @@
       "poison-powder",
       "bug-bite"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Spreads debuffs like pollen. Each one makes it harder to pin down."
   },
   "butterfree": {
     "name": "Butterfree",
@@ -737,7 +754,8 @@
       "string-shot",
       "fury-attack"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "A poison-and-bug specialist whose type attacks scale to absurd heights."
   },
   "beedrill": {
     "name": "Beedrill",
@@ -773,7 +791,8 @@
       "flail",
       "bounce"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Useless at first."
   },
   "gyarados": {
     "name": "Gyarados",
@@ -807,7 +826,8 @@
       "mist", "mist",
       "sing"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "An immovable fortress that caps incoming damage and heals the whole team."
   },
   "magmar": {
     "name": "Magmar",
@@ -823,7 +843,8 @@
       "ember", "ember", "ember",
       "fire-punch", "fire-punch"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Stokes the flames. The more an enemy burns, the harder every hit lands."
   },
   "electabuzz": {
     "name": "Electabuzz",
@@ -839,7 +860,8 @@
       "thunder-shock", "thunder-shock", "thunder-shock",
       "thunder-punch", "thunder-punch"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Paralyzes targets, then every attack \u2014 any type \u2014 hits them harder."
   },
   "dratini": {
     "name": "Dratini",
@@ -856,7 +878,8 @@
       "thunder-wave",
       "twister"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "A slow starter that becomes an unstoppable juggernaut. Worth the investment."
   },
   "dragonair": {
     "name": "Dragonair",
@@ -906,7 +929,8 @@
       "gust", "gust",
       "fury-attack", "fury-attack"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "Pierces through block and evasion. Nothing hides from Fearow's beak."
   },
   "fearow": {
     "name": "Fearow",
@@ -938,7 +962,8 @@
       "sand-attack", "sand-attack",
       "bone-club", "bone-club"
     ],
-    "abilities": []
+    "abilities": [],
+    "description": "A living wall. Takes hits, grows thornier, and turns defense into offense."
   },
   "sandslash": {
     "name": "Sandslash",
