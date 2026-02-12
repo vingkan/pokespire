@@ -16,13 +16,19 @@ export interface DamageResult {
   stab: number;
   blazeStrikeMultiplier: number;  // 2 if Blaze Strike triggered, 1 otherwise
   swarmStrikeMultiplier: number;  // 2 if Swarm Strike triggered, 1 otherwise
-  bastionBarrageBonus: number;    // Bonus damage from Bastion Barrage
+  fortifiedCannonsBonus: number;  // Bonus from Fortified Cannons (Water + Block)
+  fortifiedSpinesBonus: number;   // Bonus from Fortified Spines (Ground + Block)
   bloomingCycleReduction: number; // Damage reduction from Blooming Cycle
   counterCurrentBonus: number;    // Bonus from Counter-Current
   staticFieldReduction: number;   // Reduction from Static Field
-  gustForceBonus: number;         // Bonus from Gust Force (+2 for Flying)
+  keenEyeBonus: number;           // Bonus from Keen Eye (+1 if target has Slow)
+  predatorsPatienceBonus: number;  // Bonus from Predator's Patience
+  searingFuryBonus: number;        // Bonus from Searing Fury (+N per Burn stack)
+  voltFuryBonus: number;           // Bonus from Volt Fury (+N per Paralysis stack)
+  sharpBeakBonus: number;          // Bonus from Sharp Beak (+1 for Flying)
   thickHideReduction: number;     // Reduction from Thick Hide (-2 all)
   thickFatMultiplier: number;     // Multiplier from Thick Fat (0.75 for Fire/Ice)
+  multiscaleMultiplier: number;  // Multiplier from Multiscale (0.5 above 75% HP)
   underdogBonus: number;         // Bonus from Underdog (+2 for common 1-cost cards)
   ragingBullMultiplier: number;   // Multiplier from Raging Bull (1.5x Normal below 50% HP)
   hustleMultiplier: number;       // Multiplier from Hustle (1.3x for attacks)
@@ -46,13 +52,19 @@ export function hasSTAB(combatant: Combatant, moveType: MoveType): boolean {
 export interface DamageModifiers {
   isBlazeStrike?: boolean;
   isSwarmStrike?: boolean;
-  bastionBarrageBonus?: number;
+  fortifiedCannonsBonus?: number;
+  fortifiedSpinesBonus?: number;
   bloomingCycleReduction?: number;
   counterCurrentBonus?: number;
   staticFieldReduction?: number;
-  gustForceBonus?: number;
+  keenEyeBonus?: number;
+  predatorsPatienceBonus?: number;
+  searingFuryBonus?: number;
+  voltFuryBonus?: number;
+  sharpBeakBonus?: number;
   thickHideReduction?: number;
   thickFatMultiplier?: number;
+  multiscaleMultiplier?: number;
   underdogBonus?: number;
   ragingBullMultiplier?: number;
   hustleMultiplier?: number;
@@ -60,7 +72,8 @@ export interface DamageModifiers {
   poisonBarbBonus?: number;
   adaptabilityBonus?: number;
   typeEffectiveness?: number;  // Type matchup multiplier
-  ignoreEvasion?: boolean;  // For Scrappy
+  ignoreEvasion?: boolean;  // For Scrappy / Sniper
+  ignoreBlock?: boolean;    // For Sniper
 }
 
 /**
@@ -80,15 +93,20 @@ export function applyCardDamage(
   const strength = getStatusStacks(source, 'strength');
   const enfeeble = getStatusStacks(source, 'enfeeble');
   const stab = moveType && hasSTAB(source, moveType) ? STAB_BONUS : 0;
-  const bastionBonus = mods.bastionBarrageBonus ?? 0;
+  const fortifiedCannonsBonus = mods.fortifiedCannonsBonus ?? 0;
+  const fortifiedSpinesBonus = mods.fortifiedSpinesBonus ?? 0;
   const counterBonus = mods.counterCurrentBonus ?? 0;
-  const gustBonus = mods.gustForceBonus ?? 0;
+  const keenEyeBonus = mods.keenEyeBonus ?? 0;
+  const predatorsPatienceBonus = mods.predatorsPatienceBonus ?? 0;
+  const searingFuryBonus = mods.searingFuryBonus ?? 0;
+  const voltFuryBonus = mods.voltFuryBonus ?? 0;
+  const sharpBeakBonus = mods.sharpBeakBonus ?? 0;
   const underdogBonus = mods.underdogBonus ?? 0;
   const familyFuryBonus = mods.familyFuryBonus ?? 0;
   const poisonBarbBonus = mods.poisonBarbBonus ?? 0;
   const adaptabilityBonus = mods.adaptabilityBonus ?? 0;
 
-  let rawDamage = baseDamage + strength + stab + bastionBonus + counterBonus + gustBonus + underdogBonus + familyFuryBonus + poisonBarbBonus + adaptabilityBonus - enfeeble;
+  let rawDamage = baseDamage + strength + stab + fortifiedCannonsBonus + fortifiedSpinesBonus + counterBonus + keenEyeBonus + predatorsPatienceBonus + searingFuryBonus + voltFuryBonus + sharpBeakBonus + underdogBonus + familyFuryBonus + poisonBarbBonus + adaptabilityBonus - enfeeble;
   rawDamage = Math.max(rawDamage, 1); // floor at 1
 
   // Step 1.5: Apply strike multipliers (Blaze Strike / Swarm Strike — mutually exclusive)
@@ -119,6 +137,10 @@ export function applyCardDamage(
   const thickFatMultiplier = mods.thickFatMultiplier ?? 1.0;
   rawDamage = Math.floor(rawDamage * thickFatMultiplier);
 
+  // Step 1.85: Apply Multiscale multiplier (50% reduction above 75% HP)
+  const multiscaleMultiplier = mods.multiscaleMultiplier ?? 1.0;
+  rawDamage = Math.floor(rawDamage * multiscaleMultiplier);
+
   // Step 1.9: Shell Armor — cap damage at 20
   if (target.passiveIds.includes('shell_armor') && rawDamage > 20) {
     rawDamage = 20;
@@ -130,9 +152,10 @@ export function applyCardDamage(
   let afterEvasion = rawDamage - evasion;
   afterEvasion = Math.max(afterEvasion, 0); // evasion can reduce to 0
 
-  // Step 3: Apply Block
-  const damageToBlock = Math.min(afterEvasion, target.block);
-  target.block -= damageToBlock;
+  // Step 3: Apply Block (unless Sniper ignores it)
+  const ignoreBlock = mods.ignoreBlock ?? false;
+  const damageToBlock = ignoreBlock ? 0 : Math.min(afterEvasion, target.block);
+  if (!ignoreBlock) target.block -= damageToBlock;
 
   const damageToHp = afterEvasion - damageToBlock;
   const hpBefore = target.hp;
@@ -155,13 +178,19 @@ export function applyCardDamage(
     stab,
     blazeStrikeMultiplier,
     swarmStrikeMultiplier,
-    bastionBarrageBonus: bastionBonus,
+    fortifiedCannonsBonus,
+    fortifiedSpinesBonus,
     bloomingCycleReduction: bloomingReduction,
     counterCurrentBonus: counterBonus,
     staticFieldReduction: staticReduction,
-    gustForceBonus: gustBonus,
+    keenEyeBonus,
+    predatorsPatienceBonus,
+    searingFuryBonus,
+    voltFuryBonus,
+    sharpBeakBonus,
     thickHideReduction: thickHideReduction,
     thickFatMultiplier: thickFatMultiplier,
+    multiscaleMultiplier: multiscaleMultiplier,
     underdogBonus: underdogBonus,
     ragingBullMultiplier: ragingBullMultiplier,
     hustleMultiplier: hustleMultiplier,

@@ -55,6 +55,9 @@ function createCombatant(
       overgrowHealUsedThisTurn: false,
       torrentShieldUsedThisTurn: false,
       swarmStrikeUsedThisTurn: false,
+      surgeMomentumReducedIndex: null,
+      dragonsMajestyReducedIndex: null,
+      sniperUsedThisTurn: false,
     },
     costModifiers: {},
   };

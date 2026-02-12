@@ -1,4 +1,4 @@
-import type { PokemonData, Position, Combatant } from '../engine/types';
+import type { PokemonData, Position, Column, Row, Combatant } from '../engine/types';
 import type { RunState, RunPokemon, MapNode, BattleNode, ActTransitionNode, CardRemovalNode, EventType } from './types';
 import { getPokemon } from '../data/loaders';
 import { ACT1_NODES, ACT2_NODES, getNodeById } from './nodes';
@@ -13,8 +13,8 @@ import {
 // EXP Constants
 // ============================================================
 
-/** EXP required per level up (changed from 2 to 3 for Act 1/2 pacing) */
-export const EXP_PER_LEVEL = 3;
+/** EXP required per level up */
+export const EXP_PER_LEVEL = 4;
 
 // ============================================================
 // Run State Management
@@ -449,7 +449,7 @@ export function getCurrentBattleNode(run: RunState): BattleNode | null {
 
 /**
  * Check if a Pokemon can level up.
- * Requires EXP_PER_LEVEL (2) EXP and not at max level.
+ * Requires EXP_PER_LEVEL EXP and not at max level.
  */
 export function canPokemonLevelUp(pokemon: RunPokemon): boolean {
   return canLevelUp(pokemon.level, pokemon.exp);
@@ -641,6 +641,34 @@ export function demoteToBench(
   return { ...run, party: newParty, bench: newBench };
 }
 
+/**
+ * Find the first empty grid position not occupied by any party member.
+ * Prefers front row, then back row, in column order.
+ */
+export function findEmptyPosition(party: RunPokemon[]): Position | null {
+  const occupied = new Set(party.map(p => `${p.position.row}-${p.position.column}`));
+  const rows: Row[] = ['front', 'back'];
+  const cols: Column[] = [0, 1, 2];
+  for (const row of rows) {
+    for (const col of cols) {
+      if (!occupied.has(`${row}-${col}`)) {
+        return { row, column: col };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Rearrange party positions on the grid.
+ * newPositions must be same length as party and contain valid unique positions.
+ */
+export function rearrangeParty(run: RunState, newPositions: Position[]): RunState {
+  if (newPositions.length !== run.party.length) return run;
+  const newParty = run.party.map((p, i) => ({ ...p, position: newPositions[i] }));
+  return { ...run, party: newParty };
+}
+
 // ============================================================
 // Recruit System
 // ============================================================
@@ -652,6 +680,11 @@ const RECRUIT_POOL_ALL = [
   'rhyhorn', 'drowzee', 'growlithe', 'voltorb', 'caterpie', 'weedle',
   'magikarp',
   'lapras',
+  'magmar',
+  'electabuzz',
+  'dratini',
+  'spearow',
+  'sandshrew',
 ];
 
 /** Simple seeded RNG (Lehmer / Park-Miller). Returns value in [0, 1) and next seed. */

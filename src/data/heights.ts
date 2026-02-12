@@ -74,6 +74,23 @@ export const POKEMON_WEIGHTS: Record<string, number> = {
 
   // Lapras
   lapras: 80,     // Real: 220kg, reduced for sprite scaling
+
+  // Magmar & Electabuzz
+  magmar: 40,     // Real: 44.5kg, reduced for sprite scaling
+  electabuzz: 28, // Real: 30kg, reduced for sprite scaling
+
+  // Dratini line
+  dratini: 5.7,   // Real: 3.3kg, increased for sprite scaling (+20%)
+  dragonair: 16.5, // Real: 16.5kg
+  dragonite: 41,  // Real: 210kg, reduced for sprite scaling (visually -20%)
+
+  // Spearow line
+  spearow: 4,     // Real: 2kg, increased for sprite scaling
+  fearow: 128,    // Real: 38kg, increased for sprite scaling (+80% visual size)
+
+  // Sandshrew line
+  sandshrew: 6,   // Real: 12kg, reduced for sprite scaling (-20%)
+  sandslash: 30,  // Real: 29.5kg
 };
 
 // Reference Pokemon and base sprite size

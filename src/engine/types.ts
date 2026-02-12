@@ -255,6 +255,9 @@ export interface CombatantTurnFlags {
   overgrowHealUsedThisTurn: boolean;  // First Grass attack heals (Venusaur line)
   torrentShieldUsedThisTurn: boolean;  // First Water attack grants Block (Blastoise line)
   swarmStrikeUsedThisTurn: boolean;   // First Bug attack deals double (Beedrill line)
+  surgeMomentumReducedIndex: number | null;  // Index of card with cost reduced by Surge Momentum
+  dragonsMajestyReducedIndex: number | null;  // Index of card with cost reduced by Dragon's Majesty
+  sniperUsedThisTurn: boolean;  // First attack ignores evasion and block (Fearow line)
 }
 
 export interface Combatant {

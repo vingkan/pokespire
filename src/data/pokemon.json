@@ -808,5 +808,152 @@
       "sing"
     ],
     "abilities": []
+  },
+  "magmar": {
+    "name": "Magmar",
+    "types": ["fire"],
+    "maxHp": 48,
+    "baseSpeed": 6,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "karate-chop", "karate-chop",
+      "ember", "ember", "ember",
+      "fire-punch", "fire-punch"
+    ],
+    "abilities": []
+  },
+  "electabuzz": {
+    "name": "Electabuzz",
+    "types": ["electric"],
+    "maxHp": 42,
+    "baseSpeed": 7,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "karate-chop", "karate-chop",
+      "thunder-shock", "thunder-shock", "thunder-shock",
+      "thunder-punch", "thunder-punch"
+    ],
+    "abilities": []
+  },
+  "dratini": {
+    "name": "Dratini",
+    "types": ["dragon"],
+    "maxHp": 35,
+    "baseSpeed": 5,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "tackle", "tackle", "tackle",
+      "wrap", "wrap",
+      "thunder-wave",
+      "twister"
+    ],
+    "abilities": []
+  },
+  "dragonair": {
+    "name": "Dragonair",
+    "types": ["dragon"],
+    "maxHp": 45,
+    "baseSpeed": 6,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "tackle", "tackle", "tackle",
+      "wrap", "wrap",
+      "thunder-wave",
+      "twister"
+    ],
+    "abilities": []
+  },
+  "dragonite": {
+    "name": "Dragonite",
+    "types": ["dragon", "flying"],
+    "maxHp": 80,
+    "baseSpeed": 6,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "tackle", "tackle", "tackle",
+      "wrap", "wrap",
+      "thunder-wave",
+      "twister"
+    ],
+    "abilities": []
+  },
+  "spearow": {
+    "name": "Spearow",
+    "types": ["normal", "flying"],
+    "maxHp": 26,
+    "baseSpeed": 6,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "peck", "peck", "peck",
+      "gust", "gust",
+      "fury-attack", "fury-attack"
+    ],
+    "abilities": []
+  },
+  "fearow": {
+    "name": "Fearow",
+    "types": ["normal", "flying"],
+    "maxHp": 42,
+    "baseSpeed": 7,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "peck", "peck", "peck",
+      "gust", "gust",
+      "fury-attack", "fury-attack"
+    ],
+    "abilities": []
+  },
+  "sandshrew": {
+    "name": "Sandshrew",
+    "types": ["ground"],
+    "maxHp": 34,
+    "baseSpeed": 4,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "scratch", "scratch", "scratch",
+      "sand-attack", "sand-attack",
+      "bone-club", "bone-club"
+    ],
+    "abilities": []
+  },
+  "sandslash": {
+    "name": "Sandslash",
+    "types": ["ground"],
+    "maxHp": 54,
+    "baseSpeed": 4,
+    "energyPerTurn": 3,
+    "energyCap": 10,
+    "handSize": 5,
+    "deck": [
+      "defend", "defend", "defend",
+      "scratch", "scratch", "scratch",
+      "sand-attack", "sand-attack",
+      "bone-club", "bone-club"
+    ],
+    "abilities": []
   }
 }

@@ -7,7 +7,11 @@ import {
   checkKeenEye, checkPredatorsPatience, checkThickHide, checkThickFat,
   checkUnderdog, checkAngerPoint, checkSheerForce, checkScrappy,
   checkHustleMultiplier, checkRelentless, checkReckless, checkTintedLens,
-  checkPoisonBarb, checkAdaptability, checkSwarmStrike
+  checkPoisonBarb, checkAdaptability, checkSwarmStrike,
+  checkSearingFury, checkVoltFury,
+  checkMultiscale, checkDragonsMajesty,
+  checkSharpBeak, checkSniper,
+  checkFortifiedSpines
 } from './passives';
 import { getBloomingCycleReduction } from './damage';
 
@@ -87,7 +91,9 @@ export function calculateDamagePreview(
   const stab = hasSTAB(source, card.type) ? STAB_BONUS : 0;
 
   // Passive bonuses
-  const { bonusDamage: fortifiedBonus } = checkFortifiedCannons(state, source, card);
+  const { bonusDamage: fortifiedCannonsBonus } = checkFortifiedCannons(state, source, card);
+  const { bonusDamage: fortifiedSpinesBonus } = checkFortifiedSpines(state, source, card);
+  const fortifiedBonus = fortifiedCannonsBonus + fortifiedSpinesBonus;
   const { bonusDamage: counterBonus } = checkCounterCurrent(state, source, target);
   const keenEyeBonus = checkKeenEye(source, target);
   const predatorsPatienceBonus = checkPredatorsPatience(source, target);
@@ -95,6 +101,9 @@ export function calculateDamagePreview(
   const scrappyBonus = checkScrappy(source, card);
   const poisonBarbBonus = checkPoisonBarb(source, card);
   const adaptabilityBonus = checkAdaptability(source, card);
+  const searingFuryBonus = checkSearingFury(source, target, card);
+  const voltFuryBonus = checkVoltFury(source, target);
+  const sharpBeakBonus = checkSharpBeak(source, card);
   const hustleMultiplier = checkHustleMultiplier(source);
   const relentlessBonus = checkRelentless(source);
 
@@ -105,7 +114,8 @@ export function calculateDamagePreview(
   const angerPointMultiplier = checkAngerPoint(source);
   const sheerForceMultiplier = checkSheerForce(source);
   const recklessMultiplier = checkReckless(source, card);
-  const combinedMultiplier = angerPointMultiplier * sheerForceMultiplier * recklessMultiplier * hustleMultiplier;
+  const dragonsMajestyMultiplier = checkDragonsMajesty(source);
+  const combinedMultiplier = angerPointMultiplier * sheerForceMultiplier * recklessMultiplier * hustleMultiplier * dragonsMajestyMultiplier;
 
   // Type effectiveness (with Tinted Lens adjustment)
   let typeEffectiveness = getTypeEffectiveness(card.type, target.types);
@@ -121,7 +131,8 @@ export function calculateDamagePreview(
   // Calculate raw damage (before evasion/block)
   let rawDamage = baseDamage + strength + stab + fortifiedBonus + counterBonus +
     keenEyeBonus + predatorsPatienceBonus + underdogBonus +
-    scrappyBonus + poisonBarbBonus + adaptabilityBonus + relentlessBonus - enfeeble;
+    scrappyBonus + poisonBarbBonus + adaptabilityBonus + relentlessBonus +
+    searingFuryBonus + voltFuryBonus + sharpBeakBonus - enfeeble;
   rawDamage = Math.max(rawDamage, 1);
 
   // Apply multipliers
@@ -133,17 +144,24 @@ export function calculateDamagePreview(
   rawDamage = Math.max(rawDamage - bloomingReduction - staticReduction - thickHideReduction, 0);
   rawDamage = Math.floor(rawDamage * thickFatMultiplier);
 
+  // Multiscale: Take half damage if above 75% HP
+  const multiscaleMultiplier = checkMultiscale(target);
+  rawDamage = Math.floor(rawDamage * multiscaleMultiplier);
+
   // Shell Armor: Cap damage at 20
   if (target.passiveIds.includes('shell_armor') && rawDamage > 20) {
     rawDamage = 20;
   }
 
+  // Sniper: First attack each turn ignores evasion and block (dryRun=true for preview)
+  const { ignoreEvasion: sniperIgnoreEvasion, ignoreBlock: sniperIgnoreBlock } = checkSniper(state, source, card, true);
+
   // Calculate evasion reduction
-  const evasion = getStatusStacks(target, 'evasion');
+  const evasion = sniperIgnoreEvasion ? 0 : getStatusStacks(target, 'evasion');
   let afterEvasion = Math.max(rawDamage - evasion, 0);
 
   // Calculate block absorption
-  const blockedAmount = Math.min(afterEvasion, target.block);
+  const blockedAmount = sniperIgnoreBlock ? 0 : Math.min(afterEvasion, target.block);
   const finalDamage = afterEvasion - blockedAmount;
 
   // For multi-hit, calculate total (each hit goes through the calculation)

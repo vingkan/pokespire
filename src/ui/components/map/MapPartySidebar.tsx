@@ -10,6 +10,8 @@ interface Props {
   bench: RunPokemon[];
   onPokemonClick: (index: number) => void;
   onSwap: (partyIndex: number, benchIndex: number) => void;
+  onPromote: (benchIndex: number) => void;
+  onRearrange: () => void;
   onRestart: () => void;
 }
 
@@ -112,11 +114,19 @@ function PokemonRow({ pokemon, isDead, canLevel, onClick, isSwapTarget, onSwapCl
   );
 }
 
-export function MapPartySidebar({ party, bench, onPokemonClick, onSwap, onRestart }: Props) {
-  // Swap mode: when a bench Pokemon is clicked, highlight party members to swap with
+export function MapPartySidebar({ party, bench, onPokemonClick, onSwap, onPromote, onRearrange, onRestart }: Props) {
+  // Swap mode: when party is full and a bench Pokemon is clicked, highlight party members to swap with
   const [swapBenchIndex, setSwapBenchIndex] = useState<number | null>(null);
 
+  const partyHasRoom = party.length < 4;
+
   const handleBenchClick = (benchIndex: number) => {
+    if (partyHasRoom) {
+      // Directly promote to party when there's room
+      onPromote(benchIndex);
+      return;
+    }
+    // Party full — enter swap mode
     if (swapBenchIndex === benchIndex) {
       setSwapBenchIndex(null); // Toggle off
     } else {
@@ -144,14 +154,30 @@ export function MapPartySidebar({ party, bench, onPokemonClick, onSwap, onRestar
       overflowY: 'auto',
     }}>
       <div style={{
-        fontSize: 11,
-        color: THEME.text.tertiary,
-        letterSpacing: '0.1em',
-        textTransform: 'uppercase',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
         marginBottom: 4,
-        textAlign: 'center',
       }}>
-        Party
+        <div style={{
+          fontSize: 11,
+          color: THEME.text.tertiary,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+        }}>
+          Party
+        </div>
+        <button
+          onClick={onRearrange}
+          style={{
+            ...THEME.button.secondary,
+            padding: '2px 8px',
+            fontSize: 10,
+          }}
+        >
+          Rearrange
+        </button>
       </div>
 
       {party.map((pokemon, i) => {
@@ -223,6 +249,17 @@ export function MapPartySidebar({ party, bench, onPokemonClick, onSwap, onRestar
               padding: '4px 0',
             }}>
               Click a party member to swap
+            </div>
+          )}
+
+          {partyHasRoom && (
+            <div style={{
+              fontSize: 11,
+              color: '#4ade80',
+              textAlign: 'center',
+              padding: '4px 0',
+            }}>
+              Click to add to party
             </div>
           )}
         </>

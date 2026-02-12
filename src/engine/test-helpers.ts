@@ -57,6 +57,9 @@ export function createTestCombatant(options: TestCombatantOptions = {}): Combata
       overgrowHealUsedThisTurn: false,
       torrentShieldUsedThisTurn: false,
       swarmStrikeUsedThisTurn: false,
+      surgeMomentumReducedIndex: null,
+      dragonsMajestyReducedIndex: null,
+      sniperUsedThisTurn: false,
     },
     costModifiers: {},
   };

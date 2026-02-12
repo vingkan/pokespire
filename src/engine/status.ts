@@ -69,6 +69,10 @@ export function getStatusImmunitySource(
   if (type === 'sleep' && target.passiveIds.includes('insomnia')) {
     return 'Insomnia';
   }
+  // Vital Spirit: You cannot be put to Sleep
+  if (type === 'sleep' && target.passiveIds.includes('vital_spirit')) {
+    return 'Vital Spirit';
+  }
   // Inner Focus: You cannot be Enfeebled
   if (type === 'enfeeble' && target.passiveIds.includes('inner_focus')) {
     return 'Inner Focus';

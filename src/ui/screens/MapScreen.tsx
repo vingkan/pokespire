@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { RunState, MapNode } from '../../run/types';
+import type { RunState, RunPokemon, MapNode } from '../../run/types';
 import { getAvailableNextNodes } from '../../run/state';
 import { PokemonDetailsPanel } from '../components/PokemonDetailsPanel';
 import { ScreenShell } from '../components/ScreenShell';
@@ -12,12 +12,15 @@ import { MapPath, type PathState } from '../components/map/MapPath';
 import { MapTooltip } from '../components/map/MapTooltip';
 import { MapLegend } from '../components/map/MapLegend';
 import { MapPartySidebar } from '../components/map/MapPartySidebar';
+import { RearrangeModal } from '../components/map/RearrangeModal';
 
 interface Props {
   run: RunState;
   onSelectNode: (nodeId: string) => void;
   onLevelUp: (pokemonIndex: number) => void;
   onSwap: (partyIndex: number, benchIndex: number) => void;
+  onPromote: (benchIndex: number) => void;
+  onRearrange: (newParty: RunPokemon[], newBench: RunPokemon[]) => void;
   onRestart: () => void;
 }
 
@@ -47,10 +50,11 @@ function getPathState(
   return 'locked';
 }
 
-export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onRestart }: Props) {
+export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onPromote, onRearrange, onRestart }: Props) {
   const [selectedPokemonIndex, setSelectedPokemonIndex] = useState<number | null>(null);
   const [hoveredNode, setHoveredNode] = useState<MapNode | null>(null);
   const [mapSize, setMapSize] = useState({ width: 900, height: 500 });
+  const [showRearrange, setShowRearrange] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const actConfig = getActMapConfig(run.currentAct);
@@ -109,6 +113,8 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onRestart }: P
             if (run.party[i].currentHp > 0) setSelectedPokemonIndex(i);
           }}
           onSwap={onSwap}
+          onPromote={onPromote}
+          onRearrange={() => setShowRearrange(true)}
           onRestart={onRestart}
         />
 
@@ -228,6 +234,19 @@ export function MapScreen({ run, onSelectNode, onLevelUp, onSwap, onRestart }: P
           onClose={() => setSelectedPokemonIndex(null)}
           onLevelUp={onLevelUp}
           onNavigate={setSelectedPokemonIndex}
+        />
+      )}
+
+      {/* Rearrange Formation Modal */}
+      {showRearrange && (
+        <RearrangeModal
+          party={run.party}
+          bench={run.bench}
+          onConfirm={(newParty, newBench) => {
+            onRearrange(newParty, newBench);
+            setShowRearrange(false);
+          }}
+          onClose={() => setShowRearrange(false)}
         />
       )}
     </ScreenShell>

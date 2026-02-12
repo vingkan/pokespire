@@ -238,8 +238,12 @@ export function BattleScreen({
   // Find the RunPokemon for an inspected player combatant
   const getRunPokemonForCombatant = (combatant: Combatant) => {
     if (!runState || combatant.side !== 'player') return null;
-    // Match by slotIndex (party position)
-    return runState.party[combatant.slotIndex] ?? null;
+    // Match by formId + position to handle duplicates and recruit 1v1 battles
+    return runState.party.find(p =>
+      p.formId === combatant.pokemonId &&
+      p.position.row === combatant.position.row &&
+      p.position.column === combatant.position.column
+    ) ?? runState.party.find(p => p.formId === combatant.pokemonId) ?? null;
   };
 
   const inspectedCombatant = inspectedCombatantId

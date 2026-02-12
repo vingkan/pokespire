@@ -92,6 +92,11 @@ export const STARTER_POKEMON: Record<string, PokemonData> = {
   weedle: POKEMON.weedle,
   magikarp: POKEMON.magikarp,
   lapras: POKEMON.lapras,
+  magmar: POKEMON.magmar,
+  electabuzz: POKEMON.electabuzz,
+  dratini: POKEMON.dratini,
+  spearow: POKEMON.spearow,
+  sandshrew: POKEMON.sandshrew,
 };
 
 /** Enemy Pokemon */

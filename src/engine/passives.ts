@@ -13,7 +13,7 @@
 
 import type { CombatState, Combatant, LogEntry, MoveDefinition, MoveType } from './types';
 import { applyStatus, getEffectiveSpeed } from './status';
-import { applyHeal } from './damage';
+import { applyHeal, applyBypassDamage } from './damage';
 
 // ============================================================
 // Helper Functions
@@ -50,6 +50,67 @@ export function findHighestCostFireCard(
     const move = getMove(combatant.hand[i]);
     // Only consider fire-type cards
     if (move.type !== 'fire') continue;
+
+    if (move.cost > highestCost) {
+      highestCost = move.cost;
+      highestIdx = i;
+    }
+  }
+
+  if (highestIdx === -1) return null;
+
+  return {
+    cardId: combatant.hand[highestIdx],
+    index: highestIdx,
+    cost: highestCost,
+  };
+}
+
+/**
+ * Find the highest-cost ELECTRIC card in a combatant's hand.
+ * Tie-breaker: first in hand order (lowest index).
+ */
+export function findHighestCostElectricCard(
+  combatant: Combatant,
+  getMove: (id: string) => MoveDefinition
+): { cardId: string; index: number; cost: number } | null {
+  let highestIdx = -1;
+  let highestCost = -1;
+
+  for (let i = 0; i < combatant.hand.length; i++) {
+    const move = getMove(combatant.hand[i]);
+    // Only consider electric-type cards
+    if (move.type !== 'electric') continue;
+
+    if (move.cost > highestCost) {
+      highestCost = move.cost;
+      highestIdx = i;
+    }
+  }
+
+  if (highestIdx === -1) return null;
+
+  return {
+    cardId: combatant.hand[highestIdx],
+    index: highestIdx,
+    cost: highestCost,
+  };
+}
+
+/**
+ * Find the highest-cost ATTACK card in a combatant's hand (any type).
+ * Tie-breaker: first in hand order (lowest index).
+ */
+export function findHighestCostAttackCard(
+  combatant: Combatant,
+  getMove: (id: string) => MoveDefinition
+): { cardId: string; index: number; cost: number } | null {
+  let highestIdx = -1;
+  let highestCost = -1;
+
+  for (let i = 0; i < combatant.hand.length; i++) {
+    const move = getMove(combatant.hand[i]);
+    if (!isAttackCard(move)) continue;
 
     if (move.cost > highestCost) {
       highestCost = move.cost;
@@ -143,6 +204,9 @@ export function onTurnStart(
   combatant.turnFlags.relentlessUsedThisTurn = false;
   combatant.turnFlags.overgrowHealUsedThisTurn = false;
   combatant.turnFlags.swarmStrikeUsedThisTurn = false;
+  combatant.turnFlags.surgeMomentumReducedIndex = null;
+  combatant.turnFlags.dragonsMajestyReducedIndex = null;
+  combatant.turnFlags.sniperUsedThisTurn = false;
 
   // Inferno Momentum: Reduce highest-cost FIRE card's cost by 3
   if (combatant.passiveIds.includes('inferno_momentum')) {
@@ -155,6 +219,36 @@ export function onTurnStart(
         round: state.round,
         combatantId: combatant.id,
         message: `Inferno Momentum: ${move.name} cost reduced to ${newCost}!`,
+      });
+    }
+  }
+
+  // Surge Momentum: Reduce highest-cost ELECTRIC card's cost by 3
+  if (combatant.passiveIds.includes('surge_momentum')) {
+    const highest = findHighestCostElectricCard(combatant, getMove);
+    if (highest && highest.cost > 0) {
+      combatant.turnFlags.surgeMomentumReducedIndex = highest.index;
+      const move = getMove(highest.cardId);
+      const newCost = Math.max(0, highest.cost - 3);
+      logs.push({
+        round: state.round,
+        combatantId: combatant.id,
+        message: `Surge Momentum: ${move.name} cost reduced to ${newCost}!`,
+      });
+    }
+  }
+
+  // Dragon's Majesty: Reduce highest-cost ATTACK card's cost by 3
+  if (combatant.passiveIds.includes('dragons_majesty')) {
+    const highest = findHighestCostAttackCard(combatant, getMove);
+    if (highest && highest.cost > 0) {
+      combatant.turnFlags.dragonsMajestyReducedIndex = highest.index;
+      const move = getMove(highest.cardId);
+      const newCost = Math.max(0, highest.cost - 3);
+      logs.push({
+        round: state.round,
+        combatantId: combatant.id,
+        message: `Dragon's Majesty: ${move.name} cost reduced to ${newCost}!`,
       });
     }
   }
@@ -461,27 +555,32 @@ export function onTurnEnd(
     }
   }
 
-  // Shed Skin: At end of turn, remove 1 debuff from yourself
+  // Shed Skin: At end of turn, remove 1 stack from ALL debuffs
   if (combatant.passiveIds.includes('shed_skin') && combatant.alive) {
     const debuffTypes = ['burn', 'poison', 'paralysis', 'slow', 'enfeeble', 'sleep', 'leech'];
     const debuffs = combatant.statuses.filter(s => debuffTypes.includes(s.type));
     if (debuffs.length > 0) {
-      // Remove from highest stacks first
-      debuffs.sort((a, b) => b.stacks - a.stacks);
-      const toReduce = debuffs[0];
-      toReduce.stacks -= 1;
-      logs.push({
-        round: state.round,
-        combatantId: combatant.id,
-        message: `Shed Skin: 1 ${toReduce.type} stack removed!`,
-      });
-      if (toReduce.stacks <= 0) {
-        combatant.statuses = combatant.statuses.filter(s => s.type !== toReduce.type);
+      const expiredTypes: string[] = [];
+      for (const debuff of debuffs) {
+        debuff.stacks -= 1;
         logs.push({
           round: state.round,
           combatantId: combatant.id,
-          message: `${toReduce.type} on ${combatant.name} expired.`,
+          message: `Shed Skin: 1 ${debuff.type} stack removed!`,
         });
+        if (debuff.stacks <= 0) {
+          expiredTypes.push(debuff.type);
+        }
+      }
+      if (expiredTypes.length > 0) {
+        combatant.statuses = combatant.statuses.filter(s => !expiredTypes.includes(s.type));
+        for (const type of expiredTypes) {
+          logs.push({
+            round: state.round,
+            combatantId: combatant.id,
+            message: `${type} on ${combatant.name} expired.`,
+          });
+        }
       }
     }
   }
@@ -538,8 +637,8 @@ export function onDamageTaken(
     });
   }
 
-  // Flame Body: When you take damage, apply Burn 1 to the attacker
-  if (target.passiveIds.includes('flame_body') && target.alive && attacker.alive) {
+  // Flame Body: When hit by a front-row attack, apply Burn 1 to the attacker
+  if (target.passiveIds.includes('flame_body') && target.alive && attacker.alive && card.range === 'front_enemy') {
     applyStatus(state, attacker, 'burn', 1, target.id);
     logs.push({
       round: state.round,
@@ -548,13 +647,40 @@ export function onDamageTaken(
     });
   }
 
-  // Static: When you take damage, apply Paralysis 1 to the attacker
-  if (target.passiveIds.includes('static') && target.alive && attacker.alive) {
+  // Static: When hit by a front-row attack, apply Paralysis 1 to the attacker
+  if (target.passiveIds.includes('static') && target.alive && attacker.alive && card.range === 'front_enemy') {
     applyStatus(state, attacker, 'paralysis', 1, target.id);
     logs.push({
       round: state.round,
       combatantId: target.id,
       message: `Static: ${attacker.name} is paralyzed by ${target.name}!`,
+    });
+  }
+
+  // Spiked Hide: When hit by a front-row attack, deal 2 damage back to the attacker
+  if (target.passiveIds.includes('spiked_hide') && target.alive && attacker.alive && card.range === 'front_enemy') {
+    applyBypassDamage(attacker, 2);
+    logs.push({
+      round: state.round,
+      combatantId: target.id,
+      message: `Spiked Hide: ${attacker.name} takes 2 damage from ${target.name}'s spikes!`,
+    });
+    if (!attacker.alive) {
+      logs.push({
+        round: state.round,
+        combatantId: attacker.id,
+        message: `${attacker.name} was KO'd by Spiked Hide!`,
+      });
+    }
+  }
+
+  // Bristling Rampart: When you take unblocked damage, gain 2 Block
+  if (target.passiveIds.includes('bristling_rampart') && target.alive) {
+    target.block += 2;
+    logs.push({
+      round: state.round,
+      combatantId: target.id,
+      message: `Bristling Rampart: ${target.name} gains 2 Block!`,
     });
   }
 
@@ -835,6 +961,32 @@ export function checkFortifiedCannons(
 }
 
 /**
+ * Check if Fortified Spines should provide bonus damage.
+ * Fortified Spines: Ground attacks deal +25% of current Block as bonus damage.
+ */
+export function checkFortifiedSpines(
+  state: CombatState,
+  attacker: Combatant,
+  card: MoveDefinition
+): { bonusDamage: number; logs: LogEntry[] } {
+  const logs: LogEntry[] = [];
+
+  if (attacker.passiveIds.includes('fortified_spines') && card.type === 'ground' && attacker.block > 0) {
+    const bonus = Math.floor(attacker.block * 0.25);
+    if (bonus > 0) {
+      logs.push({
+        round: state.round,
+        combatantId: attacker.id,
+        message: `Fortified Spines: +${bonus} bonus damage from Block!`,
+      });
+      return { bonusDamage: bonus, logs };
+    }
+  }
+
+  return { bonusDamage: 0, logs };
+}
+
+/**
  * Check if Counter-Current should provide bonus damage.
  * Counter-Current: Deal bonus damage to slower enemies (floor((yourSpeed - theirSpeed) / 2)).
  */
@@ -1057,6 +1209,107 @@ export function checkAdaptability(
   // Only applies when the attacker has STAB for this move type
   if (!attacker.types.includes(card.type)) return 0;
   return 2; // Extra +2 on top of the normal +2 STAB
+}
+
+/**
+ * Check Multiscale damage reduction multiplier.
+ * Multiscale: If above 75% HP, take half damage from attacks.
+ * Returns 0.5 if active, 1.0 otherwise.
+ */
+export function checkMultiscale(target: Combatant): number {
+  if (target.passiveIds.includes('multiscale') && target.hp > target.maxHp * 0.75) {
+    return 0.5;
+  }
+  return 1.0;
+}
+
+/**
+ * Check Dragon's Majesty damage multiplier.
+ * Dragon's Majesty: Deal 30% more damage.
+ * Returns 1.3 if active, 1.0 otherwise.
+ */
+export function checkDragonsMajesty(attacker: Combatant): number {
+  if (attacker.passiveIds.includes('dragons_majesty')) {
+    return 1.3;
+  }
+  return 1.0;
+}
+
+/**
+ * Check Searing Fury bonus damage.
+ * Searing Fury: Fire attacks deal +1 damage per Burn stack on the target.
+ */
+export function checkSearingFury(
+  attacker: Combatant,
+  target: Combatant,
+  card: MoveDefinition
+): number {
+  if (!attacker.passiveIds.includes('searing_fury')) return 0;
+  if (card.type !== 'fire') return 0;
+  const burnStacks = target.statuses.find(s => s.type === 'burn')?.stacks ?? 0;
+  return burnStacks;
+}
+
+/**
+ * Check Volt Fury bonus damage.
+ * Volt Fury: ALL attacks deal +1 damage per Paralysis stack on the target.
+ */
+export function checkVoltFury(
+  attacker: Combatant,
+  target: Combatant
+): number {
+  if (!attacker.passiveIds.includes('volt_fury')) return 0;
+  const paralysisStacks = target.statuses.find(s => s.type === 'paralysis')?.stacks ?? 0;
+  return paralysisStacks;
+}
+
+/**
+ * Check Sharp Beak bonus damage.
+ * Sharp Beak: Flying attacks deal +1 damage.
+ */
+export function checkSharpBeak(
+  attacker: Combatant,
+  card: MoveDefinition
+): number {
+  if (attacker.passiveIds.includes('sharp_beak') && card.type === 'flying') {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+ * Check Sniper effect.
+ * Sniper: First attack each turn ignores evasion and block.
+ * Uses dryRun pattern like Blaze Strike for preview calculations.
+ */
+export function checkSniper(
+  state: CombatState,
+  attacker: Combatant,
+  card: MoveDefinition,
+  dryRun: boolean = false
+): { ignoreEvasion: boolean; ignoreBlock: boolean; logs: LogEntry[] } {
+  const logs: LogEntry[] = [];
+
+  const hasSniper = attacker.passiveIds.includes('sniper');
+  const isAttack = card.effects.some(e =>
+    e.type === 'damage' || e.type === 'multi_hit' || e.type === 'heal_on_hit' ||
+    e.type === 'recoil' || e.type === 'self_ko'
+  );
+  const notUsed = !attacker.turnFlags.sniperUsedThisTurn;
+
+  if (hasSniper && isAttack && notUsed) {
+    if (!dryRun) {
+      attacker.turnFlags.sniperUsedThisTurn = true;
+      logs.push({
+        round: state.round,
+        combatantId: attacker.id,
+        message: `Sniper: ${card.name} ignores evasion and block!`,
+      });
+    }
+    return { ignoreEvasion: true, ignoreBlock: true, logs };
+  }
+
+  return { ignoreEvasion: false, ignoreBlock: false, logs };
 }
 
 /**

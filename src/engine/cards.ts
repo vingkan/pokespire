@@ -14,7 +14,11 @@ import {
   checkRelentless, checkPoisonPoint, isAttackCard,
   processToxicHorn, processProtectiveToxins, isPoisoned, sheerForceBlocksStatus,
   hasRockHead, checkReckless, checkLightningRod, checkVolatile, checkTintedLens,
-  checkPoisonBarb, checkAdaptability, checkSwarmStrike
+  checkPoisonBarb, checkAdaptability, checkSwarmStrike,
+  checkSearingFury, checkVoltFury,
+  checkMultiscale, checkDragonsMajesty,
+  checkSharpBeak, checkSniper,
+  checkFortifiedSpines
 } from './passives';
 import { shuffle, MAX_HAND_SIZE } from './deck';
 import { getTypeEffectiveness, getEffectivenessLabel } from './typeChart';
@@ -48,14 +52,18 @@ export function playCard(
 
   const card = getMove(cardId);
 
-  // Calculate effective cost (accounting for Inferno Momentum, Quick Feet, Hustle, Hypnotic Gaze)
+  // Calculate effective cost (accounting for Inferno/Surge Momentum, Quick Feet, Hustle, Hypnotic Gaze)
   const hasInfernoReduction = combatant.turnFlags.infernoMomentumReducedIndex === handIndex;
+  const hasSurgeReduction = combatant.turnFlags.surgeMomentumReducedIndex === handIndex;
+  const hasDragonsReduction = combatant.turnFlags.dragonsMajestyReducedIndex === handIndex;
   const quickFeetReduction = checkQuickFeet(combatant, card);
   const hustleCostIncrease = checkHustleCostIncrease(combatant, card);
   const hypnoticGazeCostIncrease = checkHypnoticGazeCostIncrease(combatant, card);
 
   let effectiveCost = card.cost;
   if (hasInfernoReduction) effectiveCost -= 3;
+  if (hasSurgeReduction) effectiveCost -= 3;
+  if (hasDragonsReduction) effectiveCost -= 3;
   effectiveCost -= quickFeetReduction;
   effectiveCost += hustleCostIncrease;
   effectiveCost += hypnoticGazeCostIncrease;
@@ -95,13 +103,30 @@ export function playCard(
   const reducedIdx = combatant.turnFlags.infernoMomentumReducedIndex;
   if (reducedIdx !== null) {
     if (handIndex === reducedIdx) {
-      // The reduced card was played, clear the flag
       combatant.turnFlags.infernoMomentumReducedIndex = null;
     } else if (handIndex < reducedIdx) {
-      // A card before the reduced card was played, shift the index down
       combatant.turnFlags.infernoMomentumReducedIndex = reducedIdx - 1;
     }
-    // If handIndex > reducedIdx, no change needed
+  }
+
+  // Update Surge Momentum tracking when a card is removed
+  const surgeReducedIdx = combatant.turnFlags.surgeMomentumReducedIndex;
+  if (surgeReducedIdx !== null) {
+    if (handIndex === surgeReducedIdx) {
+      combatant.turnFlags.surgeMomentumReducedIndex = null;
+    } else if (handIndex < surgeReducedIdx) {
+      combatant.turnFlags.surgeMomentumReducedIndex = surgeReducedIdx - 1;
+    }
+  }
+
+  // Update Dragon's Majesty tracking when a card is removed
+  const dragonsReducedIdx = combatant.turnFlags.dragonsMajestyReducedIndex;
+  if (dragonsReducedIdx !== null) {
+    if (handIndex === dragonsReducedIdx) {
+      combatant.turnFlags.dragonsMajestyReducedIndex = null;
+    } else if (handIndex < dragonsReducedIdx) {
+      combatant.turnFlags.dragonsMajestyReducedIndex = dragonsReducedIdx - 1;
+    }
   }
 
   // Remove from hand
@@ -393,9 +418,11 @@ function buildDamageModifiers(
   const { shouldApply: isSwarmStrike, logs: swarmLogs } = checkSwarmStrike(state, source, card);
   logs.push(...swarmLogs);
 
-  // Check for Fortified Cannons
-  const { bonusDamage: fortifiedBonus, logs: fortifiedLogs } = checkFortifiedCannons(state, source, card);
-  logs.push(...fortifiedLogs);
+  // Check for Fortified Cannons / Fortified Spines (block-based bonus damage)
+  const { bonusDamage: fortifiedCannonsBonus, logs: fortifiedCannonsLogs } = checkFortifiedCannons(state, source, card);
+  logs.push(...fortifiedCannonsLogs);
+  const { bonusDamage: fortifiedSpinesBonus, logs: fortifiedSpinesLogs } = checkFortifiedSpines(state, source, card);
+  logs.push(...fortifiedSpinesLogs);
 
   // Check for Counter-Current
   const { bonusDamage: counterBonus, logs: counterLogs } = checkCounterCurrent(state, source, target);
@@ -445,6 +472,16 @@ function buildDamageModifiers(
     });
   }
 
+  // Multiscale: Take half damage if above 75% HP
+  const multiscaleMultiplier = checkMultiscale(target);
+  if (multiscaleMultiplier < 1.0) {
+    logs.push({
+      round: state.round,
+      combatantId: target.id,
+      message: `Multiscale: -50% damage (above 75% HP)!`,
+    });
+  }
+
   // Underdog: Common rarity cards that cost 1 deal +2 damage
   const underdogBonus = checkUnderdog(source, card);
   if (underdogBonus > 0) {
@@ -485,6 +522,16 @@ function buildDamageModifiers(
     });
   }
 
+  // Dragon's Majesty: Deal 30% more damage
+  const dragonsMajestyMultiplier = checkDragonsMajesty(source);
+  if (dragonsMajestyMultiplier > 1) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Dragon's Majesty: x1.3 damage!`,
+    });
+  }
+
   // Scrappy: Your Normal attacks deal +2 damage
   const scrappyBonus = checkScrappy(source, card);
   if (scrappyBonus > 0) {
@@ -514,6 +561,40 @@ function buildDamageModifiers(
       message: `Adaptability: +${adaptabilityBonus} STAB bonus!`,
     });
   }
+
+  // Searing Fury: Fire attacks deal +1 damage per Burn stack on target
+  const searingFuryBonus = checkSearingFury(source, target, card);
+  if (searingFuryBonus > 0) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Searing Fury: +${searingFuryBonus} damage (${searingFuryBonus} Burn stacks)!`,
+    });
+  }
+
+  // Volt Fury: ALL attacks deal +1 damage per Paralysis stack on target
+  const voltFuryBonus = checkVoltFury(source, target);
+  if (voltFuryBonus > 0) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Volt Fury: +${voltFuryBonus} damage (${voltFuryBonus} Paralysis stacks)!`,
+    });
+  }
+
+  // Sharp Beak: Flying attacks deal +1 damage
+  const sharpBeakBonus = checkSharpBeak(source, card);
+  if (sharpBeakBonus > 0) {
+    logs.push({
+      round: state.round,
+      combatantId: source.id,
+      message: `Sharp Beak: +${sharpBeakBonus} damage (Flying attack)!`,
+    });
+  }
+
+  // Sniper: First attack each turn ignores evasion and block
+  const { ignoreEvasion: sniperIgnoreEvasion, ignoreBlock: sniperIgnoreBlock, logs: sniperLogs } = checkSniper(state, source, card);
+  logs.push(...sniperLogs);
 
   // Hustle: Your attacks deal 30% more damage
   const hustleMultiplier = checkHustleMultiplier(source);
@@ -559,18 +640,24 @@ function buildDamageModifiers(
   }
 
   // Combine Anger Point, Sheer Force, and Reckless multipliers
-  const combinedMultiplier = angerPointMultiplier * sheerForceMultiplier * recklessMultiplier;
+  const combinedMultiplier = angerPointMultiplier * sheerForceMultiplier * recklessMultiplier * dragonsMajestyMultiplier;
 
   return {
     isBlazeStrike,
     isSwarmStrike,
-    bastionBarrageBonus: fortifiedBonus,
+    fortifiedCannonsBonus: fortifiedCannonsBonus,
+    fortifiedSpinesBonus: fortifiedSpinesBonus,
     bloomingCycleReduction: getBloomingCycleReduction(state, source),
     counterCurrentBonus: counterBonus,
     staticFieldReduction: staticReduction,
-    gustForceBonus: keenEyeBonus + predatorsPatienceBonus,  // Reusing field for +damage bonus
+    keenEyeBonus,
+    predatorsPatienceBonus,
+    searingFuryBonus,
+    voltFuryBonus,
+    sharpBeakBonus,
     thickHideReduction,
     thickFatMultiplier,
+    multiscaleMultiplier,
     underdogBonus,
     ragingBullMultiplier: combinedMultiplier,  // Now includes Anger Point + Sheer Force
     hustleMultiplier,  // 1.3x multiplier for attacks
@@ -578,7 +665,8 @@ function buildDamageModifiers(
     poisonBarbBonus,
     adaptabilityBonus,
     typeEffectiveness,
-    ignoreEvasion: false,  // No passive currently ignores evasion
+    ignoreEvasion: sniperIgnoreEvasion,
+    ignoreBlock: sniperIgnoreBlock,
   };
 }
 
@@ -589,9 +677,14 @@ function buildDamageBreakdown(r: ReturnType<typeof applyCardDamage>): string {
   const parts: string[] = [];
   if (r.stab > 0) parts.push(`+${r.stab} STAB`);
   if (r.strength > 0) parts.push(`+${r.strength} Str`);
-  if (r.bastionBarrageBonus > 0) parts.push(`+${r.bastionBarrageBonus} Bastion`);
+  if (r.fortifiedCannonsBonus > 0) parts.push(`+${r.fortifiedCannonsBonus} Cannons`);
+  if (r.fortifiedSpinesBonus > 0) parts.push(`+${r.fortifiedSpinesBonus} Spines`);
   if (r.counterCurrentBonus > 0) parts.push(`+${r.counterCurrentBonus} Current`);
-  if (r.gustForceBonus > 0) parts.push(`+${r.gustForceBonus} Gust`);
+  if (r.keenEyeBonus > 0) parts.push(`+${r.keenEyeBonus} Keen Eye`);
+  if (r.predatorsPatienceBonus > 0) parts.push(`+${r.predatorsPatienceBonus} Predator`);
+  if (r.searingFuryBonus > 0) parts.push(`+${r.searingFuryBonus} Searing`);
+  if (r.voltFuryBonus > 0) parts.push(`+${r.voltFuryBonus} Volt`);
+  if (r.sharpBeakBonus > 0) parts.push(`+${r.sharpBeakBonus} Sharp Beak`);
   if (r.underdogBonus > 0) parts.push(`+${r.underdogBonus} Underdog`);
   if (r.familyFuryBonus > 0) parts.push(`+${r.familyFuryBonus} Fury`);
   if (r.enfeeble > 0) parts.push(`-${r.enfeeble} Enfeeble`);
@@ -606,6 +699,7 @@ function buildDamageBreakdown(r: ReturnType<typeof applyCardDamage>): string {
   if (r.staticFieldReduction > 0) parts.push(`-${r.staticFieldReduction} Static`);
   if (r.thickHideReduction > 0) parts.push(`-${r.thickHideReduction} Hide`);
   if (r.thickFatMultiplier < 1.0) parts.push(`x0.75 Fat`);
+  if (r.multiscaleMultiplier < 1.0) parts.push(`x0.50 Multiscale`);
   if (r.evasion > 0) parts.push(`-${r.evasion} Evasion`);
   if (r.blockedAmount > 0) parts.push(`${r.blockedAmount} blocked`);
   return parts.length > 0 ? ` (${r.baseDamage} base${parts.map(p => ', ' + p).join('')})` : '';
@@ -1297,6 +1391,14 @@ export function getEffectiveCost(combatant: Combatant, handIndex: number): numbe
   // Inferno Momentum: -3 cost for highest-cost fire card
   const hasInfernoReduction = combatant.turnFlags.infernoMomentumReducedIndex === handIndex;
   if (hasInfernoReduction) cost -= 3;
+
+  // Surge Momentum: -3 cost for highest-cost electric card
+  const hasSurgeReduction = combatant.turnFlags.surgeMomentumReducedIndex === handIndex;
+  if (hasSurgeReduction) cost -= 3;
+
+  // Dragon's Majesty: -3 cost for highest-cost attack card
+  const hasDragonsReduction = combatant.turnFlags.dragonsMajestyReducedIndex === handIndex;
+  if (hasDragonsReduction) cost -= 3;
 
   // Quick Feet: First attack each turn costs 1 less
   cost -= checkQuickFeet(combatant, card);

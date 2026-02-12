@@ -100,7 +100,22 @@ export type PassiveId =
   // Lapras
   | 'water_absorb'
   | 'shell_armor'
-  | 'fortifying_aria';
+  | 'fortifying_aria'
+  // Magmar & Electabuzz (shared)
+  | 'vital_spirit'
+  | 'searing_fury'
+  | 'volt_fury'
+  | 'surge_momentum'
+  // Dratini/Dragonair/Dragonite line
+  | 'multiscale'
+  | 'dragons_majesty'
+  // Spearow/Fearow line
+  | 'sharp_beak'
+  | 'sniper'
+  // Sandshrew/Sandslash line
+  | 'spiked_hide'
+  | 'bristling_rampart'
+  | 'fortified_spines';
 
 // A single rung in the progression ladder
 export interface ProgressionRung {
@@ -226,7 +241,7 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   // Ekans line
   shed_skin: {
     name: 'Shed Skin',
-    description: 'At end of turn, remove 1 debuff from yourself.',
+    description: 'At end of turn, remove 1 stack from all debuffs.',
   },
   poison_point: {
     name: 'Poison Point',
@@ -345,12 +360,12 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   },
   flame_body: {
     name: 'Flame Body',
-    description: 'When you take damage, apply Burn 1 to the attacker.',
+    description: 'When hit by a front-row attack, apply Burn 1 to the attacker.',
   },
   // Voltorb/Electrode line
   static: {
     name: 'Static',
-    description: 'When you take damage, apply Paralysis 1 to the attacker.',
+    description: 'When hit by a front-row attack, apply Paralysis 1 to the attacker.',
   },
   charge: {
     name: 'Charge',
@@ -419,6 +434,54 @@ export const PASSIVE_DEFINITIONS: Record<PassiveId, { name: string; description:
   fortifying_aria: {
     name: 'Fortifying Aria',
     description: 'At end of round, heal allies for half of your current Block.',
+  },
+  // Magmar & Electabuzz (shared)
+  vital_spirit: {
+    name: 'Vital Spirit',
+    description: 'You are immune to Sleep.',
+  },
+  searing_fury: {
+    name: 'Searing Fury',
+    description: 'Your Fire attacks deal +1 damage per Burn stack on the target.',
+  },
+  volt_fury: {
+    name: 'Volt Fury',
+    description: 'Your attacks deal +1 damage per Paralysis stack on the target.',
+  },
+  surge_momentum: {
+    name: 'Surge Momentum',
+    description: 'At the start of your turn, reduce the cost of your highest-cost Electric card in hand by 3 (min 0).',
+  },
+  // Dratini/Dragonair/Dragonite line
+  multiscale: {
+    name: 'Multiscale',
+    description: 'If above 75% HP, take half damage from attacks.',
+  },
+  dragons_majesty: {
+    name: "Dragon's Majesty",
+    description: 'At the start of your turn, reduce the cost of your highest-cost attack by 3 (min 0). Your attacks deal 30% more damage.',
+  },
+  // Spearow/Fearow line
+  sharp_beak: {
+    name: 'Sharp Beak',
+    description: 'Your Flying attacks deal +1 damage.',
+  },
+  sniper: {
+    name: 'Sniper',
+    description: 'Your first attack each turn ignores evasion and block.',
+  },
+  // Sandshrew/Sandslash line
+  spiked_hide: {
+    name: 'Spiked Hide',
+    description: 'When hit by a front-row attack, deal 2 damage back to the attacker.',
+  },
+  bristling_rampart: {
+    name: 'Bristling Rampart',
+    description: 'When you take unblocked damage, gain 2 Block.',
+  },
+  fortified_spines: {
+    name: 'Fortified Spines',
+    description: 'Your Ground attacks deal bonus damage equal to 25% of your current Block.',
   },
 };
 
@@ -1263,6 +1326,205 @@ export const LAPRAS_PROGRESSION: ProgressionTree = {
   ],
 };
 
+// Magmar progression tree - burn specialist, single-stage
+export const MAGMAR_PROGRESSION: ProgressionTree = {
+  baseFormId: 'magmar',
+  rungs: [
+    {
+      level: 1,
+      name: 'Magmar',
+      description: 'Starting form with Vital Spirit passive.',
+      passiveId: 'vital_spirit',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Magmar',
+      description: 'Add Thunder Punch. Gain Flame Body.',
+      passiveId: 'flame_body',
+      hpBoost: 5,
+      cardsToAdd: ['thunder-punch'],
+    },
+    {
+      level: 3,
+      name: 'Magmar',
+      description: 'Gain Searing Fury.',
+      passiveId: 'searing_fury',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+    {
+      level: 4,
+      name: 'Magmar (Mastered)',
+      description: 'Add Fire Blast. Gain Inferno Momentum.',
+      passiveId: 'inferno_momentum',
+      hpBoost: 0,
+      cardsToAdd: ['fire-blast'],
+    },
+  ],
+};
+
+// Electabuzz progression tree - paralysis specialist, single-stage
+export const ELECTABUZZ_PROGRESSION: ProgressionTree = {
+  baseFormId: 'electabuzz',
+  rungs: [
+    {
+      level: 1,
+      name: 'Electabuzz',
+      description: 'Starting form with Vital Spirit passive.',
+      passiveId: 'vital_spirit',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Electabuzz',
+      description: 'Add Fire Punch. Gain Static.',
+      passiveId: 'static',
+      hpBoost: 5,
+      cardsToAdd: ['fire-punch'],
+    },
+    {
+      level: 3,
+      name: 'Electabuzz',
+      description: 'Gain Volt Fury.',
+      passiveId: 'volt_fury',
+      hpBoost: 5,
+      cardsToAdd: [],
+    },
+    {
+      level: 4,
+      name: 'Electabuzz (Mastered)',
+      description: 'Add Thunder. Gain Surge Momentum.',
+      passiveId: 'surge_momentum',
+      hpBoost: 0,
+      cardsToAdd: ['thunder'],
+    },
+  ],
+};
+
+// Dratini progression tree - dragon powerhouse, late-game evolution
+export const DRATINI_PROGRESSION: ProgressionTree = {
+  baseFormId: 'dratini',
+  rungs: [
+    {
+      level: 1,
+      name: 'Dratini',
+      description: 'Starting form with Shed Skin passive.',
+      passiveId: 'shed_skin',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Dratini',
+      description: 'Gain Inner Focus.',
+      passiveId: 'inner_focus',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 3,
+      name: 'Dragonair',
+      description: 'Evolve to Dragonair. Add Dragon Dance. Gain Multiscale.',
+      evolvesTo: 'dragonair',
+      passiveId: 'multiscale',
+      hpBoost: 0,
+      cardsToAdd: ['dragon-dance'],
+    },
+    {
+      level: 4,
+      name: 'Dragonite',
+      description: "Evolve to Dragonite. Add Hyper Beam. Gain Dragon's Majesty.",
+      evolvesTo: 'dragonite',
+      passiveId: 'dragons_majesty',
+      hpBoost: 0,
+      cardsToAdd: ['hyper-beam'],
+    },
+  ],
+};
+
+// Spearow progression tree - aggressive flying attacker
+export const SPEAROW_PROGRESSION: ProgressionTree = {
+  baseFormId: 'spearow',
+  rungs: [
+    {
+      level: 1,
+      name: 'Spearow',
+      description: 'Starting form with Sharp Beak passive.',
+      passiveId: 'sharp_beak',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Fearow',
+      description: 'Evolve to Fearow. Gain Keen Eye. Add Rage.',
+      evolvesTo: 'fearow',
+      passiveId: 'keen_eye',
+      hpBoost: 0,
+      cardsToAdd: ['rage'],
+    },
+    {
+      level: 3,
+      name: 'Fearow',
+      description: 'Gain Underdog. Add Rage.',
+      passiveId: 'underdog',
+      hpBoost: 0,
+      cardsToAdd: ['rage'],
+    },
+    {
+      level: 4,
+      name: 'Fearow',
+      description: 'Gain Sniper. First attack each turn ignores evasion and block.',
+      passiveId: 'sniper',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+  ],
+};
+
+// Sandshrew progression tree - defensive ground tank
+export const SANDSHREW_PROGRESSION: ProgressionTree = {
+  baseFormId: 'sandshrew',
+  rungs: [
+    {
+      level: 1,
+      name: 'Sandshrew',
+      description: 'Starting form with Baby Shell passive.',
+      passiveId: 'baby_shell',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 2,
+      name: 'Sandslash',
+      description: 'Evolve to Sandslash. Gain Spiked Hide. Add Dig.',
+      evolvesTo: 'sandslash',
+      passiveId: 'spiked_hide',
+      hpBoost: 0,
+      cardsToAdd: ['dig'],
+    },
+    {
+      level: 3,
+      name: 'Sandslash',
+      description: 'Gain Bristling Rampart. When you take unblocked damage, gain 2 Block.',
+      passiveId: 'bristling_rampart',
+      hpBoost: 0,
+      cardsToAdd: [],
+    },
+    {
+      level: 4,
+      name: 'Sandslash',
+      description: 'Gain Fortified Spines. Ground attacks deal bonus damage from Block. Add Earthquake.',
+      passiveId: 'fortified_spines',
+      hpBoost: 0,
+      cardsToAdd: ['earthquake'],
+    },
+  ],
+};
+
 // All progression trees indexed by base form ID
 export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   charmander: CHARMANDER_PROGRESSION,
@@ -1286,6 +1548,11 @@ export const PROGRESSION_TREES: Record<string, ProgressionTree> = {
   weedle: WEEDLE_PROGRESSION,
   magikarp: MAGIKARP_PROGRESSION,
   lapras: LAPRAS_PROGRESSION,
+  magmar: MAGMAR_PROGRESSION,
+  electabuzz: ELECTABUZZ_PROGRESSION,
+  dratini: DRATINI_PROGRESSION,
+  spearow: SPEAROW_PROGRESSION,
+  sandshrew: SANDSHREW_PROGRESSION,
 };
 
 /**
@@ -1343,6 +1610,15 @@ export function getProgressionTree(pokemonId: string): ProgressionTree | null {
   if (pokemonId === 'gyarados') {
     return MAGIKARP_PROGRESSION;
   }
+  if (pokemonId === 'dragonair' || pokemonId === 'dragonite') {
+    return DRATINI_PROGRESSION;
+  }
+  if (pokemonId === 'fearow') {
+    return SPEAROW_PROGRESSION;
+  }
+  if (pokemonId === 'sandslash') {
+    return SANDSHREW_PROGRESSION;
+  }
   return null;
 }
 
@@ -1395,6 +1671,15 @@ export function getBaseFormId(pokemonId: string): string {
   if (pokemonId === 'gyarados') {
     return 'magikarp';
   }
+  if (pokemonId === 'dragonair' || pokemonId === 'dragonite') {
+    return 'dratini';
+  }
+  if (pokemonId === 'fearow') {
+    return 'spearow';
+  }
+  if (pokemonId === 'sandslash') {
+    return 'sandshrew';
+  }
   return pokemonId;
 }
 
@@ -1407,11 +1692,9 @@ export function getRungForLevel(tree: ProgressionTree, level: number): Progressi
 
 /**
  * Check if a Pokemon can level up (has enough EXP).
- * Requires 3 EXP per level up (for Act 1/2 pacing).
+ * Must match EXP_PER_LEVEL in state.ts.
  */
 export function canLevelUp(level: number, exp: number): boolean {
-  // Max level is 4
   if (level >= 4) return false;
-  // Need at least 3 EXP to level up
-  return exp >= 3;
+  return exp >= 4;
 }

@@ -2431,5 +2431,18 @@
     "rarity": "epic",
     "pools": ["dragon"],
     "description": "Gain 2 Strength and 2 Haste. Vanish."
+  },
+  "twister": {
+    "name": "Twister",
+    "cost": 1,
+    "type": "dragon",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      { "type": "damage", "value": 6 }
+    ],
+    "rarity": "basic",
+    "pools": ["dragon"],
+    "description": "Deal 6 damage."
   }
 }

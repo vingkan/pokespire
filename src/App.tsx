@@ -18,7 +18,7 @@ import { CardRemovalScreen } from './ui/screens/CardRemovalScreen';
 import { Flourish } from './ui/components/Flourish';
 import { THEME } from './ui/theme';
 import type { SandboxPokemon } from './ui/screens/SandboxConfigScreen';
-import type { RunState, BattleNode, EventNode, RecruitNode } from './run/types';
+import type { RunState, RunPokemon, BattleNode, EventNode, RecruitNode } from './run/types';
 import { getPokemon } from './data/loaders';
 import {
   createRunState,
@@ -38,6 +38,8 @@ import {
   getCurrentCardRemovalNode,
   migrateRunState,
   swapPartyAndBench,
+  promoteFromBench,
+  findEmptyPosition,
   getRecruitLevel,
   createRecruitPokemon,
   recruitToRoster,
@@ -330,6 +332,21 @@ export default function App() {
     setRunState(newRun);
   }, [runState]);
 
+  // Handle promoting a bench Pokemon to the active party
+  const handlePromote = useCallback((benchIndex: number) => {
+    if (!runState) return;
+    const emptyPos = findEmptyPosition(runState.party);
+    if (!emptyPos) return;
+    const newRun = promoteFromBench(runState, benchIndex, emptyPos);
+    setRunState(newRun);
+  }, [runState]);
+
+  // Handle rearranging party formation (including promote/demote from modal)
+  const handleRearrange = useCallback((newParty: RunPokemon[], newBench: RunPokemon[]) => {
+    if (!runState) return;
+    setRunState({ ...runState, party: newParty, bench: newBench });
+  }, [runState]);
+
   // Handle starting a 1v1 recruit fight
   const handleRecruitFight = useCallback((partyIndex: number) => {
     if (!runState) return;
@@ -610,6 +627,8 @@ if (screen === 'select') {
         onSelectNode={handleSelectNode}
         onLevelUp={handleLevelUp}
         onSwap={handleSwap}
+        onPromote={handlePromote}
+        onRearrange={handleRearrange}
         onRestart={handleRestart}
       />
     );
