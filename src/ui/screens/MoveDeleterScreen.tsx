@@ -19,7 +19,7 @@ const HYPNO_COLOR = '#fbbf24';
 export function MoveDeleterScreen({ run, onForgetCard, onClose, onRestart }: Props) {
   const [selectedPokemon, setSelectedPokemon] = useState<{ index: number; source: 'party' | 'bench' } | null>(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
-  const [dialogue, setDialogue] = useState(HYPNO_DIALOGUE.welcome);
+  const [dialogue, setDialogue] = useState<string>(HYPNO_DIALOGUE.welcome);
   const [fadeTimer, setFadeTimer] = useState(false);
 
   // After forgetting, briefly show confirmation then reset to pokemon-selected dialogue

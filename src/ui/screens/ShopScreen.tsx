@@ -120,7 +120,7 @@ function ShopMat({ children }: { children: React.ReactNode }) {
 export function ShopScreen({ run, onPurchase, onClose }: Props) {
   // null = browsing catalog, string = choosing which Pokemon gets this item
   const [selectedMoveId, setSelectedMoveId] = useState<string | null>(null);
-  const [dialogue, setDialogue] = useState(KECLEON_DIALOGUE.welcome);
+  const [dialogue, setDialogue] = useState<string>(KECLEON_DIALOGUE.welcome);
   const [thankYouTimer, setThankYouTimer] = useState(false);
 
   // After purchase, briefly show "thank you" then reset to welcome

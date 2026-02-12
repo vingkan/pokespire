@@ -938,7 +938,7 @@ export function migrateRunState(run: RunState): RunState {
   }
 
   // Add gold if missing (pre-shop saves)
-  if ((migrated as Record<string, unknown>).gold === undefined) {
+  if ((migrated as unknown as Record<string, unknown>).gold === undefined) {
     migrated = { ...migrated, gold: 500 };
   }
 

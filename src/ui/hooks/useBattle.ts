@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type {
   CombatState, LogEntry,
   PokemonData, Position, Combatant,
-  SwitchPositionAction,
 } from '../../engine/types';
 import {
   createCombatState, getCurrentCombatant, buildTurnOrder,
