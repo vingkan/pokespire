@@ -1,0 +1,2786 @@
+{
+  "pound": {
+    "name": "Pound",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)"
+  },
+  "karate-chop": {
+    "name": "Karate Chop",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 7 damage. (Front row)"
+  },
+  "double-slap": {
+    "name": "Double Slap",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 2 damage. (Front row)"
+  },
+  "comet-punch": {
+    "name": "Comet Punch",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 3 damage. (Front row)"
+  },
+  "mega-punch": {
+    "name": "Mega Punch",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "pay-day": {
+    "name": "Pay Day",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)"
+  },
+  "fire-punch": {
+    "name": "Fire Punch",
+    "cost": 2,
+    "type": "fire",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "ice-punch": {
+    "name": "Ice Punch",
+    "cost": 2,
+    "type": "ice",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "thunder-punch": {
+    "name": "Thunder Punch",
+    "cost": 2,
+    "type": "electric",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "scratch": {
+    "name": "Scratch",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)"
+  },
+  "vice-grip": {
+    "name": "Vice Grip",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 8 damage. (Front row)"
+  },
+  "guillotine": {
+    "name": "Guillotine",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "razor-wind": {
+    "name": "Razor Wind",
+    "cost": 2,
+    "type": "normal",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage."
+  },
+  "swords-dance": {
+    "name": "Swords Dance",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "cut": {
+    "name": "Cut",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 7 damage. (Front row)"
+  },
+  "gust": {
+    "name": "Gust",
+    "cost": 1,
+    "type": "flying",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 6 damage."
+  },
+  "wing-attack": {
+    "name": "Wing Attack",
+    "cost": 2,
+    "type": "flying",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 9 damage. (Front row)"
+  },
+  "whirlwind": {
+    "name": "Whirlwind",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "fly": {
+    "name": "Fly",
+    "cost": 2,
+    "type": "flying",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 13 damage. (Front row)"
+  },
+  "bind": {
+    "name": "Bind",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 2 damage. (Front row)"
+  },
+  "slam": {
+    "name": "Slam",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "vine-whip": {
+    "name": "Vine Whip",
+    "cost": 1,
+    "type": "grass",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 8 damage. (Front row)"
+  },
+  "stomp": {
+    "name": "Stomp",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 9 damage. (Front row)"
+  },
+  "double-kick": {
+    "name": "Double Kick",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 4 damage. (Front row)"
+  },
+  "mega-kick": {
+    "name": "Mega Kick",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 17
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 17 damage. (Front row)"
+  },
+  "jump-kick": {
+    "name": "Jump Kick",
+    "cost": 3,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 14
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 14 damage. (Front row)"
+  },
+  "rolling-kick": {
+    "name": "Rolling Kick",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 9 damage. (Front row)"
+  },
+  "sand-attack": {
+    "name": "Sand Attack",
+    "cost": 1,
+    "type": "normal",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "ground"
+    ],
+    "description": "Apply Weak 2."
+  },
+  "headbutt": {
+    "name": "Headbutt",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. (Front row)"
+  },
+  "horn-attack": {
+    "name": "Horn Attack",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 9 damage. (Front row)"
+  },
+  "fury-attack": {
+    "name": "Fury Attack",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 2 damage. (Front row)"
+  },
+  "horn-drill": {
+    "name": "Horn Drill",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "tackle": {
+    "name": "Tackle",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 5 damage. (Front row)"
+  },
+  "body-slam": {
+    "name": "Body Slam",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)"
+  },
+  "wrap": {
+    "name": "Wrap",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 8 damage. Apply Slow 2. (Front row)"
+  },
+  "take-down": {
+    "name": "Take Down",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 13 damage. (Front row)"
+  },
+  "thrash": {
+    "name": "Thrash",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 17
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 17 damage. (Front row)"
+  },
+  "double-edge": {
+    "name": "Double Edge",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 17
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 17 damage. (Front row)"
+  },
+  "tail-whip": {
+    "name": "Tail Whip",
+    "cost": 0,
+    "type": "normal",
+    "range": "any",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 1. Vanish."
+  },
+  "poison-sting": {
+    "name": "Poison Sting",
+    "cost": 1,
+    "type": "poison",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      },
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 5 damage. Apply Poison 1. (Front row)"
+  },
+  "twineedle": {
+    "name": "Twineedle",
+    "cost": 1,
+    "type": "bug",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 4 damage. (Front row)"
+  },
+  "pin-missile": {
+    "name": "Pin Missile",
+    "cost": 1,
+    "type": "bug",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 4 damage. (Front row)"
+  },
+  "leer": {
+    "name": "Leer",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "bite": {
+    "name": "Bite",
+    "cost": 1,
+    "type": "dark",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "dark"
+    ],
+    "description": "Deal 7 damage. (Front row)"
+  },
+  "growl": {
+    "name": "Growl",
+    "cost": 0,
+    "type": "normal",
+    "range": "any",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2. Vanish."
+  },
+  "roar": {
+    "name": "Roar",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "sing": {
+    "name": "Sing",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "supersonic": {
+    "name": "Supersonic",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "sonic-boom": {
+    "name": "Sonic Boom",
+    "cost": 1,
+    "type": "normal",
+    "range": "any",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect."
+  },
+  "disable": {
+    "name": "Disable",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "acid": {
+    "name": "Acid",
+    "cost": 1,
+    "type": "poison",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 6 damage."
+  },
+  "ember": {
+    "name": "Ember",
+    "cost": 1,
+    "type": "fire",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      },
+      {
+        "type": "apply_status",
+        "status": "burn",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 8 damage. Apply Burn 1."
+  },
+  "flamethrower": {
+    "name": "Flamethrower",
+    "cost": 2,
+    "type": "fire",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 13 damage."
+  },
+  "mist": {
+    "name": "Mist",
+    "cost": 1,
+    "type": "ice",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "ice"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "water-gun": {
+    "name": "Water Gun",
+    "cost": 1,
+    "type": "water",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 8 damage."
+  },
+  "hydro-pump": {
+    "name": "Hydro Pump",
+    "cost": 3,
+    "type": "water",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 16
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 16 damage."
+  },
+  "surf": {
+    "name": "Surf",
+    "cost": 2,
+    "type": "water",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 13 damage."
+  },
+  "ice-beam": {
+    "name": "Ice Beam",
+    "cost": 2,
+    "type": "ice",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 13 damage."
+  },
+  "blizzard": {
+    "name": "Blizzard",
+    "cost": 3,
+    "type": "ice",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 16
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 16 damage."
+  },
+  "psybeam": {
+    "name": "Psybeam",
+    "cost": 2,
+    "type": "psychic",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 9 damage."
+  },
+  "bubble-beam": {
+    "name": "Bubble Beam",
+    "cost": 2,
+    "type": "water",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 9 damage."
+  },
+  "aurora-beam": {
+    "name": "Aurora Beam",
+    "cost": 2,
+    "type": "ice",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 9 damage."
+  },
+  "hyper-beam": {
+    "name": "Hyper Beam",
+    "cost": 3,
+    "type": "normal",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 21
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 21 damage."
+  },
+  "peck": {
+    "name": "Peck",
+    "cost": 1,
+    "type": "flying",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 6 damage. (Front row)"
+  },
+  "drill-peck": {
+    "name": "Drill Peck",
+    "cost": 2,
+    "type": "flying",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "submission": {
+    "name": "Submission",
+    "cost": 2,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "low-kick": {
+    "name": "Low Kick",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "fighting"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "counter": {
+    "name": "Counter",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "fighting"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "seismic-toss": {
+    "name": "Seismic Toss",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "fighting"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "strength": {
+    "name": "Strength",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "absorb": {
+    "name": "Absorb",
+    "cost": 1,
+    "type": "grass",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 3 damage."
+  },
+  "mega-drain": {
+    "name": "Mega Drain",
+    "cost": 1,
+    "type": "grass",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 6 damage."
+  },
+  "leech-seed": {
+    "name": "Leech Seed",
+    "cost": 2,
+    "type": "grass",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "leech",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Apply Leech 2 (3 rounds)."
+  },
+  "growth": {
+    "name": "Growth",
+    "cost": 0,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "strength",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Strength 1. Vanish."
+  },
+  "razor-leaf": {
+    "name": "Razor Leaf",
+    "cost": 1,
+    "type": "grass",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 8 damage. (Front row)"
+  },
+  "solar-beam": {
+    "name": "Solar Beam",
+    "cost": 3,
+    "type": "grass",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 17
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 17 damage."
+  },
+  "poison-powder": {
+    "name": "Poison Powder",
+    "cost": 1,
+    "type": "poison",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "Apply Poison 2."
+  },
+  "stun-spore": {
+    "name": "Stun Spore",
+    "cost": 1,
+    "type": "grass",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "sleep-powder": {
+    "name": "Sleep Powder",
+    "cost": 1,
+    "type": "grass",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "petal-dance": {
+    "name": "Petal Dance",
+    "cost": 3,
+    "type": "grass",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 17
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 17 damage."
+  },
+  "string-shot": {
+    "name": "String Shot",
+    "cost": 1,
+    "type": "bug",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "bug"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "dragon-rage": {
+    "name": "Dragon Rage",
+    "cost": 1,
+    "type": "dragon",
+    "range": "any",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "dragon"
+    ],
+    "description": "No effect."
+  },
+  "fire-spin": {
+    "name": "Fire Spin",
+    "cost": 1,
+    "type": "fire",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 5 damage."
+  },
+  "thunder-shock": {
+    "name": "Thunder Shock",
+    "cost": 1,
+    "type": "electric",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      },
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 8 damage. Apply Paralysis 2."
+  },
+  "thunderbolt": {
+    "name": "Thunderbolt",
+    "cost": 2,
+    "type": "electric",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 13 damage."
+  },
+  "thunder-wave": {
+    "name": "Thunder Wave",
+    "cost": 1,
+    "type": "electric",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "electric"
+    ],
+    "description": "Apply Paralysis 5."
+  },
+  "thunder": {
+    "name": "Thunder",
+    "cost": 3,
+    "type": "electric",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 16
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 16 damage."
+  },
+  "rock-throw": {
+    "name": "Rock Throw",
+    "cost": 1,
+    "type": "rock",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "rock"
+    ],
+    "description": "Deal 7 damage. (Front row)"
+  },
+  "earthquake": {
+    "name": "Earthquake",
+    "cost": 3,
+    "type": "ground",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 14
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 14 damage. (Front row)"
+  },
+  "fissure": {
+    "name": "Fissure",
+    "cost": 1,
+    "type": "ground",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "ground"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "dig": {
+    "name": "Dig",
+    "cost": 2,
+    "type": "ground",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "toxic": {
+    "name": "Toxic",
+    "cost": 1,
+    "type": "poison",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "confusion": {
+    "name": "Confusion",
+    "cost": 1,
+    "type": "psychic",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 7 damage."
+  },
+  "psychic": {
+    "name": "Psychic",
+    "cost": 2,
+    "type": "psychic",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 13
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 13 damage."
+  },
+  "hypnosis": {
+    "name": "Hypnosis",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "meditate": {
+    "name": "Meditate",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "agility": {
+    "name": "Agility",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "quick-attack": {
+    "name": "Quick Attack",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)"
+  },
+  "rage": {
+    "name": "Rage",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 3 damage. (Front row)"
+  },
+  "teleport": {
+    "name": "Teleport",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "night-shade": {
+    "name": "Night Shade",
+    "cost": 1,
+    "type": "ghost",
+    "range": "any",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "ghost"
+    ],
+    "description": "No effect."
+  },
+  "mimic": {
+    "name": "Mimic",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "screech": {
+    "name": "Screech",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "double-team": {
+    "name": "Double Team",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "evasion",
+        "stacks": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Evasion 3."
+  },
+  "recover": {
+    "name": "Recover",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "harden": {
+    "name": "Harden",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "minimize": {
+    "name": "Minimize",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "smokescreen": {
+    "name": "Smokescreen",
+    "cost": 1,
+    "type": "normal",
+    "range": "any",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2 and Slow 2. Vanish."
+  },
+  "confuse-ray": {
+    "name": "Confuse Ray",
+    "cost": 1,
+    "type": "ghost",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "ghost"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "withdraw": {
+    "name": "Withdraw",
+    "cost": 1,
+    "type": "water",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "water"
+    ],
+    "description": "Gain 8 Block."
+  },
+  "defense-curl": {
+    "name": "Defense Curl",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "barrier": {
+    "name": "Barrier",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "light-screen": {
+    "name": "Light Screen",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "haze": {
+    "name": "Haze",
+    "cost": 1,
+    "type": "ice",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "ice"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "reflect": {
+    "name": "Reflect",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "focus-energy": {
+    "name": "Focus Energy",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "bide": {
+    "name": "Bide",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "metronome": {
+    "name": "Metronome",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "mirror-move": {
+    "name": "Mirror Move",
+    "cost": 1,
+    "type": "flying",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "flying"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "self-destruct": {
+    "name": "Self Destruct",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 29
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 29 damage. (Front row)"
+  },
+  "egg-bomb": {
+    "name": "Egg Bomb",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 14
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 14 damage. (Front row)"
+  },
+  "lick": {
+    "name": "Lick",
+    "cost": 1,
+    "type": "ghost",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 4 damage. (Front row)"
+  },
+  "smog": {
+    "name": "Smog",
+    "cost": 1,
+    "type": "poison",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 4 damage."
+  },
+  "sludge": {
+    "name": "Sludge",
+    "cost": 2,
+    "type": "poison",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 9 damage."
+  },
+  "bone-club": {
+    "name": "Bone Club",
+    "cost": 2,
+    "type": "ground",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 9 damage. (Front row)"
+  },
+  "fire-blast": {
+    "name": "Fire Blast",
+    "cost": 3,
+    "type": "fire",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 16
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 16 damage."
+  },
+  "waterfall": {
+    "name": "Waterfall",
+    "cost": 2,
+    "type": "water",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "clamp": {
+    "name": "Clamp",
+    "cost": 1,
+    "type": "water",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 5 damage. (Front row)"
+  },
+  "swift": {
+    "name": "Swift",
+    "cost": 1,
+    "type": "normal",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 9 damage."
+  },
+  "skull-bash": {
+    "name": "Skull Bash",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 19
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 19 damage. (Front row)"
+  },
+  "spike-cannon": {
+    "name": "Spike Cannon",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 3 damage. (Front row)"
+  },
+  "constrict": {
+    "name": "Constrict",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 1 damage. (Front row)"
+  },
+  "amnesia": {
+    "name": "Amnesia",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "kinesis": {
+    "name": "Kinesis",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "soft-boiled": {
+    "name": "Soft Boiled",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "high-jump-kick": {
+    "name": "High Jump Kick",
+    "cost": 3,
+    "type": "fighting",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 19
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 19 damage. (Front row)"
+  },
+  "glare": {
+    "name": "Glare",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "dream-eater": {
+    "name": "Dream Eater",
+    "cost": 3,
+    "type": "psychic",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 14
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 14 damage."
+  },
+  "poison-gas": {
+    "name": "Poison Gas",
+    "cost": 1,
+    "type": "poison",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "barrage": {
+    "name": "Barrage",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 2 damage. (Front row)"
+  },
+  "leech-life": {
+    "name": "Leech Life",
+    "cost": 2,
+    "type": "bug",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "lovely-kiss": {
+    "name": "Lovely Kiss",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "sky-attack": {
+    "name": "Sky Attack",
+    "cost": 3,
+    "type": "flying",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 20
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 20 damage. (Front row)"
+  },
+  "transform": {
+    "name": "Transform",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "bubble": {
+    "name": "Bubble",
+    "cost": 2,
+    "type": "water",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 10 damage. Apply Slow 3."
+  },
+  "dizzy-punch": {
+    "name": "Dizzy Punch",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. (Front row)"
+  },
+  "spore": {
+    "name": "Spore",
+    "cost": 1,
+    "type": "grass",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "flash": {
+    "name": "Flash",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "psywave": {
+    "name": "Psywave",
+    "cost": 1,
+    "type": "psychic",
+    "range": "any",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect."
+  },
+  "splash": {
+    "name": "Splash",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "acid-armor": {
+    "name": "Acid Armor",
+    "cost": 1,
+    "type": "poison",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "crabhammer": {
+    "name": "Crabhammer",
+    "cost": 3,
+    "type": "water",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 14
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 14 damage. (Front row)"
+  },
+  "explosion": {
+    "name": "Explosion",
+    "cost": 3,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 36
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 36 damage. (Front row)"
+  },
+  "fury-swipes": {
+    "name": "Fury Swipes",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 3 damage. (Front row)"
+  },
+  "bonemerang": {
+    "name": "Bonemerang",
+    "cost": 1,
+    "type": "ground",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 7 damage. (Front row)"
+  },
+  "rest": {
+    "name": "Rest",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "rock-slide": {
+    "name": "Rock Slide",
+    "cost": 2,
+    "type": "rock",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "rock"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "hyper-fang": {
+    "name": "Hyper Fang",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage. (Front row)"
+  },
+  "sharpen": {
+    "name": "Sharpen",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "conversion": {
+    "name": "Conversion",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "tri-attack": {
+    "name": "Tri Attack",
+    "cost": 2,
+    "type": "normal",
+    "range": "any",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage."
+  },
+  "super-fang": {
+    "name": "Super Fang",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Front row)"
+  },
+  "slash": {
+    "name": "Slash",
+    "cost": 2,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. (Front row)"
+  },
+  "substitute": {
+    "name": "Substitute",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "No effect. (Self)"
+  },
+  "struggle": {
+    "name": "Struggle",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 7 damage. (Front row)"
+  },
+  "defend": {
+    "name": "Defend",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain 5 Block. (Self)"
+  },
+  "metal-claw": {
+    "name": "Metal Claw",
+    "cost": 1,
+    "type": "normal",
+    "range": "front",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      },
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 7 damage. Apply weak 1. (Front row)"
+  },
+  "hiss": {
+    "name": "Hiss",
+    "cost": 0,
+    "type": "normal",
+    "range": "any",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply weak 1."
+  }
+}

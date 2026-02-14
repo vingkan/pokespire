@@ -1,0 +1,4341 @@
+{
+  "pound": {
+    "name": "Pound",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "scratch": {
+    "name": "Scratch",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "tackle": {
+    "name": "Tackle",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "quick-attack": {
+    "name": "Quick Attack",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "double-slap": {
+    "name": "Double Slap",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 5,
+        "hits": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Hit 2 times for 5 damage each. (Front row)",
+    "contact": true
+  },
+  "comet-punch": {
+    "name": "Comet Punch",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 5,
+        "hits": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Hit 2 times for 5 damage each. (Front row)",
+    "contact": true
+  },
+  "fury-attack": {
+    "name": "Fury Attack",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 3,
+        "hits": 3
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Hit 3 times for 3 damage each. (Front row)",
+    "contact": true
+  },
+  "fury-swipes": {
+    "name": "Fury Swipes",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 3,
+        "hits": 3
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Hit 3 times for 3 damage each. (Front row)",
+    "contact": true
+  },
+  "spike-cannon": {
+    "name": "Spike Cannon",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 3,
+        "hits": 4
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Hit 4 times for 3 damage each. (Front row)",
+    "contact": false
+  },
+  "barrage": {
+    "name": "Barrage",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 3,
+        "hits": 4
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Hit 4 times for 3 damage each. (Front row)",
+    "contact": false
+  },
+  "vice-grip": {
+    "name": "Vice Grip",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": true
+  },
+  "cut": {
+    "name": "Cut",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": true
+  },
+  "rage": {
+    "name": "Rage",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. Gain Strength 1. (Front row)",
+    "contact": true
+  },
+  "bind": {
+    "name": "Bind",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. Apply Slow 2. (Front row)",
+    "contact": true
+  },
+  "constrict": {
+    "name": "Constrict",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 4 damage. Apply Slow 2. (Front row)",
+    "contact": true
+  },
+  "wrap": {
+    "name": "Wrap",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 8 damage. Apply Slow 2. (Front row)",
+    "contact": true
+  },
+  "stomp": {
+    "name": "Stomp",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. (Front row)",
+    "contact": true
+  },
+  "headbutt": {
+    "name": "Headbutt",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "body-slam": {
+    "name": "Body Slam",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      },
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 2
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. Apply Paralysis 2. (Front row)",
+    "contact": true
+  },
+  "slam": {
+    "name": "Slam",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "mega-punch": {
+    "name": "Mega Punch",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "take-down": {
+    "name": "Take Down",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "recoil",
+        "value": 18,
+        "recoilPercent": 0.25
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 18 damage. Take 25% recoil. (Front row)",
+    "contact": true
+  },
+  "double-edge": {
+    "name": "Double Edge",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "recoil",
+        "value": 20,
+        "recoilPercent": 0.33
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 20 damage. Take 33% recoil. (Front row)",
+    "contact": true
+  },
+  "thrash": {
+    "name": "Thrash",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 25
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 25 damage. (Front row)",
+    "contact": true
+  },
+  "mega-kick": {
+    "name": "Mega Kick",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 33 damage. (Front row)",
+    "contact": true
+  },
+  "hyper-beam": {
+    "name": "Hyper Beam",
+    "cost": 3,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 45
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 45 damage.",
+    "contact": false
+  },
+  "self-destruct": {
+    "name": "Self Destruct",
+    "cost": 2,
+    "type": "normal",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "self_ko",
+        "value": 35
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 35 damage to all enemies. User faints.",
+    "contact": false
+  },
+  "explosion": {
+    "name": "Explosion",
+    "cost": 3,
+    "type": "normal",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "self_ko",
+        "value": 50
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 50 damage to all enemies. User faints.",
+    "contact": false
+  },
+  "skull-bash": {
+    "name": "Skull Bash",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      },
+      {
+        "type": "block",
+        "value": 10
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 33 damage. Gain 10 Block. (Front row)",
+    "contact": true
+  },
+  "swift": {
+    "name": "Swift",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 7 damage.",
+    "contact": false
+  },
+  "tri-attack": {
+    "name": "Tri Attack",
+    "cost": 2,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 11 damage.",
+    "contact": false
+  },
+  "hyper-fang": {
+    "name": "Hyper Fang",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "slash": {
+    "name": "Slash",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "strength": {
+    "name": "Strength",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "dizzy-punch": {
+    "name": "Dizzy Punch",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. Apply Weak 2. (Front row)",
+    "contact": true
+  },
+  "razor-wind": {
+    "name": "Razor Wind",
+    "cost": 2,
+    "type": "normal",
+    "range": "any_row",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal",
+      "flying"
+    ],
+    "description": "Deal 11 damage to a row.",
+    "contact": false
+  },
+  "horn-attack": {
+    "name": "Horn Attack",
+    "cost": 2,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 10 damage. (Front row)",
+    "contact": true
+  },
+  "pay-day": {
+    "name": "Pay Day",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "epic",
+    "goldOnHit": true,
+    "description": "Deal 8 damage. Gain gold equal to damage dealt. Vanish.",
+    "contact": false
+  },
+  "egg-bomb": {
+    "name": "Egg Bomb",
+    "cost": 3,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 20 damage. (Front row)",
+    "contact": false
+  },
+  "struggle": {
+    "name": "Struggle",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "swords-dance": {
+    "name": "Swords Dance",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 3
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Strength 3.",
+    "contact": false
+  },
+  "growl": {
+    "name": "Growl",
+    "cost": 0,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2. Vanish.",
+    "contact": false
+  },
+  "tail-whip": {
+    "name": "Tail Whip",
+    "cost": 0,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 1. Vanish.",
+    "contact": false
+  },
+  "leer": {
+    "name": "Leer",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2.",
+    "contact": false
+  },
+  "screech": {
+    "name": "Screech",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 3
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 3.",
+    "contact": false
+  },
+  "roar": {
+    "name": "Roar",
+    "cost": 0,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2 and Slow 2. Vanish.",
+    "contact": false
+  },
+  "sing": {
+    "name": "Sing",
+    "cost": 2,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "sleep",
+        "stacks": 1
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Sleep 1.",
+    "contact": false
+  },
+  "supersonic": {
+    "name": "Supersonic",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Slow 2.",
+    "contact": false
+  },
+  "sonic-boom": {
+    "name": "Sonic Boom",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "set_damage",
+        "value": 15
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 15 fixed damage (ignores modifiers).",
+    "contact": false
+  },
+  "disable": {
+    "name": "Disable",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2 and Slow 2.",
+    "contact": false
+  },
+  "smokescreen": {
+    "name": "Smokescreen",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2 and Slow 2. Vanish.",
+    "contact": false
+  },
+  "double-team": {
+    "name": "Double Team",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 3
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Evasion 3. Vanish.",
+    "contact": false
+  },
+  "minimize": {
+    "name": "Minimize",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 4
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Evasion 4. Vanish.",
+    "contact": false
+  },
+  "harden": {
+    "name": "Harden",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain 5 Block.",
+    "contact": false
+  },
+  "defense-curl": {
+    "name": "Defense Curl",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain 5 Block.",
+    "contact": false
+  },
+  "recover": {
+    "name": "Recover",
+    "cost": 2,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "heal",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Heal 20 HP.",
+    "contact": false
+  },
+  "soft-boiled": {
+    "name": "Soft Boiled",
+    "cost": 2,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "heal",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "normal"
+    ],
+    "description": "Heal 20 HP.",
+    "contact": false
+  },
+  "focus-energy": {
+    "name": "Focus Energy",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Strength 2.",
+    "contact": false
+  },
+  "bide": {
+    "name": "Bide",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain 8 Block.",
+    "contact": false
+  },
+  "metronome": {
+    "name": "Metronome",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "count": 2
+      },
+      {
+        "type": "gain_energy",
+        "amount": 1
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Draw 2 cards. Gain 1 energy. Vanish.",
+    "contact": false
+  },
+  "mimic": {
+    "name": "Mimic",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "count": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Draw 1 card.",
+    "contact": false
+  },
+  "transform": {
+    "name": "Transform",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 2
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Strength 2 and Evasion 2. Vanish.",
+    "contact": false
+  },
+  "substitute": {
+    "name": "Substitute",
+    "cost": 2,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 15
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain 15 Block.",
+    "contact": false
+  },
+  "glare": {
+    "name": "Glare",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 3
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Paralysis 3.",
+    "contact": false
+  },
+  "lovely-kiss": {
+    "name": "Lovely Kiss",
+    "cost": 2,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "sleep",
+        "stacks": 1
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Sleep 1.",
+    "contact": false
+  },
+  "flash": {
+    "name": "Flash",
+    "cost": 1,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 2.",
+    "contact": false
+  },
+  "splash": {
+    "name": "Splash",
+    "cost": 0,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "But nothing happened! Vanish.",
+    "contact": false
+  },
+  "conversion": {
+    "name": "Conversion",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "count": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Draw 1 card.",
+    "contact": false
+  },
+  "sharpen": {
+    "name": "Sharpen",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Strength 2.",
+    "contact": false
+  },
+  "super-fang": {
+    "name": "Super Fang",
+    "cost": 2,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "percent_hp",
+        "percent": 0.5,
+        "ofMax": false
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal damage equal to 50% of target's current HP.",
+    "contact": true
+  },
+  "guillotine": {
+    "name": "Guillotine",
+    "cost": 3,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "percent_hp",
+        "percent": 0.75,
+        "ofMax": true
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal damage equal to 75% of target's max HP. Vanish.",
+    "contact": true
+  },
+  "horn-drill": {
+    "name": "Horn Drill",
+    "cost": 3,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "percent_hp",
+        "percent": 0.75,
+        "ofMax": true
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal damage equal to 75% of target's max HP. Vanish.",
+    "contact": true
+  },
+  "whirlwind": {
+    "name": "Whirlwind",
+    "cost": 0,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Slow 2. Vanish.",
+    "contact": false
+  },
+  "growth": {
+    "name": "Growth",
+    "cost": 0,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain Strength 1. Vanish.",
+    "contact": false
+  },
+  "defend": {
+    "name": "Defend",
+    "cost": 1,
+    "type": "normal",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Gain 5 Block.",
+    "contact": false
+  },
+  "metal-claw": {
+    "name": "Metal Claw",
+    "cost": 1,
+    "type": "steel",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 7 damage. Apply Weak 1. (Front row)",
+    "contact": true
+  },
+  "hiss": {
+    "name": "Hiss",
+    "cost": 0,
+    "type": "normal",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "normal"
+    ],
+    "description": "Apply Weak 1. Vanish.",
+    "contact": false
+  },
+  "twineedle": {
+    "name": "Twineedle",
+    "cost": 2,
+    "type": "bug",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 4,
+        "hits": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "bug"
+    ],
+    "description": "Hit 2 times for 4 damage each. Apply Poison 1. (Front row)",
+    "contact": true
+  },
+  "pin-missile": {
+    "name": "Pin Missile",
+    "cost": 3,
+    "type": "bug",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 3,
+        "hits": 4
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "bug"
+    ],
+    "description": "Hit 4 times for 3 damage each. (Front row)",
+    "contact": false
+  },
+  "string-shot": {
+    "name": "String Shot",
+    "cost": 1,
+    "type": "bug",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "bug"
+    ],
+    "description": "Apply Slow 2.",
+    "contact": false
+  },
+  "leech-life": {
+    "name": "Leech Life",
+    "cost": 1,
+    "type": "bug",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "heal_on_hit",
+        "value": 7,
+        "healPercent": 0.5
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 7 damage. Heal 50% of damage dealt.",
+    "contact": true
+  },
+  "bite": {
+    "name": "Bite",
+    "cost": 1,
+    "type": "dark",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "dark"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": true
+  },
+  "dragon-rage": {
+    "name": "Dragon Rage",
+    "cost": 2,
+    "type": "dragon",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "set_damage",
+        "value": 40
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "dragon"
+    ],
+    "description": "Deal 40 fixed damage (ignores modifiers). Vanish.",
+    "contact": false
+  },
+  "thunder-shock": {
+    "name": "Thunder Shock",
+    "cost": 1,
+    "type": "electric",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 6 damage. Apply Paralysis 2.",
+    "contact": false
+  },
+  "thunder-wave": {
+    "name": "Thunder Wave",
+    "cost": 1,
+    "type": "electric",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "electric"
+    ],
+    "description": "Apply Paralysis 2.",
+    "contact": false
+  },
+  "thunder-punch": {
+    "name": "Thunder Punch",
+    "cost": 1,
+    "type": "electric",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 10 damage. (Front row)",
+    "contact": true
+  },
+  "thunderbolt": {
+    "name": "Thunderbolt",
+    "cost": 2,
+    "type": "electric",
+    "range": "any_row",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 11 damage to an entire row.",
+    "contact": false
+  },
+  "thunder": {
+    "name": "Thunder",
+    "cost": 3,
+    "type": "electric",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 33 damage.",
+    "contact": false
+  },
+  "karate-chop": {
+    "name": "Karate Chop",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "low-kick": {
+    "name": "Low Kick",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": true
+  },
+  "double-kick": {
+    "name": "Double Kick",
+    "cost": 2,
+    "type": "fighting",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 4,
+        "hits": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Hit 2 times for 4 damage each. (Front row)",
+    "contact": true
+  },
+  "rolling-kick": {
+    "name": "Rolling Kick",
+    "cost": 1,
+    "type": "fighting",
+    "range": "column",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 6 damage to all enemies in a column.",
+    "contact": true
+  },
+  "counter": {
+    "name": "Counter",
+    "cost": 1,
+    "type": "fighting",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Gain 8 Block.",
+    "contact": false
+  },
+  "submission": {
+    "name": "Submission",
+    "cost": 1,
+    "type": "fighting",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "recoil",
+        "value": 15,
+        "recoilPercent": 0.5
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 15 damage. Take 50% recoil. (Front row)",
+    "contact": true
+  },
+  "seismic-toss": {
+    "name": "Seismic Toss",
+    "cost": 1,
+    "type": "fighting",
+    "range": "column",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "set_damage",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 20 fixed damage to all enemies in a column. Vanish.",
+    "contact": true
+  },
+  "jump-kick": {
+    "name": "Jump Kick",
+    "cost": 2,
+    "type": "fighting",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 15 damage.",
+    "contact": true
+  },
+  "high-jump-kick": {
+    "name": "High Jump Kick",
+    "cost": 3,
+    "type": "fighting",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 33 damage. (Front row)",
+    "contact": true
+  },
+  "bulk-up": {
+    "name": "Bulk Up",
+    "cost": 1,
+    "type": "fighting",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      },
+      {
+        "type": "block",
+        "value": 4
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Gain 2 Strength and 4 Block.",
+    "contact": false
+  },
+  "cross-chop": {
+    "name": "Cross Chop",
+    "cost": 3,
+    "type": "fighting",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 25
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fighting"
+    ],
+    "description": "Deal 25 damage. (Front row)",
+    "contact": true
+  },
+  "fire-spin": {
+    "name": "Fire Spin",
+    "cost": 1,
+    "type": "fire",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 5 damage.",
+    "contact": false
+  },
+  "ember": {
+    "name": "Ember",
+    "cost": 1,
+    "type": "fire",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "burn",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 6 damage. Apply Burn 2.",
+    "contact": false
+  },
+  "fire-punch": {
+    "name": "Fire Punch",
+    "cost": 1,
+    "type": "fire",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 10 damage. (Front row)",
+    "contact": true
+  },
+  "flamethrower": {
+    "name": "Flamethrower",
+    "cost": 2,
+    "type": "fire",
+    "range": "column",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 11 damage to all enemies in a column.",
+    "contact": false
+  },
+  "fire-blast": {
+    "name": "Fire Blast",
+    "cost": 3,
+    "type": "fire",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 33 damage.",
+    "contact": false
+  },
+  "flame-wheel": {
+    "name": "Flame Wheel",
+    "cost": 1,
+    "type": "fire",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "block",
+        "value": 5
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 6 damage. Gain 5 Block. (Front row)",
+    "contact": true
+  },
+  "fire-fang": {
+    "name": "Fire Fang",
+    "cost": 1,
+    "type": "fire",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      },
+      {
+        "type": "apply_status",
+        "status": "burn",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 8 damage. Apply Burn 1. (Front row)",
+    "contact": true
+  },
+  "morning-sun": {
+    "name": "Morning Sun",
+    "cost": 2,
+    "type": "fire",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "heal",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fire"
+    ],
+    "description": "Heal 20 HP.",
+    "contact": false
+  },
+  "flare-blitz": {
+    "name": "Flare Blitz",
+    "cost": 3,
+    "type": "fire",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "recoil",
+        "value": 30,
+        "recoilPercent": 0.25
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "fire"
+    ],
+    "description": "Deal 30 damage. Take 25% recoil.",
+    "contact": true
+  },
+  "gust": {
+    "name": "Gust",
+    "cost": 1,
+    "type": "flying",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 7 damage.",
+    "contact": false
+  },
+  "peck": {
+    "name": "Peck",
+    "cost": 1,
+    "type": "flying",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "wing-attack": {
+    "name": "Wing Attack",
+    "cost": 2,
+    "type": "flying",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 10 damage. (Front row)",
+    "contact": true
+  },
+  "drill-peck": {
+    "name": "Drill Peck",
+    "cost": 2,
+    "type": "flying",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "fly": {
+    "name": "Fly",
+    "cost": 2,
+    "type": "flying",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 15 damage.",
+    "contact": true
+  },
+  "sky-attack": {
+    "name": "Sky Attack",
+    "cost": 3,
+    "type": "flying",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 33 damage. (Front row)",
+    "contact": true
+  },
+  "mirror-move": {
+    "name": "Mirror Move",
+    "cost": 1,
+    "type": "flying",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "count": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "flying"
+    ],
+    "description": "Draw 1 card.",
+    "contact": false
+  },
+  "lick": {
+    "name": "Lick",
+    "cost": 1,
+    "type": "ghost",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      },
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 5 damage. Apply Paralysis 1. (Front row)",
+    "contact": true
+  },
+  "night-shade": {
+    "name": "Night Shade",
+    "cost": 1,
+    "type": "ghost",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "set_damage",
+        "value": 15
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 15 fixed damage (ignores modifiers).",
+    "contact": false
+  },
+  "confuse-ray": {
+    "name": "Confuse Ray",
+    "cost": 1,
+    "type": "ghost",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Apply Weak 2 and Slow 2.",
+    "contact": false
+  },
+  "hex": {
+    "name": "Hex",
+    "cost": 2,
+    "type": "ghost",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8,
+        "bonusValue": 1,
+        "bonusCondition": "target_debuff_stacks"
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 8 damage plus 1 per debuff stack on the target.",
+    "contact": false
+  },
+  "vine-whip": {
+    "name": "Vine Whip",
+    "cost": 1,
+    "type": "grass",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 6 damage. (Front row)",
+    "contact": true
+  },
+  "absorb": {
+    "name": "Absorb",
+    "cost": 1,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "heal_on_hit",
+        "value": 5,
+        "healPercent": 0.5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 5 damage. Heal 50% of damage dealt.",
+    "contact": false
+  },
+  "mega-drain": {
+    "name": "Mega Drain",
+    "cost": 1,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "heal_on_hit",
+        "value": 7,
+        "healPercent": 0.5
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 7 damage. Heal 50% of damage dealt.",
+    "contact": false
+  },
+  "giga-drain": {
+    "name": "Giga Drain",
+    "cost": 3,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "heal_on_hit",
+        "value": 22,
+        "healPercent": 0.5
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 22 damage. Heal 50% of damage dealt.",
+    "contact": false
+  },
+  "leech-seed": {
+    "name": "Leech Seed",
+    "cost": 2,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "leech",
+        "stacks": 2
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "grass"
+    ],
+    "description": "Apply Leech 2.",
+    "contact": false
+  },
+  "razor-leaf": {
+    "name": "Razor Leaf",
+    "cost": 1,
+    "type": "grass",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": false
+  },
+  "stun-spore": {
+    "name": "Stun Spore",
+    "cost": 1,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 3
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "grass"
+    ],
+    "description": "Apply Paralysis 3.",
+    "contact": false
+  },
+  "sleep-powder": {
+    "name": "Sleep Powder",
+    "cost": 2,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "sleep",
+        "stacks": 1
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "grass"
+    ],
+    "description": "Apply Sleep 1.",
+    "contact": false
+  },
+  "spore": {
+    "name": "Spore",
+    "cost": 1,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "sleep",
+        "stacks": 1
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Apply Sleep 1.",
+    "contact": false
+  },
+  "solar-beam": {
+    "name": "Solar Beam",
+    "cost": 3,
+    "type": "grass",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 33 damage.",
+    "contact": false
+  },
+  "petal-dance": {
+    "name": "Petal Dance",
+    "cost": 3,
+    "type": "grass",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "grass"
+    ],
+    "description": "Deal 20 damage to all enemies.",
+    "contact": true
+  },
+  "sand-attack": {
+    "name": "Sand Attack",
+    "cost": 1,
+    "type": "ground",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "ground"
+    ],
+    "description": "Apply Weak 2.",
+    "contact": false
+  },
+  "bone-club": {
+    "name": "Bone Club",
+    "cost": 1,
+    "type": "ground",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": false
+  },
+  "bonemerang": {
+    "name": "Bonemerang",
+    "cost": 2,
+    "type": "ground",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 5,
+        "hits": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ground"
+    ],
+    "description": "Hit 2 times for 5 damage each. (Front row)",
+    "contact": false
+  },
+  "dig": {
+    "name": "Dig",
+    "cost": 2,
+    "type": "ground",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "earthquake": {
+    "name": "Earthquake",
+    "cost": 3,
+    "type": "ground",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 20
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal 20 damage to all enemies.",
+    "contact": false
+  },
+  "fissure": {
+    "name": "Fissure",
+    "cost": 2,
+    "type": "ground",
+    "range": "any_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "percent_hp",
+        "percent": 0.5,
+        "ofMax": true
+      }
+    ],
+    "rarity": "legendary",
+    "pools": [
+      "ground"
+    ],
+    "description": "Deal damage equal to 50% of target's max HP. Vanish.",
+    "contact": false
+  },
+  "mist": {
+    "name": "Mist",
+    "cost": 1,
+    "type": "ice",
+    "range": "any_ally",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "cleanse",
+        "count": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "ice"
+    ],
+    "description": "Cleanse 1 debuff from an ally.",
+    "contact": false
+  },
+  "haze": {
+    "name": "Haze",
+    "cost": 0,
+    "type": "ice",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "cleanse",
+        "count": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ice"
+    ],
+    "description": "Remove 2 debuffs (highest stacks). Vanish.",
+    "contact": false
+  },
+  "aurora-beam": {
+    "name": "Aurora Beam",
+    "cost": 2,
+    "type": "ice",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 9 damage. Apply Weak 2.",
+    "contact": false
+  },
+  "ice-punch": {
+    "name": "Ice Punch",
+    "cost": 1,
+    "type": "ice",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 10 damage. (Front row)",
+    "contact": true
+  },
+  "ice-beam": {
+    "name": "Ice Beam",
+    "cost": 2,
+    "type": "ice",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 15 damage.",
+    "contact": false
+  },
+  "blizzard": {
+    "name": "Blizzard",
+    "cost": 3,
+    "type": "ice",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 20
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "ice"
+    ],
+    "description": "Deal 20 damage to all enemies.",
+    "contact": false
+  },
+  "poison-sting": {
+    "name": "Poison Sting",
+    "cost": 1,
+    "type": "poison",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      },
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 5 damage. Apply Poison 1. (Front row)",
+    "contact": false
+  },
+  "acid": {
+    "name": "Acid",
+    "cost": 1,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 6 damage. Apply Weak 2.",
+    "contact": false
+  },
+  "smog": {
+    "name": "Smog",
+    "cost": 1,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4
+      },
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 1
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 4 damage. Apply Poison 1.",
+    "contact": false
+  },
+  "poison-powder": {
+    "name": "Poison Powder",
+    "cost": 1,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "poison"
+    ],
+    "description": "Apply Poison 2.",
+    "contact": false
+  },
+  "poison-gas": {
+    "name": "Poison Gas",
+    "cost": 1,
+    "type": "poison",
+    "range": "front_row",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "poison"
+    ],
+    "description": "Apply Poison 1 to entire front row.",
+    "contact": false
+  },
+  "sludge": {
+    "name": "Sludge",
+    "cost": 2,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      },
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 1
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 10 damage. Apply Poison 1.",
+    "contact": false
+  },
+  "toxic": {
+    "name": "Toxic",
+    "cost": 1,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 3
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "poison"
+    ],
+    "description": "Apply Poison 3.",
+    "contact": false
+  },
+  "acid-armor": {
+    "name": "Acid Armor",
+    "cost": 1,
+    "type": "poison",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "block",
+        "value": 10
+      },
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 2
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "poison"
+    ],
+    "description": "Gain 10 Block and Evasion 2. Vanish.",
+    "contact": false
+  },
+  "confusion": {
+    "name": "Confusion",
+    "cost": 1,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 7
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 7 damage.",
+    "contact": false
+  },
+  "extrasensory": {
+    "name": "Extrasensory",
+    "cost": 1,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 10 damage.",
+    "contact": false
+  },
+  "psybeam": {
+    "name": "Psybeam",
+    "cost": 2,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 9 damage.",
+    "contact": false
+  },
+  "psychic": {
+    "name": "Psychic",
+    "cost": 2,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 15 damage.",
+    "contact": false
+  },
+  "dream-eater": {
+    "name": "Dream Eater",
+    "cost": 2,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "heal_on_hit",
+        "value": 12,
+        "healPercent": 0.5
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 12 damage. Heal 50% of damage dealt.",
+    "contact": false
+  },
+  "psywave": {
+    "name": "Psywave",
+    "cost": 1,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "set_damage",
+        "value": 15
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Deal 15 fixed damage (ignores modifiers).",
+    "contact": false
+  },
+  "hypnosis": {
+    "name": "Hypnosis",
+    "cost": 2,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "sleep",
+        "stacks": 1
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Apply Sleep 1.",
+    "contact": false
+  },
+  "meditate": {
+    "name": "Meditate",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain Strength 2.",
+    "contact": false
+  },
+  "agility": {
+    "name": "Agility",
+    "cost": 0,
+    "type": "psychic",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "haste",
+        "stacks": 3
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain 3 Haste. Vanish.",
+    "contact": false
+  },
+  "teleport": {
+    "name": "Teleport",
+    "cost": 0,
+    "type": "psychic",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain Evasion 2. Vanish.",
+    "contact": false
+  },
+  "barrier": {
+    "name": "Barrier",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain 8 Block.",
+    "contact": false
+  },
+  "light-screen": {
+    "name": "Light Screen",
+    "cost": 2,
+    "type": "psychic",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "block",
+        "value": 12
+      },
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 2
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain 12 Block and Evasion 2. Vanish.",
+    "contact": false
+  },
+  "reflect": {
+    "name": "Reflect",
+    "cost": 2,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 15
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain 15 Block.",
+    "contact": false
+  },
+  "amnesia": {
+    "name": "Amnesia",
+    "cost": 1,
+    "type": "psychic",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Gain 8 Block.",
+    "contact": false
+  },
+  "kinesis": {
+    "name": "Kinesis",
+    "cost": 1,
+    "type": "psychic",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Apply Weak 2.",
+    "contact": false
+  },
+  "rest": {
+    "name": "Rest",
+    "cost": 2,
+    "type": "psychic",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "heal_percent",
+        "percent": 0.5
+      },
+      {
+        "type": "apply_status_self",
+        "status": "sleep",
+        "stacks": 2
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "psychic"
+    ],
+    "description": "Heal 50% of max HP. Apply Sleep 2 to self. Vanish.",
+    "contact": false
+  },
+  "rock-throw": {
+    "name": "Rock Throw",
+    "cost": 1,
+    "type": "rock",
+    "range": "back_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "rock"
+    ],
+    "description": "Deal 8 damage. (Back row only)",
+    "contact": false
+  },
+  "rock-slide": {
+    "name": "Rock Slide",
+    "cost": 2,
+    "type": "rock",
+    "range": "front_row",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "rock"
+    ],
+    "description": "Deal 9 damage to entire front row.",
+    "contact": false
+  },
+  "water-gun": {
+    "name": "Water Gun",
+    "cost": 1,
+    "type": "water",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 5 damage.",
+    "contact": false
+  },
+  "bubble": {
+    "name": "Bubble",
+    "cost": 1,
+    "type": "water",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 6 damage. Apply Slow 2.",
+    "contact": false
+  },
+  "clamp": {
+    "name": "Clamp",
+    "cost": 1,
+    "type": "water",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 2
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 6 damage. Apply Slow 2. (Front row)",
+    "contact": true
+  },
+  "withdraw": {
+    "name": "Withdraw",
+    "cost": 1,
+    "type": "water",
+    "range": "self",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "water"
+    ],
+    "description": "Gain 8 Block.",
+    "contact": false
+  },
+  "bubble-beam": {
+    "name": "Bubble Beam",
+    "cost": 2,
+    "type": "water",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 9
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 9 damage.",
+    "contact": false
+  },
+  "waterfall": {
+    "name": "Waterfall",
+    "cost": 2,
+    "type": "water",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 12 damage. (Front row)",
+    "contact": true
+  },
+  "surf": {
+    "name": "Surf",
+    "cost": 2,
+    "type": "water",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 10 damage to all enemies.",
+    "contact": false
+  },
+  "crabhammer": {
+    "name": "Crabhammer",
+    "cost": 2,
+    "type": "water",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 15 damage. (Front row)",
+    "contact": true
+  },
+  "hydro-pump": {
+    "name": "Hydro Pump",
+    "cost": 3,
+    "type": "water",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 33
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "water"
+    ],
+    "description": "Deal 33 damage.",
+    "contact": false
+  },
+  "fake-out": {
+    "name": "Fake Out",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "stacks": 3
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. Apply Slow 3. Vanish. (Front row)",
+    "contact": true
+  },
+  "sludge-bomb": {
+    "name": "Sludge Bomb",
+    "cost": 2,
+    "type": "poison",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      },
+      {
+        "type": "apply_status",
+        "status": "poison",
+        "stacks": 2
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "poison"
+    ],
+    "description": "Deal 15 damage. Apply Poison 2.",
+    "contact": false
+  },
+  "megahorn": {
+    "name": "Megahorn",
+    "cost": 3,
+    "type": "bug",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 30
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 30 damage. (Front row)",
+    "contact": true
+  },
+  "spark": {
+    "name": "Spark",
+    "cost": 1,
+    "type": "electric",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": true
+  },
+  "charge-beam": {
+    "name": "Charge Beam",
+    "cost": 1,
+    "type": "electric",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5
+      },
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 1
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 5 damage. Gain Strength 1.",
+    "contact": false
+  },
+  "discharge": {
+    "name": "Discharge",
+    "cost": 2,
+    "type": "electric",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      },
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 1
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "electric"
+    ],
+    "description": "Deal 8 damage to all enemies. Apply Paralysis 1.",
+    "contact": false
+  },
+  "bug-bite": {
+    "name": "Bug Bite",
+    "cost": 1,
+    "type": "bug",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 8 damage. (Front row)",
+    "contact": true
+  },
+  "silver-wind": {
+    "name": "Silver Wind",
+    "cost": 2,
+    "type": "bug",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 1
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "bug"
+    ],
+    "description": "Deal 6 damage to all enemies. Gain Strength 1.",
+    "contact": false
+  },
+  "flail": {
+    "name": "Flail",
+    "cost": 1,
+    "type": "normal",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6,
+        "bonusValue": 6,
+        "bonusCondition": "user_below_half_hp"
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "normal"
+    ],
+    "description": "Deal 6 damage. Deal 12 instead if below 50% HP. (Front row)",
+    "contact": true
+  },
+  "bounce": {
+    "name": "Bounce",
+    "cost": 2,
+    "type": "flying",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 12
+      },
+      {
+        "type": "apply_status",
+        "status": "paralysis",
+        "stacks": 1
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "flying"
+    ],
+    "description": "Deal 12 damage. Apply Paralysis 1.",
+    "contact": true
+  },
+  "dragon-dance": {
+    "name": "Dragon Dance",
+    "cost": 1,
+    "type": "dragon",
+    "range": "self",
+    "vanish": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status_self",
+        "status": "haste",
+        "stacks": 2
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "dragon"
+    ],
+    "description": "Gain 2 Strength and 2 Haste. Vanish.",
+    "contact": false
+  },
+  "twister": {
+    "name": "Twister",
+    "cost": 1,
+    "type": "dragon",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      }
+    ],
+    "rarity": "basic",
+    "pools": [
+      "dragon"
+    ],
+    "description": "Deal 6 damage.",
+    "contact": false
+  },
+  "potion": {
+    "name": "Potion",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "heal",
+        "value": 15
+      }
+    ],
+    "description": "Heal an ally for 15 HP. Single use.",
+    "contact": false
+  },
+  "super-potion": {
+    "name": "Super Potion",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "heal",
+        "value": 30
+      }
+    ],
+    "description": "Heal an ally for 30 HP. Single use.",
+    "contact": false
+  },
+  "full-heal": {
+    "name": "Full Heal",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "cleanse",
+        "count": 3
+      }
+    ],
+    "description": "Remove up to 3 debuffs from an ally. Single use.",
+    "contact": false
+  },
+  "x-attack": {
+    "name": "X Attack",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 3
+      }
+    ],
+    "description": "Give an ally 3 Strength. Single use.",
+    "contact": false
+  },
+  "dire-hit": {
+    "name": "Dire Hit",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 5
+      },
+      {
+        "type": "draw_cards",
+        "count": 1
+      }
+    ],
+    "description": "Give an ally 5 Strength. Draw 1 card. Single use.",
+    "contact": false
+  },
+  "x-defend": {
+    "name": "X Defend",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "block",
+        "value": 10
+      }
+    ],
+    "description": "Give an ally 10 Block. Single use.",
+    "contact": false
+  },
+  "guard-spec": {
+    "name": "Guard Spec.",
+    "cost": 0,
+    "type": "item",
+    "range": "any_ally",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 3
+      }
+    ],
+    "description": "Give an ally 3 Evasion. Single use.",
+    "contact": false
+  },
+  "ether": {
+    "name": "Ether",
+    "cost": 0,
+    "type": "item",
+    "range": "self",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "gain_energy",
+        "amount": 2
+      }
+    ],
+    "description": "Gain 2 energy. Single use.",
+    "contact": false
+  },
+  "smoke-ball": {
+    "name": "Smoke Ball",
+    "cost": 0,
+    "type": "item",
+    "range": "self",
+    "vanish": true,
+    "isItem": true,
+    "singleUse": true,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "count": 2
+      }
+    ],
+    "description": "Draw 2 cards. Single use.",
+    "contact": false
+  },
+  "shadow-punch": {
+    "name": "Shadow Punch",
+    "cost": 1,
+    "type": "ghost",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "rarity": "common",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 8 damage. Never misses. (Front row)",
+    "contact": true
+  },
+  "shadow-ball": {
+    "name": "Shadow Ball",
+    "cost": 2,
+    "type": "ghost",
+    "range": "any_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 1
+      }
+    ],
+    "rarity": "rare",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 15 damage. Apply Weak 1.",
+    "contact": false
+  },
+  "ominous-wind": {
+    "name": "Ominous Wind",
+    "cost": 3,
+    "type": "ghost",
+    "range": "all_enemies",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      },
+      {
+        "type": "apply_status_self",
+        "status": "strength",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status_self",
+        "status": "haste",
+        "stacks": 2
+      }
+    ],
+    "rarity": "epic",
+    "pools": [
+      "ghost"
+    ],
+    "description": "Deal 15 damage to ALL enemies. Gain Strength 2 and Haste 2.",
+    "contact": false
+  },
+  "dazed": {
+    "name": "Dazed",
+    "cost": 0,
+    "type": "normal",
+    "range": "self",
+    "vanish": true,
+    "singleUse": true,
+    "uncollectible": true,
+    "effects": [],
+    "description": "Your mind is foggy. This card does nothing. Vanishes after use.",
+    "contact": false
+  },
+  "spectral-form": {
+    "name": "Spectral Form",
+    "cost": 0,
+    "type": "ghost",
+    "range": "self",
+    "vanish": true,
+    "uncollectible": true,
+    "effects": [
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 5
+      }
+    ],
+    "description": "A ghostly veil clings to this Pokémon. Gain Evasion 5. Vanishes after use.",
+    "contact": false
+  },
+  "disarming-voice": {
+    "name": "Disarming Voice",
+    "cost": 1,
+    "type": "fairy",
+    "range": "any_enemy",
+    "vanish": false,
+    "rarity": "common",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 8
+      }
+    ],
+    "description": "A charming cry deals 8 damage.",
+    "contact": false
+  },
+  "fairy-wind": {
+    "name": "Fairy Wind",
+    "cost": 1,
+    "type": "fairy",
+    "range": "any_enemy",
+    "vanish": false,
+    "rarity": "common",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 1
+      }
+    ],
+    "description": "A fairy breeze deals 6 damage and applies Enfeeble 1.",
+    "contact": false
+  },
+  "charm": {
+    "name": "Charm",
+    "cost": 1,
+    "type": "fairy",
+    "range": "front_enemy",
+    "vanish": false,
+    "rarity": "common",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "description": "A cute display applies Enfeeble 2.",
+    "contact": false
+  },
+  "moonlight": {
+    "name": "Moonlight",
+    "cost": 2,
+    "type": "fairy",
+    "range": "self",
+    "vanish": true,
+    "rarity": "uncommon",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 12
+      },
+      {
+        "type": "cleanse",
+        "count": 1
+      }
+    ],
+    "description": "Heal 12 HP and cleanse 1 debuff.",
+    "contact": false
+  },
+  "follow-me": {
+    "name": "Follow Me",
+    "cost": 1,
+    "type": "fairy",
+    "range": "self",
+    "vanish": false,
+    "rarity": "uncommon",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "block",
+        "value": 5
+      },
+      {
+        "type": "apply_status_self",
+        "status": "taunt",
+        "stacks": 2
+      }
+    ],
+    "description": "Gain 5 Block. Apply Taunt 2 to self (can only play attack cards).",
+    "contact": false
+  },
+  "moonblast": {
+    "name": "Moonblast",
+    "cost": 2,
+    "type": "fairy",
+    "range": "any_enemy",
+    "vanish": false,
+    "rarity": "rare",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 15
+      }
+    ],
+    "description": "A brilliant moonbeam deals 15 damage.",
+    "contact": false
+  },
+  "sweet-kiss": {
+    "name": "Sweet Kiss",
+    "cost": 2,
+    "type": "fairy",
+    "range": "front_enemy",
+    "vanish": false,
+    "rarity": "uncommon",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "taunt",
+        "stacks": 2
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 1
+      }
+    ],
+    "description": "A sweet kiss applies Taunt 2 and Enfeeble 1 to an enemy.",
+    "contact": false
+  },
+  "dazzling-gleam": {
+    "name": "Dazzling Gleam",
+    "cost": 3,
+    "type": "fairy",
+    "range": "all_enemies",
+    "vanish": false,
+    "rarity": "rare",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 11
+      }
+    ],
+    "description": "A brilliant flash deals 11 damage to all enemies.",
+    "contact": false
+  },
+  "cosmic-power": {
+    "name": "Cosmic Power",
+    "cost": 2,
+    "type": "fairy",
+    "range": "self",
+    "vanish": false,
+    "rarity": "rare",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "block",
+        "value": 8
+      },
+      {
+        "type": "apply_status_self",
+        "status": "evasion",
+        "stacks": 1
+      }
+    ],
+    "description": "Channel cosmic energy. Gain 8 Block and 1 Evasion.",
+    "contact": false
+  },
+  "play-rough": {
+    "name": "Play Rough",
+    "cost": 3,
+    "type": "fairy",
+    "range": "front_enemy",
+    "vanish": false,
+    "rarity": "epic",
+    "pools": [
+      "fairy"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 28
+      },
+      {
+        "type": "apply_status",
+        "status": "enfeeble",
+        "stacks": 2
+      }
+    ],
+    "description": "A rough and tumble assault deals 20 damage and applies Enfeeble 2.",
+    "contact": true
+  },
+  "fury-cutter": {
+    "name": "Fury Cutter",
+    "cost": 1,
+    "type": "bug",
+    "range": "front_enemy",
+    "vanish": false,
+    "effects": [
+      {
+        "type": "multi_hit",
+        "value": 3,
+        "hits": 3
+      }
+    ],
+    "rarity": "uncommon",
+    "pools": [
+      "bug"
+    ],
+    "description": "Slash rapidly. Deal 3 damage x3 hits. (Front row)",
+    "contact": true
+  }
+}

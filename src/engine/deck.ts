@@ -1,87 +1,82 @@
-// Simple seeded random number generator for testability
-class SeededRandom {
-  private seed: number;
+import type { Combatant } from './types';
 
-  constructor(seed: number = Date.now()) {
-    this.seed = seed;
-  }
+// ============================================================
+// Deck Management
+// ============================================================
 
-  next(): number {
-    this.seed = (this.seed * 9301 + 49297) % 233280;
-    return this.seed / 233280;
-  }
+/** Hard cap on hand size - cards drawn past this go to discard */
+export const MAX_HAND_SIZE = 10;
 
-  setSeed(seed: number): void {
-    this.seed = seed;
+/** Fisher-Yates shuffle (in-place, returns same array). */
+export function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+  return arr;
 }
 
-let globalRandom = new SeededRandom();
+/**
+ * Draw cards until hand has `handSize` cards, or both draw and discard are empty.
+ * If draw pile is empty, reshuffle discard into draw pile first.
+ * Respects MAX_HAND_SIZE hard cap - excess cards go to discard.
+ */
+export function drawCards(combatant: Combatant): string[] {
+  const drawn: string[] = [];
+  const targetSize = Math.min(combatant.handSize, MAX_HAND_SIZE);
 
-export function setRandomSeed(seed: number): void {
-  globalRandom = new SeededRandom(seed);
-}
-
-export function shuffle<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(globalRandom.next() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  while (combatant.hand.length < targetSize) {
+    if (combatant.drawPile.length === 0) {
+      if (combatant.discardPile.length === 0) break; // nothing left to draw
+      // Reshuffle discard into draw pile
+      combatant.drawPile = shuffle([...combatant.discardPile]);
+      combatant.discardPile = [];
+    }
+    const card = combatant.drawPile.pop()!;
+    combatant.hand.push(card);
+    drawn.push(card);
   }
-  return shuffled;
+
+  return drawn;
 }
 
-export function createDeck(cardIds: string[]): string[] {
-  return shuffle(cardIds);
-}
-
-export function drawCards(
-  deck: string[],
-  hand: string[],
-  discard: string[],
-  count: number
-): { deck: string[]; hand: string[]; discard: string[] } {
-  let newDeck = [...deck];
-  let newHand = [...hand];
-  let newDiscard = [...discard];
+/**
+ * Draw extra cards beyond the normal hand size limit.
+ * Used by effects that grant bonus draws mid-turn.
+ * Respects MAX_HAND_SIZE hard cap - excess cards go to discard.
+ * Returns { drawn: cards added to hand, discarded: cards that overflowed }
+ */
+export function drawExtraCards(combatant: Combatant, count: number): { drawn: string[], discarded: string[] } {
+  const drawn: string[] = [];
+  const discarded: string[] = [];
 
   for (let i = 0; i < count; i++) {
-    if (newDeck.length === 0) {
-      // Reshuffle discard into deck
-      newDeck = shuffle(newDiscard);
-      newDiscard = [];
+    if (combatant.drawPile.length === 0) {
+      if (combatant.discardPile.length === 0) break; // nothing left to draw
+      // Reshuffle discard into draw pile
+      combatant.drawPile = shuffle([...combatant.discardPile]);
+      combatant.discardPile = [];
     }
-    if (newDeck.length > 0) {
-      const card = newDeck.shift()!;
-      newHand.push(card);
+    if (combatant.drawPile.length === 0) break;
+    const card = combatant.drawPile.pop()!;
+
+    if (combatant.hand.length < MAX_HAND_SIZE) {
+      combatant.hand.push(card);
+      drawn.push(card);
+    } else {
+      // Hand is full, discard the overflow
+      combatant.discardPile.push(card);
+      discarded.push(card);
     }
   }
 
-  return {
-    deck: newDeck,
-    hand: newHand,
-    discard: newDiscard,
-  };
+  return { drawn, discarded };
 }
 
-export function playCard(
-  hand: string[],
-  cardId: string,
-  discard: string[]
-): { hand: string[]; discard: string[] } {
-  const newHand = [...hand];
-  const newDiscard = [...discard];
-  const cardIndex = newHand.indexOf(cardId);
-  
-  if (cardIndex === -1) {
-    throw new Error(`Card ${cardId} not found in hand`);
-  }
-
-  newHand.splice(cardIndex, 1);
-  newDiscard.push(cardId);
-
-  return {
-    hand: newHand,
-    discard: newDiscard,
-  };
+/**
+ * Discard all cards in hand to discard pile.
+ */
+export function discardHand(combatant: Combatant): void {
+  combatant.discardPile.push(...combatant.hand);
+  combatant.hand = [];
 }

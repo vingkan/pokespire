@@ -1,86 +1,388 @@
-import type { PokemonCombatState, StatusEffect, BuffEffect } from './types';
-import type { StatusType, BuffType } from '../config/cards';
+import type { Combatant, CombatState, StatusType, StatusInstance, LogEntry } from './types';
+import { applyBypassDamage, applyHeal } from './damage';
+import { getCombatant } from './combat';
+import { getPassiveSpeedBonus } from './passives';
+
+// ============================================================
+// Status Effects — Section 7 of spec
+// ============================================================
+
+/** Get current stacks for a status type on a combatant (0 if not present). */
+export function getStatusStacks(combatant: Combatant, type: StatusType): number {
+  const s = combatant.statuses.find(s => s.type === type);
+  return s ? s.stacks : 0;
+}
+
+/** Get a status instance if present. */
+export function getStatus(combatant: Combatant, type: StatusType): StatusInstance | undefined {
+  return combatant.statuses.find(s => s.type === type);
+}
+
+/** Remove a status entirely. */
+export function removeStatus(combatant: Combatant, type: StatusType): void {
+  combatant.statuses = combatant.statuses.filter(s => s.type !== type);
+}
+
+/** Decay evasion by 1 when attacked (called after damage + onDamageTaken). */
+export function decayEvasionOnHit(target: Combatant): void {
+  const evasion = target.statuses.find(s => s.type === 'evasion');
+  if (evasion) {
+    evasion.stacks -= 1;
+    if (evasion.stacks <= 0) {
+      removeStatus(target, 'evasion');
+    }
+  }
+}
+
+/**
+ * Apply a status effect to a combatant.
+ * Follows the stacking rules from Section 7.1.
+ */
+/**
+ * Returns true if the status affects speed (paralysis, slow, haste).
+ */
+export function isSpeedStatus(type: StatusType): boolean {
+  return type === 'paralysis' || type === 'slow' || type === 'haste';
+}
+
+/**
+ * Check if a combatant is immune to a status type.
+ * Returns true if the status should be blocked.
+ */
+export function checkStatusImmunity(
+  target: Combatant,
+  type: StatusType
+): boolean {
+  return getStatusImmunitySource(target, type) !== null;
+}
+
+/**
+ * Get the name of the passive that grants immunity to a status type.
+ * Returns null if no immunity applies.
+ */
+export function getStatusImmunitySource(
+  target: Combatant,
+  type: StatusType
+): string | null {
+  // Immunity: You cannot be Poisoned
+  if (type === 'poison' && target.passiveIds.includes('immunity')) {
+    return 'Immunity';
+  }
+  // Shield Dust: You cannot be Poisoned
+  if (type === 'poison' && target.passiveIds.includes('shield_dust')) {
+    return 'Shield Dust';
+  }
+  // Flash Fire: You cannot be Burned
+  if (type === 'burn' && target.passiveIds.includes('flash_fire')) {
+    return 'Flash Fire';
+  }
+  // Insomnia: You cannot be put to Sleep
+  if (type === 'sleep' && target.passiveIds.includes('insomnia')) {
+    return 'Insomnia';
+  }
+  // Vital Spirit: You cannot be put to Sleep
+  if (type === 'sleep' && target.passiveIds.includes('vital_spirit')) {
+    return 'Vital Spirit';
+  }
+  // Inner Focus: You cannot be Enfeebled
+  if (type === 'enfeeble' && target.passiveIds.includes('inner_focus')) {
+    return 'Inner Focus';
+  }
+  // Limber: You cannot be Paralyzed
+  if (type === 'paralysis' && target.passiveIds.includes('limber')) {
+    return 'Limber';
+  }
+  return null;
+}
+
+export interface ApplyStatusResult {
+  applied: boolean;
+  affectsSpeed: boolean;
+}
 
 export function applyStatus(
-  pokemon: PokemonCombatState,
-  statusType: StatusType,
-  stacks: number
-): PokemonCombatState {
-  const newStatuses = [...pokemon.statuses];
-  const existingIndex = newStatuses.findIndex(s => s.type === statusType);
-  
-  if (existingIndex >= 0) {
-    newStatuses[existingIndex] = {
-      ...newStatuses[existingIndex],
-      stacks: newStatuses[existingIndex].stacks + stacks,
-    };
-  } else {
-    newStatuses.push({ type: statusType, stacks });
+  state: CombatState,
+  target: Combatant,
+  type: StatusType,
+  stacks: number,
+  sourceId?: string,
+): ApplyStatusResult {
+  // Check for immunity
+  if (checkStatusImmunity(target, type)) {
+    return { applied: false, affectsSpeed: false }; // Status was blocked
   }
 
-  return {
-    ...pokemon,
-    statuses: newStatuses,
-  };
-}
+  const existing = getStatus(target, type);
 
-export function applyBuff(
-  pokemon: PokemonCombatState,
-  buffType: BuffType,
-  stacks: number
-): PokemonCombatState {
-  const newBuffs = [...pokemon.buffs];
-  const existingIndex = newBuffs.findIndex(b => b.type === buffType);
-  
-  if (existingIndex >= 0) {
-    newBuffs[existingIndex] = {
-      ...newBuffs[existingIndex],
-      stacks: newBuffs[existingIndex].stacks + stacks,
-    };
-  } else {
-    newBuffs.push({ type: buffType, stacks });
+  switch (type) {
+    case 'burn':
+    case 'poison':
+    case 'sleep':
+    case 'strength':
+    case 'paralysis':
+    case 'slow':
+    case 'enfeeble':
+    case 'evasion':
+    case 'haste':
+    case 'taunt':
+      // Additive stacking for all standard statuses
+      if (existing) {
+        existing.stacks += stacks;
+      } else {
+        target.statuses.push({
+          type,
+          stacks,
+          appliedOrder: state.statusApplyCounter++,
+        });
+      }
+      break;
+
+    case 'leech':
+      // Additive stacking, tracks source for healing
+      if (existing) {
+        existing.stacks += stacks;
+        existing.sourceId = sourceId; // Update source to latest applier
+      } else {
+        target.statuses.push({
+          type,
+          stacks,
+          sourceId,
+          appliedOrder: state.statusApplyCounter++,
+        });
+      }
+      break;
   }
-
-  return {
-    ...pokemon,
-    buffs: newBuffs,
-  };
+  return { applied: true, affectsSpeed: isSpeedStatus(type) };
 }
 
+/**
+ * Get the effective speed of a combatant, accounting for Paralysis, Slow, Haste, and passive bonuses.
+ */
+export function getEffectiveSpeed(combatant: Combatant): number {
+  const paralysis = getStatusStacks(combatant, 'paralysis');
+  const slow = getStatusStacks(combatant, 'slow');
+  const haste = getStatusStacks(combatant, 'haste');
+  const passiveBonus = getPassiveSpeedBonus(combatant);
+  return Math.max(combatant.baseSpeed + passiveBonus + haste - paralysis - slow, 0);
+}
+
+/**
+ * Process start-of-turn status ticks (Step 1).
+ * All status effects and decay now happen at end of round.
+ * This function is kept for compatibility but does nothing.
+ */
+export function processStartOfTurnStatuses(
+  _state: CombatState,
+  _combatant: Combatant,
+): LogEntry[] {
+  // All status processing moved to processRoundBoundary
+  return [];
+}
+
+/**
+ * Process end-of-turn status ticks (Step 7).
+ * All status effects and decay now happen at end of round.
+ * This function is kept for compatibility but does nothing.
+ */
 export function processEndOfTurnStatuses(
-  pokemon: PokemonCombatState
-): PokemonCombatState {
-  let newHp = pokemon.currentHp;
-  const newStatuses: StatusEffect[] = [];
+  _combatant: Combatant,
+  _round: number,
+): LogEntry[] {
+  // All status processing moved to processRoundBoundary
+  return [];
+}
 
-  // Process each status effect
-  for (const status of pokemon.statuses) {
-    // Apply damage equal to stacks
-    newHp = Math.max(0, newHp - status.stacks);
-    
-    // Decay stacks by 1 (minimum 0)
-    const newStacks = Math.max(0, status.stacks - 1);
-    if (newStacks > 0) {
-      newStatuses.push({ ...status, stacks: newStacks });
+/**
+ * Round boundary cleanup — Section 7.2.
+ * Called after the last combatant's turn ends.
+ * ALL status effects tick and decay here.
+ */
+export function processRoundBoundary(state: CombatState): LogEntry[] {
+  const logs: LogEntry[] = [];
+
+  // Process all status effects for each combatant
+  for (const c of state.combatants) {
+    if (!c.alive) continue;
+
+    // Process statuses in appliedOrder (oldest first)
+    const sorted = [...c.statuses].sort((a, b) => a.appliedOrder - b.appliedOrder);
+
+    for (const status of sorted) {
+      if (!c.alive) break;
+
+      // Burn: deal damage equal to stacks, then decay by 1
+      if (status.type === 'burn') {
+        if (c.passiveIds.includes('magic_guard')) {
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Magic Guard: ${c.name} takes no Burn damage! (${status.stacks} → ${status.stacks - 1} stacks)`,
+          });
+        } else {
+          const dmg = applyBypassDamage(c, status.stacks);
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Burn deals ${dmg} damage to ${c.name}. (${status.stacks} → ${status.stacks - 1} stacks)`,
+          });
+        }
+        status.stacks -= 1;
+        if (status.stacks <= 0) {
+          removeStatus(c, 'burn');
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Burn on ${c.name} expired.`,
+          });
+        }
+      }
+
+      // Poison: deal damage equal to stacks, then escalate by 1
+      // Potent Venom: Poison deals double damage
+      if (status.type === 'poison') {
+        if (c.passiveIds.includes('magic_guard')) {
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Magic Guard: ${c.name} takes no Poison damage! (${status.stacks} → ${status.stacks + 1} stacks)`,
+          });
+        } else {
+          // Check if any enemy has Potent Venom (to double our poison damage)
+          const hasPotentVenomApplied = status.sourceId
+            ? state.combatants.find(comb => comb.id === status.sourceId)?.passiveIds.includes('potent_venom')
+            : false;
+          const poisonDamage = hasPotentVenomApplied ? status.stacks * 2 : status.stacks;
+          const dmg = applyBypassDamage(c, poisonDamage);
+          const potentNote = hasPotentVenomApplied ? ' (Potent Venom!)' : '';
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Poison deals ${dmg} damage to ${c.name}${potentNote}. (${status.stacks} → ${status.stacks + 1} stacks)`,
+          });
+        }
+        status.stacks += 1; // Poison escalates!
+      }
+
+      // Leech: deal damage, heal source, decay by 1
+      if (status.type === 'leech') {
+        if (c.passiveIds.includes('magic_guard')) {
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Magic Guard: ${c.name} takes no Leech damage! (${status.stacks} → ${status.stacks - 1} stacks)`,
+          });
+        } else {
+          const dmg = applyBypassDamage(c, status.stacks);
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Leech deals ${dmg} damage to ${c.name}. (${status.stacks} → ${status.stacks - 1} stacks)`,
+          });
+
+          // Heal the source
+          if (status.sourceId) {
+            const source = getCombatant(state, status.sourceId);
+            if (source?.alive) {
+              const healed = applyHeal(source, status.stacks);
+              if (healed > 0) {
+                logs.push({
+                  round: state.round,
+                  combatantId: source.id,
+                  message: `${source.name} heals ${healed} HP from Leech.`,
+                });
+              }
+            }
+          }
+        }
+
+        status.stacks -= 1;
+        if (status.stacks <= 0) {
+          removeStatus(c, 'leech');
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Leech on ${c.name} expired.`,
+          });
+        }
+      }
+
+      // All statuses: decay by 1 per round
+      if (status.type === 'paralysis' || status.type === 'slow' ||
+          status.type === 'enfeeble' || status.type === 'strength' ||
+          status.type === 'evasion' || status.type === 'sleep' ||
+          status.type === 'haste' || status.type === 'taunt') {
+        const statusName = status.type.charAt(0).toUpperCase() + status.type.slice(1);
+        logs.push({
+          round: state.round,
+          combatantId: c.id,
+          message: `${statusName} on ${c.name} fades. (${status.stacks} → ${status.stacks - 1} stacks)`,
+        });
+        status.stacks -= 1;
+        if (status.stacks <= 0) {
+          removeStatus(c, status.type);
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `${statusName} on ${c.name} expired.`,
+          });
+        }
+      }
+    }
+
+    // Fortifying Aria: Heal allies for half of current Block (before block resets)
+    if (c.passiveIds.includes('fortifying_aria') && c.block > 0 && c.alive) {
+      const healAmount = Math.floor(c.block / 2);
+      if (healAmount > 0) {
+        const allies = state.combatants.filter(a => a.alive && a.side === c.side && a.id !== c.id);
+        for (const ally of allies) {
+          const healed = applyHeal(ally, healAmount);
+          if (healed > 0) {
+            logs.push({
+              round: state.round,
+              combatantId: c.id,
+              message: `Fortifying Aria: ${ally.name} heals ${healed} HP! (${c.name}'s Block: ${c.block})`,
+            });
+          }
+        }
+      }
+    }
+
+    // Luna: Heal all allies for 4 HP at end of round
+    if (c.passiveIds.includes('luna') && c.alive) {
+      const allies = state.combatants.filter(a => a.alive && a.side === c.side);
+      for (const ally of allies) {
+        const healed = applyHeal(ally, 4);
+        if (healed > 0) {
+          logs.push({
+            round: state.round,
+            combatantId: c.id,
+            message: `Luna: ${ally.name} heals ${healed} HP! (HP: ${ally.hp}/${ally.maxHp})`,
+          });
+        }
+      }
+    }
+
+    // Reset Block (but Pressure Hull retains 50% of current block)
+    if (c.block > 0) {
+      const hasPressureHull = c.passiveIds.includes('pressure_hull');
+      if (hasPressureHull) {
+        const retained = Math.floor(c.block * 0.5);
+        logs.push({
+          round: state.round,
+          combatantId: c.id,
+          message: `${c.name}'s Block (${c.block}) resets to ${retained} (Pressure Hull).`,
+        });
+        c.block = retained;
+      } else {
+        logs.push({
+          round: state.round,
+          combatantId: c.id,
+          message: `${c.name}'s Block (${c.block}) resets to 0.`,
+        });
+        c.block = 0;
+      }
     }
   }
 
-  // Buffs don't decay, they persist
-  return {
-    ...pokemon,
-    currentHp: newHp,
-    statuses: newStatuses,
-  };
-}
-
-export function getAttackUpBonus(pokemon: PokemonCombatState): number {
-  const attackUp = pokemon.buffs.find(b => b.type === 'attackUp');
-  return attackUp ? attackUp.stacks : 0;
-}
-
-export function resetBlock(pokemon: PokemonCombatState): PokemonCombatState {
-  return {
-    ...pokemon,
-    block: 0,
-  };
+  return logs;
 }

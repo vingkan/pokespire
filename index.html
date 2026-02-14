@@ -1,10 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pokespire</title>
+    <title>Pokespire</title>
+    <style>
+      @font-face {
+        font-family: 'Kreon';
+        src: url('/assets/Fonts/Kreon/Kreon-VariableFont_wght.ttf') format('truetype');
+        font-weight: 300 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #0f0f17; overflow: hidden; font-family: 'Kreon', Georgia, serif; color: #f0e6d3; }
+      #root::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9999;
+        background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
