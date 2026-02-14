@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import type { CombatState, LogEntry, Combatant, Column, MoveRange, Position } from '../../engine/types';
+import type { CombatState, LogEntry, Combatant, Column, MoveRange, Position, MoveDefinition } from '../../engine/types';
 import { getCurrentCombatant } from '../../engine/combat';
 import { getMove, MOVES } from '../../data/loaders';
 import { getValidTargets, getCardValidTargets, requiresTargetSelection, isAoERange, getValidSwitchTargets } from '../../engine/position';
@@ -23,6 +23,7 @@ import { THEME } from '../theme';
 import battleBgAct1 from '../../../assets/backgrounds/rocket_lab_act_1_v4.png';
 import battleBgAct2 from '../../../assets/backgrounds/rocket_lab_act_2.png';
 import battleBgAct3 from '../../../assets/backgrounds/rocket_lab_act_3.png';
+import { playSound, type SoundEffect } from '../utils/sound';
 
 export type BattleResult = 'victory' | 'defeat';
 
@@ -536,80 +537,35 @@ export function BattleScreen({
     return { affectedHoverIds: affectedIds, visibleDamagePreviews: filtered };
   }, [hoveredTargetId, activeCardRange, state.combatants, damagePreviews, dragTargetableIds]);
 
-  // Parse new logs to trigger visual effects
+  // Parse new logs to trigger visual effects and sound
   useEffect(() => {
     const newLogs = logs.slice(processedLogsRef.current);
     processedLogsRef.current = logs.length;
 
+    // Track the current card being played so damage/heal/block sounds
+    // can reference the card's contact flag for physical vs special
+    let currentCardDef: MoveDefinition | undefined;
+
+    // Deduplicate sounds within this batch — AoE hits and passive triggers
+    // can produce many logs of the same type; play each sound at most once.
+    const playedSounds = new Set<SoundEffect>();
+    const playSoundOnce = (sound: SoundEffect) => {
+      if (!playedSounds.has(sound)) {
+        playedSounds.add(sound);
+        playSound(sound);
+      }
+    };
+
     for (let i = 0; i < newLogs.length; i++) {
       const log = newLogs[i];
 
-      // Parse damage: "X takes Y damage" (most common pattern)
-      const damageMatch = log.message.match(/takes (\d+)(?: \w+)? damage/i);
-      // Also match multi-hit: "is hit X times for Y total damage"
-      const multiHitMatch = log.message.match(/is hit \d+ times for (\d+) total damage/i);
-      // Also match status damage: "Burn/Poison/Leech deals X damage to Y"
-      const statusDamageMatch = log.message.match(/deals (\d+) damage to (\w+)/i);
-
-      if (damageMatch || multiHitMatch) {
-        const damage = parseInt(damageMatch?.[1] || multiHitMatch?.[1] || '0');
-        // Target is in the log's combatantId
-        const target = state.combatants.find(c => c.id === log.combatantId);
-        if (target && damage > 0) {
-          battleEffects.addEvent({
-            type: 'damage',
-            targetId: target.id,
-            value: damage,
-          });
-        }
-      } else if (statusDamageMatch) {
-        const damage = parseInt(statusDamageMatch[1]);
-        const targetName = statusDamageMatch[2];
-        const target = state.combatants.find(c =>
-          c.name.toLowerCase() === targetName.toLowerCase()
-        );
-        if (target && damage > 0) {
-          battleEffects.addEvent({
-            type: 'damage',
-            targetId: target.id,
-            value: damage,
-          });
-        }
-      }
-
-      // Parse heal: "heals X HP" or "drains X HP"
-      const healMatch = log.message.match(/(?:heals|drains) (\d+) HP/i);
-      if (healMatch) {
-        const heal = parseInt(healMatch[1]);
-        const target = state.combatants.find(c => c.id === log.combatantId);
-        if (target && heal > 0) {
-          battleEffects.addEvent({
-            type: 'heal',
-            targetId: target.id,
-            value: heal,
-          });
-        }
-      }
-
-      // Parse block: "gains X Block"
-      const blockMatch = log.message.match(/gains (\d+) Block/i);
-      if (blockMatch) {
-        const block = parseInt(blockMatch[1]);
-        const target = state.combatants.find(c => c.id === log.combatantId);
-        if (target && block > 0) {
-          battleEffects.addEvent({
-            type: 'block',
-            targetId: target.id,
-            value: block,
-          });
-        }
-      }
-
-      // Parse card played: "X plays CardName (cost Y)."
+      // Parse card played first so currentCardDef is set before damage/heal/block
       const cardMatch = log.message.match(/^(.+?) plays (.+?) \(cost/i);
       if (cardMatch) {
         const sourceName = cardMatch[1];
         const cardName = cardMatch[2];
+        // Track current card definition for sound categorization
+        currentCardDef = Object.values(MOVES).find(m => m.name === cardName);
         battleEffects.showCardPlayed(sourceName, cardName);
 
         // For enemy cards, trigger card fly animation
@@ -617,11 +573,9 @@ export function BattleScreen({
         if (source && source.side === 'enemy') {
           const sourcePos = getPositionForCombatant(source.id);
           if (sourcePos) {
-            // Look up card definition by name for type/effects info
-            const cardDef = Object.values(MOVES).find(m => m.name === cardName);
-            const hasDamage = cardDef?.effects.some(e => ['damage', 'multi_hit', 'recoil', 'heal_on_hit', 'self_ko', 'set_damage', 'percent_hp'].includes(e.type)) ?? false;
-            const isBlockCard = !hasDamage && (cardDef?.effects.some(e => e.type === 'block') ?? false);
-            const cardType = cardDef?.type ?? 'normal';
+            const hasDamage = currentCardDef?.effects.some(e => ['damage', 'multi_hit', 'recoil', 'heal_on_hit', 'self_ko', 'set_damage', 'percent_hp'].includes(e.type)) ?? false;
+            const isBlockCard = !hasDamage && (currentCardDef?.effects.some(e => e.type === 'block') ?? false);
+            const cardType = currentCardDef?.type ?? 'normal';
 
             if (isBlockCard) {
               // Shield animation at enemy's own position (no beam)
@@ -663,6 +617,75 @@ export function BattleScreen({
         }
       }
 
+      // Parse damage: "X takes Y damage" (most common pattern)
+      const damageMatch = log.message.match(/takes (\d+)(?: \w+)? damage/i);
+      // Also match multi-hit: "is hit X times for Y total damage"
+      const multiHitMatch = log.message.match(/is hit \d+ times for (\d+) total damage/i);
+      // Also match status damage: "Burn/Poison/Leech deals X damage to Y"
+      const statusDamageMatch = log.message.match(/deals (\d+) damage to (\w+)/i);
+
+      if (damageMatch || multiHitMatch) {
+        const damage = parseInt(damageMatch?.[1] || multiHitMatch?.[1] || '0');
+        // Target is in the log's combatantId
+        const target = state.combatants.find(c => c.id === log.combatantId);
+        if (target && damage > 0) {
+          battleEffects.addEvent({
+            type: 'damage',
+            targetId: target.id,
+            value: damage,
+          });
+          // Play attack sound — skip recoil self-damage (not a card effect hit)
+          const isRecoil = log.message.includes('recoil');
+          if (!isRecoil) {
+            playSoundOnce(currentCardDef?.contact ? 'physical_attack' : 'special_attack');
+          }
+        }
+      } else if (statusDamageMatch) {
+        const damage = parseInt(statusDamageMatch[1]);
+        const targetName = statusDamageMatch[2];
+        const target = state.combatants.find(c =>
+          c.name.toLowerCase() === targetName.toLowerCase()
+        );
+        if (target && damage > 0) {
+          battleEffects.addEvent({
+            type: 'damage',
+            targetId: target.id,
+            value: damage,
+          });
+          // No sound for status damage (burn/poison/leech) — ambient dot effects
+        }
+      }
+
+      // Parse heal: "heals X HP" or "drains X HP"
+      const healMatch = log.message.match(/(?:heals|drains) (\d+) HP/i);
+      if (healMatch) {
+        const heal = parseInt(healMatch[1]);
+        const target = state.combatants.find(c => c.id === log.combatantId);
+        if (target && heal > 0) {
+          battleEffects.addEvent({
+            type: 'heal',
+            targetId: target.id,
+            value: heal,
+          });
+          playSoundOnce('heal');
+        }
+      }
+
+      // Parse block: "gains X Block"
+      const blockMatch = log.message.match(/gains (\d+) Block/i);
+      if (blockMatch) {
+        const block = parseInt(blockMatch[1]);
+        const target = state.combatants.find(c => c.id === log.combatantId);
+        if (target && block > 0) {
+          battleEffects.addEvent({
+            type: 'block',
+            targetId: target.id,
+            value: block,
+          });
+          playSoundOnce('block');
+        }
+      }
+
     }
   }, [logs, state.combatants, battleEffects, getPositionForCombatant]);
 
@@ -680,6 +703,7 @@ export function BattleScreen({
     const prev = prevStatusRef.current;
     // Only diff if we have a previous snapshot (skip initial render)
     if (prev.size > 0) {
+      let healSoundPlayed = false;
       for (const c of state.combatants) {
         const prevStatuses = prev.get(c.id);
         const currStatuses = currentSnapshot.get(c.id)!;
@@ -693,6 +717,11 @@ export function BattleScreen({
               statusType,
               stacks: stacks - prevStacks,
             });
+            // Play heal sound once for buff status applications (self-beneficial)
+            if (!healSoundPlayed && ['strength', 'haste', 'evasion'].includes(statusType)) {
+              playSound('heal');
+              healSoundPlayed = true;
+            }
           }
         }
       }

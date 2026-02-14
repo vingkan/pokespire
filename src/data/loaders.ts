@@ -21,6 +21,7 @@ interface RawMoveData {
   singleUse?: boolean;
   uncollectible?: boolean;
   goldOnHit?: boolean;
+  contact?: boolean;
 }
 
 // Type for raw pokemon data from JSON (without id)
@@ -56,6 +57,7 @@ export const MOVES: Record<string, MoveDefinition> = Object.fromEntries(
       singleUse: move.singleUse ?? false,
       uncollectible: move.uncollectible ?? false,
       goldOnHit: move.goldOnHit ?? false,
+      contact: move.contact ?? false,
     },
   ])
 );

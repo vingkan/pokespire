@@ -222,6 +222,7 @@ export interface MoveDefinition {
   singleUse?: boolean; // true = permanently removed from deck after use (not just vanish for battle)
   uncollectible?: boolean; // true = cannot appear in drafts, hidden in Card Dex by default
   goldOnHit?: boolean; // true = gain gold equal to damage dealt (Pay Day)
+  contact?: boolean;   // true = physical contact move, false/undefined = special/ranged
 }
 
 // --- Status Effects ---
