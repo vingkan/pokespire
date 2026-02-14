@@ -15,7 +15,6 @@ import {
   applyDrawModifier,
   addDazedCards,
   applyDamage,
-  applyPartyPercentHeal,
   applyFullHealAll,
   addGold,
 } from './state';

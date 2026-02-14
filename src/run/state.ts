@@ -1041,7 +1041,7 @@ export function assignRandomEvents(
   const newNodes = nodes.map(node => {
     if (node.type !== 'event') return node;
     // Skip nodes that already have an assigned eventId
-    if ((node as Record<string, unknown>).eventId && (node as Record<string, unknown>).eventId !== '') return node;
+    if ('eventId' in node && node.eventId && node.eventId !== '') return node;
 
     // Filter to events not yet used
     const pool = available.filter(e => !usedThisAct.has(e.id));
@@ -1189,14 +1189,14 @@ export function migrateRunState(run: RunState): RunState {
 
   // Migrate old eventType field to eventId on event nodes
   const needsEventMigration = migrated.nodes.some(
-    n => n.type === 'event' && !(n as Record<string, unknown>).eventId && (n as Record<string, unknown>).eventType
+    n => n.type === 'event' && !('eventId' in n && n.eventId) && ('eventType' in n)
   );
   if (needsEventMigration) {
     migrated = {
       ...migrated,
       nodes: migrated.nodes.map(n => {
         if (n.type !== 'event') return n;
-        const legacy = n as Record<string, unknown>;
+        const legacy = n as unknown as Record<string, unknown>;
         // Map old eventTypes to reasonable default event IDs
         const typeToDefault: Record<string, string> = {
           train: 'training_camp',

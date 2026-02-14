@@ -61,6 +61,7 @@ export function createTestCombatant(options: TestCombatantOptions = {}): Combata
       dragonsMajestyReducedIndex: null,
       sniperUsedThisTurn: false,
       hasSwitchedThisTurn: false,
+      finisherUsedThisTurn: false,
     },
     costModifiers: {},
   };
@@ -79,6 +80,7 @@ export function createTestCombatState(combatants: Combatant[]): CombatState {
     log: [],
     statusApplyCounter: 0,
     slipstreamProtectedIds: [],
+    goldEarned: 0,
   };
 }
 

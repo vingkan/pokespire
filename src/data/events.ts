@@ -68,9 +68,6 @@ export function isInteractiveEffect(effect: EventEffect): boolean {
 export function needsPokemonSelection(effects: EventEffect[]): boolean {
   return effects.some(e => {
     if ('target' in e && e.target === 'one') return true;
-    if (e.type === 'addDazed') return true;
-    if (e.type === 'energyModifier') return true;
-    if (e.type === 'drawModifier') return true;
     return false;
   });
 }
