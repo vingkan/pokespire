@@ -405,7 +405,6 @@ function FormationSlot({
     ? makeSpriteUrl(formId, side === 'player' ? 'back' : 'front')
     : null;
 
-  const sideColor = side === 'player' ? THEME.status.heal : THEME.status.damage;
   const borderColor = isSelected
     ? THEME.accent
     : dragOver
